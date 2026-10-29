@@ -1,0 +1,279 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>Hearthwild · The Stillwood</title>
+    <link rel="stylesheet" href="/style.css" />
+    <link rel="stylesheet" href="/hud.css" /><link rel="stylesheet" href="/layout.css" /><link rel="stylesheet" href="/combat-ui.css" />
+  </head>
+  <body>
+    <canvas
+      id="world"
+      tabindex="0"
+      aria-label="The Stillwood, an explorable three dimensional forest"
+    ></canvas>
+    <div id="vignette"></div>
+    <header class="brand">
+      <span class="sigil">✦</span>
+      <div>HEARTHWILD<small>THE STILLWOOD</small></div>
+    </header>
+    <div id="entry" class="entry">
+      <div class="entry-copy">
+        <span class="eyebrow">A SMALL WORLD. A SHARED ADVENTURE.</span>
+        <h1>Beyond the<br />old stone arch.</h1>
+        <p>
+          A quiet forest is waking.<br />Choose your allegiance. Find your
+          people.<br />Leave a little braver than you arrived.
+        </p>
+        <span class="world-note"
+          >ORIGINAL COOPERATIVE RPG · EARLY PLAYABLE BUILD</span
+        >
+      </div>
+      <div class="entry-flow">
+      <section id="account-panel" class="join-panel"><span class="eyebrow">YOUR ACCOUNT · YOUR ADVENTURERS</span><h2>Welcome to Hearthwild</h2><p id="setup-note"></p><form id="account-form"><label for="username">Username</label><input id="username" autocomplete="username" minlength="3" maxlength="32" required><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" minlength="10" maxlength="128" required><button id="sign-in" class="primary">Sign in</button><button id="create-account" type="button">Create account</button></form><p id="account-error" role="alert"></p></section>
+      <section id="roster-panel" class="join-panel" hidden><span class="eyebrow" id="account-name"></span><h2>Your adventurers</h2><div id="character-roster"></div><p id="roster-error" role="alert"></p><button id="new-character" class="primary">Create character</button><button id="sign-out">Sign out</button></section>
+      <form id="join" class="join-panel" hidden>
+        <span class="eyebrow">YOUR JOURNEY STARTS HERE</span>
+        <h2>Enter the Stillwood</h2>
+        <label for="name">Adventurer’s name</label
+        ><input
+          id="name"
+          name="name"
+          minlength="2"
+          maxlength="18"
+          placeholder="e.g. Rowan"
+          autocomplete="off"
+          required
+          pattern="[A-Za-z][A-Za-z0-9 -]{1,17}"
+        />
+        <label for="class-choice">Character class</label
+        ><select id="class-choice" name="classId">
+          <option value="warrior">Warrior · Rage / melee</option>
+          <option value="warlock">Warlock · Mana / ranged magic</option>
+          <option value="druid">Druid · Nature magic / healing</option>
+          <option value="rogue">Rogue · Energy / blades</option>
+        </select>
+        <fieldset class="body-choice">
+          <legend>Body</legend>
+          <label class="faction"><input type="radio" name="gender" value="male" checked /><span><strong>Masculine</strong></span></label
+          ><label class="faction"><input type="radio" name="gender" value="female" /><span><strong>Feminine</strong></span></label>
+        </fieldset>
+        <fieldset>
+          <legend>Choose your faction</legend>
+          <label class="faction dawn"
+            ><input type="radio" name="faction" value="dawnward" checked /><span
+              ><strong>☀ Dawnward</strong
+              ><small>Keepers of the ember</small></span
+            ></label
+          ><label class="faction moss"
+            ><input type="radio" name="faction" value="mossbound" /><span
+              ><strong>❧ Mossbound</strong
+              ><small>Voices of the wild</small></span
+            ></label
+          >
+        </fieldset>
+        <p class="faction-note">
+          Your faction shares a language. The other faction cannot read your
+          chat.
+        </p>
+        <button class="primary" id="enter">
+          Begin your journey <span>→</span>
+        </button>
+        <button id="back-roster" type="button">Back to characters</button>
+        <p id="entry-error" role="alert"></p>
+      </form>
+      </div>
+    </div>
+    <main id="hud" hidden>
+      <section class="character panel">
+        <div class="portrait">✦</div>
+        <div>
+          <h2 id="player-name">Adventurer</h2>
+          <span id="player-faction"></span>
+          <div class="health-track"><div id="health-bar"></div></div>
+          <small id="health-text">100 / 100</small
+          ><small id="class-stats"></small>
+          <div class="power-track"><div id="power-bar"></div></div>
+          <small id="power-text"></small>
+          <div class="xp-track"><div id="xp-bar"></div></div>
+          <small id="xp-text"></small>
+        </div>
+      </section>
+      <div class="zone-name">
+        <span class="eyebrow">THE BORDERLANDS</span>
+        <h1>The Stillwood</h1>
+        <p id="connection" role="status">Connecting to the world…</p>
+      </div>
+      <aside class="quest panel">
+        <span class="eyebrow">THE STILLWOOD · LOCAL ADVENTURES</span>
+        <h2>Objectives</h2>
+        <div id="quest-list"></div>
+        <div class="purse"><span>YOUR PURSE</span><b id="coins">0 gold</b></div>
+        <button id="bag-toggle">Bag & equipment <kbd>I</kbd></button>
+      </aside>
+      <section
+        id="bag"
+        class="panel bag"
+        hidden
+        aria-label="Bags"
+      >
+        <div class="panel-heading">
+          <h2>Backpack</h2>
+          <button id="bag-close" aria-label="Close inventory">×</button>
+        </div>
+        <p id="stats"></p>
+        <p id="herbs"></p>
+        <label for="bag-search" class="sr-only">Search bags</label
+        ><input id="bag-search" placeholder="Search bags…" autocomplete="off" />
+        <div id="equipment-slots"></div>
+        <div id="inventory"></div>
+        <div id="item-detail" role="status"></div>
+        <small id="bag-capacity"></small>
+      </section>
+      <section id="character-sheet" class="window" hidden aria-label="Character information"><header><h2 id="sheet-name">Character</h2><button id="character-close" aria-label="Close character information">×</button></header><div class="character-sheet-body"><div class="paper-doll"><div id="paper-figure">✦</div><div id="worn-items"></div></div><div id="character-info"></div></div><p id="character-help">Select an equipment slot to inspect its item. Open Bags to equip new loot.</p></section>
+      <dialog id="dialogue">
+        <button id="dialogue-close" aria-label="Close conversation">×</button
+        ><span class="eyebrow" id="npc-role"></span>
+        <h2 id="npc-name"></h2>
+        <p id="npc-text"></p>
+        <div id="npc-quest"></div>
+        <button class="primary" id="quest-action"></button><button id="npc-trade" hidden>Trade & professions</button>
+      </dialog>
+      <button id="minimap-toggle" aria-label="Open world map">
+        <span class="minimap-zone">The Stillwood</span
+        ><canvas
+          id="minimap"
+          width="240"
+          height="240"
+          aria-label="Local minimap"
+        ></canvas
+        ><span class="north">N</span><span id="map-coordinates"></span>
+      </button>
+      <section id="atlas" class="window" hidden aria-label="Map and quest log">
+        <header>
+          <h2 id="atlas-title">Map & Quest Log</h2>
+          <button id="atlas-close" aria-label="Close map and quest log">
+            ×
+          </button>
+        </header>
+        <nav class="window-tabs">
+          <button id="map-tab">World map <kbd>M</kbd></button
+          ><button id="journal-tab">Quest log <kbd>L</kbd></button>
+        </nav>
+        <div class="atlas-body">
+          <div class="cartography">
+            <canvas
+              id="world-map"
+              width="720"
+              height="720"
+              aria-label="Map of the Stillwood"
+            ></canvas>
+            <div id="map-pins"></div>
+            <div class="map-legend">
+              ▲ You · ! Quest · ? Turn-in · ◆ Starleaf · ● Creatures · ¤ Merchant
+            </div>
+          </div>
+          <aside class="journal">
+            <label for="quest-search">Quest lookup</label
+            ><input
+              id="quest-search"
+              placeholder="Search quests or objectives…"
+              autocomplete="off"
+            /><label for="quest-filter" class="sr-only">Quest status</label
+            ><select id="quest-filter">
+              <option value="all">All quests</option>
+              <option value="active">Active</option>
+              <option value="offered">Available</option>
+              <option value="complete">Completed</option>
+            </select>
+            <div id="journal-list"></div>
+            <div id="quest-detail"></div>
+          </aside>
+        </div>
+      </section>
+      <section id="spellbook" class="window" hidden aria-label="Spellbook">
+        <header>
+          <h2>Spellbook & abilities</h2>
+          <button id="spellbook-close" aria-label="Close spellbook">×</button>
+        </header>
+        <div id="spell-list"></div>
+      </section>
+      <section id="target-frame" class="unit-frame" hidden>
+        <h2 id="target-name"></h2>
+        <div class="health-track"><div id="target-health"></div></div>
+        <small id="target-distance"></small>
+      </section>
+      <nav id="micro-menu" aria-label="Game menus"><button id="roster-shortcut">Characters</button><button id="profession-menu">Professions <kbd>K</kbd></button><button id="game-menu-button">Menu <kbd>Esc</kbd></button>
+        <button id="character-menu">Character <kbd>C</kbd></button
+        ><button id="spell-menu">Spells <kbd>P</kbd></button
+        ><button id="quest-menu">Quests <kbd>L</kbd></button
+        ><button id="map-menu">Map <kbd>M</kbd></button
+        ><button id="bags-menu">Bags <kbd>B</kbd></button>
+      </nav>
+      <section class="chat panel" aria-label="Player communication">
+        <div class="chat-header">
+          <h2>Campfire voices</h2>
+          <span id="chat-language">Faction language</span>
+        </div>
+        <div id="messages" role="log" aria-live="polite">
+          <p class="chat-hint">
+            No voices yet. Say hello to someone on your side.
+          </p>
+        </div>
+        <form id="chat-form">
+          <div class="chat-routing">
+            <label for="channel" class="sr-only">Chat channel</label
+            ><select id="channel">
+              <option value="nearby">Nearby</option>
+              <option value="faction">Faction</option>
+              <option value="party">Party</option>
+              <option value="whisper">Whisper</option></select
+            ><label for="whisper-to" class="sr-only">Whisper recipient</label
+            ><input
+              id="whisper-to"
+              maxlength="18"
+              placeholder="Adventurer’s name"
+              hidden
+            />
+          </div>
+          <div class="chat-compose">
+            <label for="chat-text" class="sr-only">Message</label
+            ><input
+              id="chat-text"
+              maxlength="280"
+              placeholder="Enter to chat…"
+              autocomplete="off"
+            /><button aria-label="Send message">↗</button>
+          </div>
+        </form>
+        <p id="chat-status" role="status">
+          Same faction only · Nearby reaches 18 paces
+        </p>
+      </section>
+      <div class="bottom">
+        <div id="target" role="status">Seek a brambleling beyond the arch</div>
+        <div class="ability-row">
+          <div id="hotbar" aria-label="Class abilities"></div>
+          <div class="controls">
+            <span><kbd>W A S D</kbd> Move</span
+            ><span><kbd>Drag</kbd> Orbit · Scroll to zoom</span
+            ><span
+              ><kbd>Enter</kbd> Chat · <kbd>F</kbd> Interact ·
+              <kbd>I</kbd> Bag</span
+            >
+          </div>
+        </div>
+      </div>
+      <nav class="session">
+        <button id="characters-menu">Characters</button
+        ><button id="leave">Leave world</button>
+      </nav>
+      <button id="chat-toggle" aria-expanded="false">Chat</button><button id="objectives-toggle" aria-expanded="false">Objectives</button>
+      <button id="interact" class="interact">F · Talk / Gather / Loot</button>
+      <div id="combat-status" role="status"></div>
+      <div id="notice" role="status"></div>
+    </main>
+    <script type="module" src="/game.js"></script>
+  </body>
+</html>

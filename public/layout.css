@@ -1,0 +1,837 @@
+/* One spacing contract for all persistent HUD controls. */
+:root {
+  --slot: clamp(20px, calc((100vw - 70px) / 12 - 3px), 42px);
+}
+.entry-flow {
+  width: 360px;
+  max-width: 100%;
+  flex-shrink: 0;
+}
+.entry-flow .join-panel {
+  width: 100%;
+  max-height: calc(100dvh - 100px);
+  overflow: auto;
+}
+.entry #account-form label {
+  display: block;
+  font-size: 12px;
+  margin: 12px 0 5px;
+}
+.entry #account-form input {
+  display: block;
+  width: 100%;
+}
+.entry #account-form button {
+  width: 100%;
+  margin-top: 14px;
+}
+.entry #create-account {
+  background: #263a2e;
+}
+#setup-note {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.7;
+  margin: 8px 0 16px;
+}
+#account-error,
+#roster-error {
+  font-size: 12px;
+  color: #ffc0a3;
+  margin-top: 10px;
+}
+#character-roster {
+  display: grid;
+  gap: 8px;
+  max-height: 40vh;
+  overflow: auto;
+  margin: 15px 0;
+}
+#character-roster button {
+  text-align: left;
+  padding: 12px;
+}
+#character-roster strong {
+  display: block;
+  font: 20px Georgia;
+  color: #e7c78e;
+}
+#character-roster small {
+  font-size: 11px;
+  margin-top: 5px;
+}
+#sign-out,
+#back-roster {
+  font-size: 11px;
+  margin-top: 12px;
+  width: 100%;
+}
+.entry-flow .join-panel h2 {
+  font-size: 25px;
+}
+.entry .world-note {
+  font-size: 8px;
+}
+.character {
+  top: 16px;
+  left: 16px;
+  width: 235px;
+  height: 121px;
+  overflow: hidden;
+}
+.character h2 {
+  font-size: 15px;
+}
+.unit-frame {
+  top: 16px;
+  left: 268px;
+  width: 196px;
+  max-height: 92px;
+}
+#minimap-toggle {
+  top: 16px;
+  right: 16px;
+  width: 150px;
+  height: 174px;
+}
+#minimap {
+  width: 138px;
+  height: 138px;
+  left: 6px;
+}
+.north {
+  left: 70px;
+}
+.quest {
+  top: 206px;
+  right: 16px;
+  width: 205px;
+  max-height: max(100px, calc(100dvh - 465px));
+  overflow: auto;
+}
+.chat {
+  left: 16px;
+  bottom: 112px;
+  width: 270px;
+  max-height: 220px;
+  overflow: auto;
+}
+.chat #messages {
+  height: 80px;
+}
+.session {
+  left: 16px;
+  right: auto;
+  top: auto;
+  bottom: 85px;
+  height: 20px;
+}
+.session button {
+  height: 20px;
+}
+.bottom {
+  left: 50%;
+  right: auto;
+  bottom: 14px;
+  transform: translateX(-50%);
+  width: max-content;
+  max-width: calc(100vw - 24px);
+}
+#hotbar {
+  grid-template-columns: repeat(12, var(--slot));
+  gap: 3px;
+}
+#hotbar button {
+  width: var(--slot);
+  height: var(--slot);
+}
+.ability-row {
+  padding: 6px 8px 4px;
+}
+#micro-menu {
+  right: 16px;
+  left: auto;
+  bottom: 106px;
+  top: auto;
+  flex-direction: column;
+  width: 84px;
+  max-height: 144px;
+  overflow: auto;
+}
+#micro-menu button {
+  font-size: 8px;
+  padding: 4px 5px;
+}
+.interact {
+  left: 50%;
+  right: auto;
+  bottom: 92px;
+  width: 148px;
+  transform: translateX(-50%);
+  font-size: 9px;
+  white-space: nowrap;
+  height: 25px;
+  padding: 4px 6px;
+}
+#target {
+  height: 18px;
+  max-width: min(300px, calc(100vw - 30px));
+  font-size: 9px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  margin-bottom: 8px;
+}
+#combat-status {
+  bottom: 128px;
+  top: auto;
+  max-width: 240px;
+  font-size: 10px;
+}
+#chat-toggle,
+#objectives-toggle {
+  display: none;
+  position: fixed;
+  z-index: 5;
+  font-size: 9px;
+  background: #17291fe8;
+  border: 1px solid #b49861;
+  padding: 5px 8px;
+  height: 25px;
+}
+#notice {
+  top: 148px;
+  max-width: min(440px, 90vw);
+}
+.bag {
+  bottom: 106px;
+  right: 16px;
+  top: auto;
+  max-height: calc(100dvh - 130px);
+  width: 380px;
+}
+.bag #equipment-slots,
+.bag #stats {
+  display: none;
+}
+.bag #inventory {
+  grid-template-columns: repeat(10, minmax(0, 1fr));
+}
+.bag #item-detail {
+  min-height: 55px;
+}
+.window {
+  max-height: calc(100dvh - 40px);
+}
+.in-world .zone-name {
+  left: 50%;
+  right: auto;
+  top: 14px;
+  transform: translateX(-50%);
+  max-width: 220px;
+  pointer-events: none;
+}
+.in-world .zone-name h1 {
+  font-size: 21px;
+}
+.in-world .zone-name p {
+  font-size: 8px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#character-sheet {
+  width: min(650px, 94vw);
+}
+.character-sheet-body {
+  display: grid;
+  grid-template-columns: 240px 1fr;
+  gap: 18px;
+  padding: 18px;
+}
+.paper-doll {
+  background: radial-gradient(ellipse at top, #4a5f4280, #14241b);
+  border: 1px solid #8e7a4d;
+  padding: 12px;
+}
+#paper-figure {
+  height: 120px;
+  display: grid;
+  place-items: center;
+  font: 80px Georgia;
+  color: #bba26b;
+  text-shadow: 0 0 30px #d8c08355;
+}
+#worn-items {
+  display: grid;
+  gap: 8px;
+}
+#worn-items button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  text-align: left;
+  padding: 7px;
+  font-size: 10px;
+  white-space: pre-line;
+}
+.gear-icon {
+  display: block;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border: 1px solid #b69d60;
+  background: #152119;
+}
+#character-info dl {
+  display: grid;
+  grid-template-columns: 1fr 1.4fr;
+  gap: 11px 14px;
+  margin: 0;
+  font-size: 12px;
+}
+#character-info dt {
+  color: #c8b076;
+}
+#character-info dd {
+  margin: 0;
+  color: #ede5ce;
+}
+#character-help {
+  padding: 12px 18px;
+  border-top: 1px solid #806d4544;
+  font-size: 11px;
+  color: var(--muted);
+}
+@media (min-width: 1600px) and (min-height: 700px) {
+  #micro-menu {
+    width: auto;
+    flex-direction: row;
+    bottom: 16px;
+  }
+  #micro-menu button {
+    padding: 7px;
+  }
+  .quest {
+    max-height: calc(100dvh - 340px);
+  }
+}
+@media (max-width: 1100px) {
+  .in-world .zone-name {
+    display: none;
+  }
+  .unit-frame {
+    left: 16px;
+    top: 151px;
+    width: 205px;
+  }
+  .character {
+    height: 120px;
+  }
+  .quest {
+    max-height: max(80px, calc(100dvh - 465px));
+  }
+}
+@media (max-width: 900px), (max-height: 620px) {
+  .chat {
+    display: none;
+  }
+  .quest {
+    display: none;
+  }
+  #chat-toggle {
+    display: block;
+    left: 16px;
+    bottom: 92px;
+    width: 64px;
+  }
+  #objectives-toggle {
+    display: block;
+    right: 16px;
+    top: 204px;
+    width: 105px;
+  }
+  .chat-open .chat {
+    display: block;
+    z-index: 10;
+    left: 12px;
+    right: 112px;
+    bottom: 128px;
+    width: auto;
+    max-height: calc(100dvh - 270px);
+    min-height: 110px;
+  }
+  .chat-open .chat #messages {
+    height: 65px;
+  }
+  .objectives-open .quest {
+    display: block;
+    z-index: 10;
+    right: 12px;
+    top: 238px;
+    width: 215px;
+    max-height: calc(100dvh - 350px);
+  }
+  .objectives-open #micro-menu {
+    visibility: hidden;
+  }
+  .character {
+    width: 218px;
+    height: 116px;
+  }
+  .unit-frame {
+    top: 146px;
+    width: 200px;
+  }
+  #notice {
+    top: 146px;
+    left: 50%;
+    max-width: 65vw;
+  }
+  .session {
+    left: 16px;
+    bottom: 66px;
+  }
+  #micro-menu {
+    right: 12px;
+    bottom: 108px;
+    width: 80px;
+  }
+  .interact {
+    bottom: 92px;
+  }
+  .ability-row:before,
+  .ability-row:after {
+    display: none;
+  }
+  .bag {
+    max-height: calc(100dvh - 130px);
+  }
+  .entry {
+    padding: 90px 5vw 24px;
+  }
+  .entry-copy h1 {
+    font-size: 44px;
+  }
+  .entry-copy p {
+    font-size: 13px;
+  }
+  .entry-flow .join-panel {
+    max-height: calc(100dvh - 110px);
+  }
+}
+@media (max-width: 600px) {
+  :root {
+    --slot: clamp(19px, calc((100vw - 60px) / 12 - 3px), 38px);
+  }
+  .entry {
+    display: block;
+    overflow: auto;
+    padding: 80px 16px 20px;
+  }
+  .entry-copy {
+    display: none;
+  }
+  .entry-flow {
+    width: 100%;
+    max-width: 380px;
+    margin: auto;
+  }
+  .entry-flow .join-panel {
+    max-height: none;
+    padding: 22px;
+  }
+  .brand {
+    left: 16px;
+    top: 18px;
+  }
+  .character {
+    left: 10px;
+    top: 10px;
+    width: 181px;
+    height: 109px;
+    padding: 8px;
+  }
+  .character .portrait {
+    display: none !important;
+  }
+  .character h2 {
+    font-size: 14px;
+  }
+  .character small {
+    font-size: 7px;
+  }
+  .character span {
+    font-size: 7px;
+    letter-spacing: 0.5px;
+  }
+  .unit-frame {
+    left: 10px;
+    top: 132px;
+    width: 175px;
+    height: 63px;
+    padding: 6px;
+  }
+  .unit-frame h2 {
+    font-size: 12px;
+  }
+  .unit-frame small {
+    font-size: 8px;
+  }
+  #minimap-toggle {
+    right: 10px;
+    top: 10px;
+    width: 106px;
+    height: 128px;
+  }
+  #minimap {
+    width: 100px;
+    height: 100px;
+    left: 3px;
+    top: 15px;
+    border-width: 4px;
+  }
+  .north {
+    left: 49px;
+    top: 14px;
+  }
+  .minimap-zone {
+    font-size: 10px;
+  }
+  #map-coordinates {
+    bottom: 0;
+    font-size: 7px;
+  }
+  #objectives-toggle {
+    right: 10px;
+    top: 155px;
+    width: 108px;
+  }
+  .objectives-open .quest {
+    top: 194px;
+    right: 10px;
+    width: 205px;
+    max-height: calc(100dvh - 315px);
+  }
+  .objectives-open .unit-frame {
+    visibility: hidden;
+  }
+  #chat-toggle {
+    left: 10px;
+    bottom: 87px;
+    width: 62px;
+  }
+  #micro-menu {
+    bottom: 122px;
+    right: 10px;
+    width: 76px;
+    max-height: 120px;
+  }
+  #micro-menu button {
+    font-size: 7px;
+    padding: 3px 4px;
+  }
+  .interact {
+    left: 50%;
+    right: auto;
+    bottom: 87px;
+    width: 132px;
+    height: 25px;
+    font-size: 8px;
+  }
+  .session {
+    left: 10px;
+    right: auto;
+    bottom: 59px;
+  }
+  .session button {
+    font-size: 7px;
+    padding: 3px 5px;
+  }
+  .bottom {
+    left: 50%;
+    right: auto;
+    bottom: 10px;
+    transform: translateX(-50%);
+    max-width: calc(100vw - 16px);
+  }
+  .ability-row {
+    padding: 5px 5px 3px;
+  }
+  #hotbar {
+    grid-template-columns: repeat(12, var(--slot));
+    gap: 2px;
+  }
+  #hotbar button {
+    width: var(--slot);
+    height: var(--slot);
+  }
+  #hotbar kbd,
+  #hotbar small {
+    font-size: 7px;
+  }
+  #target {
+    max-width: 245px;
+    font-size: 8px;
+    margin-bottom: 6px;
+    height: 17px;
+  }
+  .chat-open .chat {
+    left: 10px;
+    right: 10px;
+    bottom: 122px;
+    width: auto;
+    max-height: calc(100dvh - 250px);
+    z-index: 12;
+  }
+  #combat-status {
+    bottom: 121px;
+    max-width: 180px;
+    font-size: 9px;
+  }
+  #notice {
+    top: 207px;
+    left: 50%;
+    max-width: 90vw;
+    font-size: 9px;
+    padding: 6px 10px;
+  }
+  .bag {
+    right: 10px;
+    left: 10px;
+    bottom: 116px;
+    width: auto;
+    max-height: calc(100dvh - 140px);
+    padding: 10px;
+  }
+  .bag #inventory {
+    grid-template-columns: repeat(8, minmax(0, 1fr));
+  }
+  .window {
+    width: calc(100vw - 20px);
+    max-height: calc(100dvh - 24px);
+  }
+  .character-sheet-body {
+    grid-template-columns: 1fr;
+    padding: 12px;
+    gap: 12px;
+  }
+  .paper-doll #paper-figure {
+    display: none;
+  }
+  #worn-items {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+  }
+  #worn-items button {
+    display: block;
+    font-size: 8px;
+    padding: 5px;
+  }
+  .gear-icon {
+    width: 28px;
+    height: 28px;
+    margin-bottom: 5px;
+  }
+  #character-info dl {
+    font-size: 11px;
+    gap: 8px 12px;
+  }
+  .atlas-body {
+    grid-template-columns: 1fr;
+  }
+  .cartography {
+    max-width: 260px;
+  }
+  .journal-mode .atlas-body {
+    grid-template-columns: 1fr;
+  }
+  .journal-mode .cartography {
+    display: none;
+  }
+}
+@media (max-height: 480px) {
+  #minimap-toggle {
+    height: 115px;
+    width: 100px;
+    top: 8px;
+  }
+  #minimap {
+    width: 90px;
+    height: 90px;
+    left: 5px;
+    top: 14px;
+  }
+  .north {
+    left: 47px;
+  }
+  .unit-frame {
+    top: 140px;
+  }
+  #objectives-toggle {
+    top: 133px;
+  }
+  .objectives-open .quest {
+    top: 165px;
+    max-height: calc(100dvh - 285px);
+  }
+  .entry {
+    padding-top: 70px;
+  }
+  .entry-flow .join-panel {
+    max-height: none;
+  }
+  .entry-copy {
+    display: none;
+  }
+  .entry-flow {
+    margin: auto;
+  }
+  #notice {
+    top: 206px;
+  }
+}
+@media (min-width: 601px) {
+  .interact {
+    bottom: 112px;
+  }
+}
+@media (max-width: 900px), (max-height: 620px) {
+  .session {
+    display: none;
+  }
+  #micro-menu {
+    max-height: 142px;
+  }
+  #chat-toggle {
+    bottom: 112px;
+  }
+  .chat-open #micro-menu,
+  .chat-open .unit-frame,
+  .chat-open .quest {
+    visibility: hidden;
+  }
+}
+@media (max-width: 600px) {
+  #chat-toggle {
+    bottom: 87px;
+  }
+  #micro-menu {
+    max-height: 142px;
+  }
+  .chat-open #micro-menu,
+  .chat-open .unit-frame {
+    visibility: hidden;
+  }
+}
+
+.bag-slot .stack-count {
+  position: absolute;
+  right: 2px;
+  bottom: 1px;
+  font: bold 12px system-ui;
+  color: #fff;
+  text-shadow:
+    0 1px 3px #000,
+    1px 0 3px #000;
+  pointer-events: none;
+}
+.bag-slot[aria-label^="Starleaf"] {
+  border-color: #9ac4a4 !important;
+}
+.services-window {
+  width: min(740px, 94vw);
+}
+.services-window nav {
+  display: flex;
+  gap: 8px;
+  padding: 10px 16px;
+  border-bottom: 1px solid #746247;
+}
+.services-window nav button.active {
+  border-color: #ead092;
+  color: #ead092;
+}
+.services-body {
+  padding: 12px 18px;
+  overflow: auto;
+  max-height: 55dvh;
+}
+.service-row {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 12px 0;
+  border-bottom: 1px solid #b1965b33;
+}
+.service-row > div {
+  flex: 1;
+}
+.service-row strong {
+  display: block;
+  color: #e0ca8c;
+  font-size: 13px;
+}
+.service-row small {
+  display: block;
+  color: #b9c0ac;
+  font-size: 10px;
+  margin-top: 5px;
+}
+.service-row button {
+  font-size: 10px;
+  max-width: 180px;
+}
+.services-status {
+  padding: 5px 18px 12px;
+  color: #ebc884;
+  min-height: 28px;
+  font-size: 12px;
+}
+@media (max-width: 600px) {
+  .service-row {
+    flex-wrap: wrap;
+  }
+  .service-row > div {
+    flex-basis: 100%;
+  }
+  .services-body {
+    max-height: 55dvh;
+  }
+  .services-window nav {
+    gap: 3px;
+    padding: 8px;
+  }
+  .services-window nav button {
+    font-size: 10px;
+    padding: 6px;
+  }
+}
+#game-menu {
+  width: min(440px, 94vw);
+  max-height: 92dvh;
+  overflow: auto;
+}
+#game-menu > button {
+  display: block;
+  width: 100%;
+  margin: 8px 0;
+}
+#game-menu > label {
+  display: block;
+  font-size: 12px;
+  color: #d8c187;
+  margin: 14px 0 6px;
+}
+#game-menu > select,
+#game-menu > input {
+  width: 100%;
+}
+#game-menu p {
+  font-size: 11px;
+  line-height: 1.6;
+  color: #b9c0ab;
+}
+#game-menu::backdrop {
+  background: #07130dd0;
+}

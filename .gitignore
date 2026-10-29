@@ -1,0 +1,7 @@
+data/
+node_modules/
+dist/
+*.pkg
+*.log
+.DS_Store
+._*
