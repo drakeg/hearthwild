@@ -17,6 +17,7 @@ import { World, GameError } from "./world.js";
 import { Accounts } from "./accounts.js";
 import { createServer as createSecureServer } from "node:https";
 const root = fileURLToPath(new URL("../public/", import.meta.url));
+const VERSION = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version;
 const assets = new Map([
   ["/", ["index.html", "text/html"]],
   ["/services-ui.js", ["services-ui.js", "text/javascript"]],
@@ -170,7 +171,7 @@ export function createGameServer({ dataDir = resolve("data"), tls } = {}) {
         send(200, {
           product: "hearthwild",
           protocol: 4,
-          version: "0.5.0",
+          version: VERSION,
           ...(local ? { localDataDir: resolve(dataDir) } : {}),
         });
         return;

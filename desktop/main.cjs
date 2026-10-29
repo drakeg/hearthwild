@@ -29,10 +29,11 @@ function allowedData(candidate) {
   try {
     const dir = fs.realpathSync(candidate),
       own = path.join(app.getPath("userData"), "server"),
-      docs = path.join(app.getPath("documents"), "Codex") + path.sep;
+      // Development copies may live in ~/Sources or the older Documents/Codex folder.
+      roots = [path.join(app.getPath("home"), "Sources"), path.join(app.getPath("documents"), "Codex")].map((r) => r + path.sep);
     return (
       dir === own ||
-      (dir.startsWith(docs) &&
+      (roots.some((r) => dir.startsWith(r)) &&
         dir.endsWith(path.join("hearthwild", "data")) &&
         JSON.parse(fs.readFileSync(path.join(dir, "world.json"), "utf8"))
           .product === "hearthwild")
