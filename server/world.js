@@ -15,6 +15,7 @@ import { commerce, PRICES, RECIPES } from "./commerce.js";
 import { createHerbs, respawnHerbs, HERB_RESPAWN } from "./resources.js";
 import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { Parties } from "./party.js";
+import { Guilds } from "./guild.js";
 import { Crypts, walkableAt } from "./crypt.js";
 import { CRYPT } from "../public/dungeon-layout.js";
 import {
@@ -72,7 +73,7 @@ const publicPlayer = (p) => ({
 const zoneOf = (o) => o?.instance ?? null;
 const BOSS_LOOT = ["ashbound-greatblade", "ashen-mantle", "ember-of-vorlath"];
 export class World {
-  constructor(saved = {}, { random = Math.random, combatRandom = random } = {}) {
+  constructor(saved = {}, { random = Math.random, combatRandom = random, charterSignatures } = {}) {
     this.random = random;
     this.combatRandom = combatRandom;
     this.players = new Map();
@@ -99,6 +100,16 @@ export class World {
     this.enemies = createMonsters(this.random, saved.enemies);
     this.parties = new Parties(this);
     this.crypts = new Crypts(this);
+    this.guilds = new Guilds(this, saved.guilds, {
+      signatures: charterSignatures ?? (Number(process.env.HEARTHWILD_CHARTER_SIGNATURES) || 2),
+    });
+  }
+  // What other players see, including the guild name under their nameplate.
+  pub(p) {
+    return { ...publicPlayer(p), guild: this.guilds.nameOf(p) };
+  }
+  zoneName(p) {
+    return p.instance ? CRYPT.name : subzoneAt(p.x, p.z);
   }
   // Enemies that share the player's zone: the open world, or their dungeon copy.
   enemiesFor(p) {
@@ -221,18 +232,20 @@ export class World {
   }
   state(token, after = 0, now = Date.now()) {
     const p = this.authenticate(token);
+    const returning = now - p.seen >= 15000;
     p.seen = now;
+    if (returning) this.guilds.cameOnline(p, now);
     if (p.instance && !this.crypts.instances.has(p.instance)) {
       // The dungeon copy reset while they were away.
       this.crypts.leave(p);
       this.system(p, "The crypt has reset. You find yourself back at Amberwatch Ruins.", now);
     }
-    if (p.partyInvite && p.partyInvite.expiresAt <= now) p.partyInvite = null;
+    for (const k of ["partyInvite", "guildInvite", "charterRequest"]) if (p[k] && p[k].expiresAt <= now) p[k] = null;
     const zone = zoneOf(p);
     return {
       chatEpoch: this.chatEpoch,
       self: {
-        ...publicPlayer(p),
+        ...this.pub(p),
         inventory: p.inventory.map(describeItem),
         professions: p.professions,
         buyback: p.buyback.map(describeItem),
@@ -258,6 +271,10 @@ export class World {
         instance: p.instance ?? null,
         party: this.parties.view(p, now),
         partyInvite: p.partyInvite ? { from: p.partyInvite.from } : null,
+        guildInfo: this.guilds.view(p, now),
+        guildInvite: p.guildInvite ? { from: p.guildInvite.from, name: p.guildInvite.name } : null,
+        charter: this.guilds.charterView(p),
+        charterRequest: p.charterRequest ? { from: p.charterRequest.fromName, name: p.charterRequest.name } : null,
       },
       shop: Object.entries(PRICES).map(([template, [buy, sell]]) => ({
         ...ITEMS[template],
@@ -289,7 +306,7 @@ export class World {
       ),
       players: [...this.players.values()]
         .filter((q) => now - q.seen < 15000 && zoneOf(q) === zone && distance(p, q) < 40)
-        .map(publicPlayer),
+        .map((q) => this.pub(q)),
       enemies: this.enemiesFor(p)
         .filter((e) => distance(p, e) < 180)
         .map(({ contributors, homeX, homeZ, lastAttack, threat, ...e }) => ({
@@ -326,6 +343,7 @@ export class World {
       return { message: "Left the world." };
     }
     if (a.type === "party") return this.parties.act(p, a, now, reject);
+    if (a.type === "guild") return this.guilds.act(p, a, now, reject);
     if (a.type === "release") {
       reject(!p.dead, "You are not dead.");
       this.revive(p, now);
@@ -499,8 +517,8 @@ export class World {
     }
     reject(a.type !== "chat", "Unknown action.");
     reject(
-      !["nearby", "faction", "whisper", "party"].includes(a.channel),
-      "Choose nearby, faction, party or whisper chat.",
+      !["nearby", "faction", "whisper", "party", "guild", "officer"].includes(a.channel),
+      "Choose nearby, faction, party, guild, officer or whisper chat.",
     );
     reject(
       typeof a.text !== "string" ||
@@ -527,6 +545,13 @@ export class World {
         "Whisper to an online adventurer of the same faction.",
       );
       recipients = [...new Set([p, to])];
+    } else if (a.channel === "guild" || a.channel === "officer") {
+      const g = this.guilds.of(p);
+      reject(!g, "You aren’t in a guild.");
+      reject(a.channel === "officer" && this.guilds.rank(p) > 1, "Only officers can use officer chat.");
+      recipients = this.guilds
+        .online(g, now)
+        .filter((q) => a.channel === "guild" || g.members.get(q.id).rank <= 1);
     } else if (a.channel === "party") {
       reject(!this.parties.of(p), "You aren’t in a group.");
       recipients = this.parties.members(p).filter((q) => now - q.seen < 15000);
@@ -935,6 +960,7 @@ export class World {
       product: "hearthwild",
       version: 4,
       resources: this.resources.map((r) => ({ ...r })),
+      guilds: this.guilds.save(),
       loot: this.loot,
       enemies: this.enemies.map((e) => ({
         id: e.id,
@@ -951,6 +977,8 @@ export class World {
         ...(p.instance ? { x: CRYPT.door.x, z: CRYPT.door.z - 2.5 } : {}),
         instance: null,
         partyId: null,
+        guild: undefined,
+        charter: p.charter ?? null,
         casting: null,
         inCombat: false,
         sitting: false,

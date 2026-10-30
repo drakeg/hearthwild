@@ -78,13 +78,14 @@ export const LOOKS = {
   "ashen-stalker": { g: "female", outfit: "ranger", hood: true, cloth: "wine", held: ["dagger", "daggerOff"], attack: "attackDual" },
   "ashen-hexer": { g: "male", outfit: "ranger", hood: true, cloth: "ash", held: ["staff"], attack: "castInstant", caster: true },
   "ashen-warden": { g: "male", outfit: "ranger", hood: true, cloth: "ember", pauldron: true, held: ["staff"], attack: "castInstant", caster: true, scale: 1.4 },
+  "npc-registrar": { g: "male", outfit: "peasant", hair: "hair_simpleparted", beard: true, hairColor: "brown", cloth: "royal", held: ["book"], idle: "talk" },
   "npc-scout": { g: "male", outfit: "ranger", hair: "hair_simpleparted", hairColor: "blond", cloth: "moss", pauldron: true, held: ["dagger"], idle: "talk" },
 };
 export function heroLook(classId, gender = "male") {
   return `${classId}-${gender === "female" ? "female" : "male"}`;
 }
 export const CLASS_MODEL = { warrior: "warrior-male", warlock: "warlock-male", druid: "druid-male", rogue: "rogue-male" };
-export const NPC_MODEL = { warden: "npc-warden", herbalist: "npc-herbalist", merchant: "npc-merchant", scout: "npc-scout" };
+export const NPC_MODEL = { warden: "npc-warden", herbalist: "npc-herbalist", merchant: "npc-merchant", scout: "npc-scout", registrar: "npc-registrar" };
 // Creature kinds sent by the server → look (humanoids) or beast model with size and colouring.
 export const CREATURES = {
   brambleling: { model: "fox", size: 0.85, tint: "#c0623a" },

@@ -54,6 +54,13 @@ The playable map is now 160×160, roughly seven times the previous area. Thirty-
 - **The Hollow Crypt:** talk to Scout Haldren at the sealed door in Amberwatch Ruins, then press **F** at the door. Your group gets its own copy of the dungeon. Walk back to the glowing portal by the entrance to leave.
 - Vorlath the Ashen Warden: step out of red circles, interrupt *Soul Drain*, and kill or control his acolytes.
 
+## Guilds
+
+- **Start one:** talk to Registrar Corwin Hale at Wayfarer’s Camp and buy a charter (10 gold). Ask two adventurers of your faction to sign it, either by clicking them and choosing *Ask to sign charter* or from the guild window. Then return to the Registrar and choose *Found your guild*.
+- **Ranks:** Guild Master → Officer → Member → Initiate. Officers and the Guild Master invite, promote, demote, remove lower ranks and set the message of the day. The Guild Master can hand over leadership or disband.
+- **Window and chat:** press **J** for the roster. Use `/g` for guild chat and `/o` for officer chat.
+- Hosts can change the number of signatures needed with the `HEARTHWILD_CHARTER_SIGNATURES` environment variable (default 2).
+
 ## Loot, bags and equipment
 
 Each nearby active contributor receives a personal loot chest when an enemy dies. It contains 10 gold and one item. Move nearby and press E or click the chest; only its owner can see or claim it. Unclaimed drops expire after five minutes. Gold is now collected from drops, rather than instantly added on a kill.

@@ -6,6 +6,7 @@ import { accountUi } from "./accounts-ui.js";
 import { BAR_KEYS, bagCells, bagItems, questMarker, stackConsumables, itemIconStyle } from "./ui-model.js";
 import { createHud, iconStyle } from "./hud.js";
 import { createCombatUi } from "./combat-ui.js";
+import { createGuildUi } from "./guild-ui.js";
 import {
   preloadCharacters,
   createRig,
@@ -196,6 +197,31 @@ function enemy(e) {
   return g;
 }
 // Friendly NPCs show a green name with their <title> beneath, MMO style.
+// Player name with their guild in angle brackets beneath it.
+function playerTag(p) {
+  const color = p.faction === "dawnward" ? "#ffdc96" : "#b8ead6";
+  if (!p.guild) return label(p.name, color);
+  const c = document.createElement("canvas");
+  c.width = 512;
+  c.height = 128;
+  const ctx = c.getContext("2d");
+  ctx.textAlign = "center";
+  ctx.lineJoin = "round";
+  ctx.font = "500 30px system-ui";
+  ctx.lineWidth = 5;
+  ctx.strokeStyle = "#10271d";
+  ctx.strokeText(p.name, 256, 48);
+  ctx.fillStyle = color;
+  ctx.fillText(p.name, 256, 48);
+  ctx.font = "500 24px system-ui";
+  ctx.strokeText(`<${p.guild}>`, 256, 88);
+  ctx.fillStyle = "#e9e2c8";
+  ctx.fillText(`<${p.guild}>`, 256, 88);
+  const sprite = new THREE.Sprite(new THREE.SpriteMaterial({ map: new THREE.CanvasTexture(c), depthTest: false }));
+  sprite.scale.set(4.6, 1.15, 1);
+  sprite.userData.twoLine = true;
+  return sprite;
+}
 function npcLabel(name, title) {
   const c = document.createElement("canvas");
   c.width = 512;
@@ -866,8 +892,19 @@ function showConversation(data) {
     $("dialogue").close();
     services.open("buy", data.npc.id);
   };
-  $("quest-action").hidden = !data.quest;
+  $("quest-action").hidden = !data.quest && !data.npc.registrar;
   $("npc-quest").textContent = "";
+  if (data.npc.registrar) {
+    const c = state.self.charter;
+    $("quest-action").textContent = state.self.guildInfo
+      ? "View your guild"
+      : c
+        ? c.signatures.length >= c.needed
+          ? "Found your guild"
+          : `Charter · ${c.signatures.length}/${c.needed} signatures`
+        : "Buy a guild charter";
+    $("quest-action").disabled = false;
+  }
   if (data.quest) {
     $("npc-quest").textContent =
       `${data.quest.name} · ${data.progress.progress} / ${data.quest.required} · Reward ${data.quest.reward} gold + ${data.quest.xp ?? 60} XP`;
@@ -887,6 +924,11 @@ function showConversation(data) {
 }
 $("quest-action").onclick = async () => {
   if (!dialogueNpc) return;
+  if (dialogueNpc.registrar) {
+    $("dialogue").close();
+    guildUi.open(true);
+    return;
+  }
   try {
     const q = state.self.quests[dialogueNpc.quest];
     await api("/api/actions", {
@@ -1159,6 +1201,20 @@ function updateModels() {
         models.set(item.id, g);
       }
       g.userData.target = { x: item.x, z: item.z };
+      if (models === playerModels && g.userData.guildName !== (item.guild ?? null)) {
+        g.userData.guildName = item.guild ?? null;
+        const old = g.userData.nameTag,
+          tag = playerTag(item);
+        tag.position.y = (old?.position.y ?? 2.25) + (item.guild ? 0.1 : 0) - (old?.userData.twoLine ? 0.1 : 0);
+        if (old) {
+          g.remove(old);
+          old.material.map?.dispose();
+          old.material.dispose();
+        }
+        tag.visible = item.id !== state.self.id;
+        g.add(tag);
+        g.userData.nameTag = tag;
+      }
       if (item.appearance) {
         if (g.userData.rig) {
           const key = JSON.stringify(item.appearance);
@@ -1217,6 +1273,7 @@ function updateModels() {
   $("xp-bar").style.width = `${(p.xp / p.xpNeeded) * 100}%`;
   $("xp-text").textContent = `${p.xp} / ${p.xpNeeded} XP`;
   combatUi.update(state);
+  guildUi.update(state);
   if (state.self.dead) {
     queuedAbility = queuedAttack = interaction = null;
     autorun = false;
@@ -1240,7 +1297,7 @@ function updateModels() {
       author.textContent =
         m.channel === "system"
           ? ""
-          : `[${m.channel === "nearby" ? "Say" : m.channel === "party" ? "Party" : m.channel === "faction" ? "Faction" : "Whisper"}${m.to ? ` → ${m.to}` : ""}] ${m.from}: `;
+          : `[${{ nearby: "Say", party: "Party", faction: "Faction", guild: "Guild", officer: "Officer" }[m.channel] ?? "Whisper"}${m.to ? ` → ${m.to}` : ""}] ${m.from}: `;
       line.append(author, document.createTextNode(m.text));
       $("messages").append(line);
     }
@@ -1350,10 +1407,17 @@ async function slashCommand(text) {
   const send = (channel, body, to) =>
     api("/api/actions", { type: "chat", channel, text: body, to }).catch((e) => uiError(e.message));
   if (["p", "party"].includes(c)) return send("party", arg);
+  if (["g", "guild"].includes(c)) return send("guild", arg);
+  if (["o", "officer"].includes(c)) return send("officer", arg);
+  const guildOps = { ginvite: "invite", gkick: "kick", gremove: "kick", gpromote: "promote", gdemote: "demote", gleader: "leader" };
+  if (guildOps[c]) return guildAction({ op: guildOps[c], name: arg });
+  if (["gquit", "gleave"].includes(c)) return guildAction({ op: "leave" });
+  if (c === "gmotd") return guildAction({ op: "motd", text: arg });
+  if (["groster", "guildroster"].includes(c)) return guildUi.open();
   if (["s", "say"].includes(c)) return send("nearby", arg);
   if (["f", "faction"].includes(c)) return send("faction", arg);
   if (["w", "whisper", "tell", "t"].includes(c)) return send("whisper", rest.slice(1).join(" "), rest[0]);
-  uiError(`Unknown command /${cmd}. Try /invite, /leave, /kick, /p, /w or /s.`);
+  uiError(`Unknown command /${cmd}. Try /invite, /leave, /p, /g, /o, /ginvite, /w or /s.`);
 }
 $("chat-form").onsubmit = async (e) => {
   e.preventDefault();
@@ -1461,6 +1525,10 @@ function showPlayerMenu(who, x, y) {
   };
   playerMenu.append(title);
   item("Invite to group", () => partyAction({ op: "invite", name: who.name }));
+  if ((state?.self.guildInfo?.rank ?? 9) <= 1)
+    item("Invite to guild", () => guildAction({ op: "invite", name: who.name }));
+  if (state?.self.charter && !state.self.guildInfo)
+    item("Ask to sign charter", () => guildAction({ op: "request-signature", name: who.name }));
   item("Whisper", () => {
     $("channel").value = "whisper";
     $("channel").onchange();
@@ -1469,6 +1537,14 @@ function showPlayerMenu(who, x, y) {
   });
   Object.assign(playerMenu.style, { left: `${x}px`, top: `${y}px` });
   playerMenu.hidden = false;
+}
+async function guildAction(a) {
+  try {
+    const r = await api("/api/actions", { type: "guild", ...a });
+    if (r?.message) combatUi.info(r.message);
+  } catch (e) {
+    uiError(e.message);
+  }
 }
 async function partyAction(a) {
   try {
@@ -1485,6 +1561,7 @@ function closePanels() {
   if (hud.isOpen()) hud.close(), (closed = true);
   if (services.isOpen()) services.close(), (closed = true);
   if ($("dialogue").open) $("dialogue").close(), (closed = true);
+  if (typeof guildUi !== "undefined" && guildUi.isOpen()) guildUi.close(), (closed = true);
   return closed;
 }
 function useAbility(key) {
@@ -1596,6 +1673,10 @@ addEventListener("keydown", (e) => {
   if (["KeyI", "KeyB"].includes(e.code) && !e.repeat) {
     e.preventDefault();
     toggleBag();
+  }
+  if (e.code === "KeyJ" && !e.repeat) {
+    e.preventDefault();
+    guildUi.toggle();
   }
   if (e.code === "KeyC" && !e.repeat) {
     e.preventDefault();
@@ -2074,6 +2155,25 @@ const combatUi = createCombatUi({
       .then((r) => combatUi.info(r.message))
       .catch((e) => uiError(e.message)),
 });
+const guildUi = createGuildUi({
+  getState: () => state,
+  act: (a) =>
+    api("/api/actions", a)
+      .then((r) => {
+        if (r?.message) combatUi.info(r.message);
+        return true;
+      })
+      .catch((e) => {
+        uiError(e.message);
+        return false;
+      }),
+  onOpen: () => closePanels(),
+  focusWorld: () => {
+    keys.clear();
+    canvas.focus();
+  },
+});
+$("guild-menu").onclick = () => guildUi.toggle();
 const hud = createHud({
   getState: () => state,
   toggleBag,

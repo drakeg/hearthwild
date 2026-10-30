@@ -139,6 +139,15 @@ export const NPCS = [
     text: "Ashen raiders have dug into the old crypt beneath Amberwatch. Their warden, Vorlath, burns the dead to feed his ash. Go in with friends if you can — watch for his falling ash, and break his Soul Drain with a quick strike. Bring me word when he falls.",
   },
   {
+    id: "registrar",
+    name: "Registrar Corwin Hale",
+    role: "Guild Registrar",
+    x: -4.8,
+    z: 16.5,
+    registrar: true,
+    text: "Every great company starts with a name and a few willing signatures. Buy a charter, gather signatures from two fellow adventurers of your faction, and bring it back to me to found your guild.",
+  },
+  {
     id: "merchant",
     name: "Torren the Provisioner",
     role: "Merchant · Buy & sell",

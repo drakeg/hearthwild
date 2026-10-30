@@ -1,3 +1,17 @@
+## 0.9.0 — Guilds
+
+- **Found a guild.** Registrar Corwin Hale, beside the campfire at Wayfarer’s Camp, sells a guild charter for 10 gold. Name your guild, ask two adventurers of your faction to sign it (click them and choose *Ask to sign charter*), then bring it back to found the guild. You become its Guild Master and the signers become Members.
+- **Ranks:** Guild Master, Officer, Member and Initiate.
+  - Officers and the Guild Master invite new members (who start as Initiates), promote, demote and remove lower ranks, and set the message of the day.
+  - Only the Guild Master can pass on leadership (*Make GM*) or disband the guild.
+  - If the Guild Master leaves, the highest-ranked, longest-serving member takes over automatically. When the last member leaves, the guild disbands.
+- **Guild window (J, or the Guild button):** roster with level, class, rank, location and online status; the message of the day; invitations; and member management.
+- **Guild chat** with `/g`, and **officer chat** with `/o`. Both are also in the chat channel menu. Commands: `/ginvite`, `/gpromote`, `/gdemote`, `/gkick`, `/gleader`, `/gmotd`, `/gquit`, `/groster`.
+- Your guild’s name appears in angle brackets under your name for everyone nearby. Members see the message of the day and a note when guildmates come online.
+- Guilds are saved with the world and survive restarts. Server hosts can change the number of charter signatures with `HEARTHWILD_CHARTER_SIGNATURES`.
+- Builds for macOS (Apple Silicon and Intel), Windows and Linux.
+- Seventy checks.
+
 ## 0.8.0 — Groups and the Hollow Crypt
 
 - **Groups of up to five.** Click another adventurer and choose *Invite to group*, or type `/invite Name`. The invitee gets an Accept/Decline popup. Party frames appear under your portrait. The leader can `/kick` and `/promote`; anyone can `/leave`. Party chat with `/p`. Groups are same-faction only.
