@@ -642,8 +642,7 @@ export class World {
     }
     const share = Math.max(1, eligible.size);
     for (const q of eligible) {
-      const templates = Object.keys(ITEMS).filter((k) => !["consumable"].includes(ITEMS[k].slot) && ITEMS[k].rarity !== "Epic"),
-        template = templates[Math.min(q.kills, templates.length - 1)],
+      const template = this.rollLoot(e),
         // Groups split kill experience, with a bonus for grouping.
         xp = Math.round((killExperience(e.level ?? 1, q.level) * (e.boss ? 8 : 1) * (share > 1 ? 1.25 : 1)) / share);
       q.kills++;
@@ -653,13 +652,15 @@ export class World {
         ? [{ id: randomUUID(), template: BOSS_LOOT[Math.floor(this.random() * BOSS_LOOT.length)] }]
         : e.summoned
           ? []
-          : [{ id: randomUUID(), template }];
+          : template
+            ? [{ id: randomUUID(), template }]
+            : [];
       this.loot.push({
         id: randomUUID(),
         ownerId: q.id,
         x: e.x,
         z: e.z,
-        coins: e.boss ? 60 : e.instance ? 14 : 10,
+        coins: e.boss ? 60 : this.rollCoins(e),
         items,
         expiresAt: now + 300000,
         zone: zoneOf(e),
@@ -691,6 +692,21 @@ export class World {
         inst.enemies = inst.enemies.filter((o) => !o.summoned || o.hp > 0);
       }
     }
+  }
+  // Every kill rolls its own loot: often just coin, sometimes gear or a draught.
+  rollLoot(e) {
+    const roll = this.random(),
+      pick = (list) => list[Math.floor(this.random() * list.length)];
+    const of = (rarity) => Object.keys(ITEMS).filter((k) => ITEMS[k].rarity === rarity && ITEMS[k].slot !== "consumable" && ITEMS[k].slot);
+    const rareChance = e.instance ? 0.14 : 0.06 + Math.min(0.08, (e.level ?? 1) * 0.004);
+    if (roll < rareChance) return pick(of("Rare"));
+    if (roll < rareChance + 0.3) return pick(of("Uncommon"));
+    if (roll < rareChance + 0.42) return pick(["healing-draught", "travelers-bread", "spring-water"]);
+    return null;
+  }
+  rollCoins(e) {
+    const level = e.level ?? 1;
+    return Math.round((4 + level * 2) * (0.6 + this.random() * 0.8)) + (e.instance ? 6 : 0);
   }
   healPlayer(p, amount, now, ability) {
     const before = p.hp;

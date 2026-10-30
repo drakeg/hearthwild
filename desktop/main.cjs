@@ -25,12 +25,26 @@ app.on("second-instance", () => {
     win.focus();
   }
 });
+// macOS asks permission before an app reads Documents, Desktop or Downloads, so saves are
+// never looked for there: the game keeps its own save folder (or a ~/Sources dev copy).
+function inProtectedFolder(candidate) {
+  const target = path.resolve(String(candidate));
+  return ["documents", "desktop", "downloads"].some((name) => {
+    try {
+      const dir = app.getPath(name);
+      return target === dir || target.startsWith(dir + path.sep);
+    } catch {
+      return false;
+    }
+  });
+}
 function allowedData(candidate) {
   try {
+    if (typeof candidate !== "string" || !candidate || inProtectedFolder(candidate)) return false;
     const dir = fs.realpathSync(candidate),
       own = path.join(app.getPath("userData"), "server"),
-      // Development copies may live in ~/Sources or the older Documents/Codex folder.
-      roots = [path.join(app.getPath("home"), "Sources"), path.join(app.getPath("documents"), "Codex")].map((r) => r + path.sep);
+      roots = [path.join(app.getPath("home"), "Sources")].map((r) => r + path.sep);
+    if (inProtectedFolder(dir)) return false;
     return (
       dir === own ||
       (roots.some((r) => dir.startsWith(r)) &&
@@ -65,7 +79,7 @@ async function launch() {
     if (info.product === "hearthwild" && info.protocol === 4) {
       origin = "http://127.0.0.1:4180";
       external = true;
-      activeData = info.localDataDir;
+      activeData = allowedData(info.localDataDir) ? info.localDataDir : null;
       if (info.localDataDir && allowedData(info.localDataDir))
         fs.writeFileSync(
           settings,

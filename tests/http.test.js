@@ -115,6 +115,10 @@ test("password sessions own multiple characters, reject cross-account access and
   assert.equal((await get("/../server/world.js")).status, 404);
   const p = app.world.players.get(a.id),
     e = app.world.enemies[0];
+  // This test is about ownership and gear, not the random roll.
+  app.world.rollLoot = () => "warden-blade";
+  app.world.rollCoins = () => 10;
+
   p.x = e.x;
   p.z = e.z;
   e.hp = 20;

@@ -97,6 +97,9 @@ test("combat validates reach and cooldown; rewards occur once per enemy defeat",
     a = join(w, "Aster"),
     p = w.players.get(a.id),
     e = w.enemies[0];
+  // This test is about ownership and gear, not the random roll.
+  w.rollLoot = () => "warden-blade";
+  w.rollCoins = () => 10;
   assert.throws(
     () => w.act(a.token, { type: "attack", target: e.id }, 1000),
     /closer/,

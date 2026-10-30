@@ -111,3 +111,28 @@ test("town quests count creatures from their zone; first visits grant exploratio
   const saved = new World(w.save());
   assert.ok(saved.players.get(p.id).explored.includes("Harrowford"), "exploration is saved");
 });
+
+test("each kill rolls its own random loot: varied items, sometimes only coin", () => {
+  let s = 99;
+  const w = new World({}, { random: () => ((s = (s * 16807) % 2147483647) - 1) / 2147483646, combatRandom: () => 0.99 }),
+    a = w.join({ name: "Looter", faction: "dawnward", classId: "warrior" }),
+    p = w.players.get(a.id);
+  const seen = new Set();
+  let empty = 0;
+  const e = w.enemies.find((x) => x.id.startsWith("wild-downs-"));
+  for (let i = 0; i < 80; i++) {
+    p.seen = 1000 + i * 4000;
+    p.x = e.x;
+    p.z = e.z;
+    e.hp = 1;
+    p.globalReadyAt = 0;
+    p.cooldowns = {};
+    w.act(a.token, { type: "ability", ability: "iron-cut", target: e.id }, 1000 + i * 4000);
+    const drop = w.loot.at(-1);
+    if (!drop.items.length) empty++;
+    for (const it of drop.items) seen.add(it.template);
+    assert.ok(drop.coins > 0);
+  }
+  assert.ok(seen.size >= 5, `many different items drop (${[...seen].join(", ")})`);
+  assert.ok(empty > 10 && empty < 70, `some kills drop only coin (${empty}/80)`);
+});

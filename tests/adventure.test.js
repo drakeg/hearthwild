@@ -97,6 +97,9 @@ test("enemy loot belongs to its contributor, requires proximity, and equipped ge
   const { w, a, p } = setup(),
     b = w.join({ name: "Other", faction: "dawnward" }),
     e = w.enemies[0];
+  // This test is about ownership and gear, not the random roll.
+  w.rollLoot = () => "warden-blade";
+  w.rollCoins = () => 10;
   move(p, e);
   e.hp = 20;
   w.act(a.token, { type: "attack", target: e.id }, 1000);

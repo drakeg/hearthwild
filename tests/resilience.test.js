@@ -5,6 +5,10 @@ test("cooperative kills reward contributors once, with a one-time quest bonus", 
   const w = new World({}, { combatRandom: () => 0.99 }),
     a = w.join({ name: "Rowan", faction: "dawnward" }),
     b = w.join({ name: "Alder", faction: "dawnward" });
+  // This test is about ownership and gear, not the random roll.
+  w.rollLoot = () => "warden-blade";
+  w.rollCoins = () => 10;
+
   const p = w.players.get(a.id),
     q = w.players.get(b.id);
   for (const joined of [a, b]) {

@@ -1,3 +1,9 @@
+## 0.10.1 — Random loot and no Documents prompt
+
+- **Loot is random again.** Each kill rolls its own drop: often just coin, sometimes an Uncommon item, now and then a Rare, and occasionally a draught, bread or water. Gold now scales with the creature’s level. (Before, the item was picked by your total kill count, so after five kills every drop was the same.)
+- **The Mac app no longer asks to access your Documents folder.** It only uses its own save folder, or a development copy in `~/Sources`. It never looks in Documents, Desktop or Downloads, even if an older version saved a location there.
+- Seventy-six checks, including a new test that kills vary their loot.
+
 ## 0.10.0 — The Wider World
 
 - **The world is now about two kilometres across**, up from 160 metres. Running from Wayfarer’s Camp to the edge of the world takes three to four minutes, and a mountain wall rings it all.
