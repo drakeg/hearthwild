@@ -122,7 +122,7 @@ export function createCombatUi({ camera, height, onRelease, onTargetChange, act 
   const death = el("div", "cui-popup");
   death.hidden = true;
   const releaseButton = el("button", "cui-button", "Release Spirit");
-  const deathWhere = el("p", "", "Your spirit can return to Wayfarer’s Camp.");
+  const deathWhere = el("p", "", "Your spirit will return to the nearest graveyard.");
   death.append(
     el("strong", "", "You have died."),
     deathWhere,
@@ -149,6 +149,7 @@ export function createCombatUi({ camera, height, onRelease, onTargetChange, act 
     selected = null,
     clockOffset = 0,
     lastSubzone = null,
+    lastZone = null,
     lastLevel = null,
     lastDead = false;
   const serverNow = () => performance.now() + clockOffset;
@@ -361,10 +362,13 @@ export function createCombatUi({ camera, height, onRelease, onTargetChange, act 
       lastSubzone = p.subzone;
       const label = document.querySelector(".minimap-zone");
       if (label) label.textContent = p.subzone;
-      if (first) showZone("The Stillwood", p.subzone);
-      else if (p.subzone === "Wayfarer’s Camp")
-        showZone(p.subzone, "(Sanctuary)", "sanctuary");
-      else if (p.subzone !== "The Stillwood") showZone(p.subzone, "The Stillwood");
+      const zone = p.zone ?? "The Stillwood",
+        newZone = zone !== lastZone;
+      lastZone = zone;
+      if (first) showZone(zone, p.subzone !== zone ? p.subzone : "");
+      else if (p.sanctuary) showZone(p.subzone, "(Sanctuary)", "sanctuary");
+      else if (p.subzone !== zone) showZone(p.subzone, zone);
+      else if (newZone) showZone(zone, "");
     }
     if (lastLevel !== null && p.level > lastLevel) {
       levelUp.replaceChildren(
@@ -382,7 +386,7 @@ export function createCombatUi({ camera, height, onRelease, onTargetChange, act 
       death.hidden = !p.dead;
       deathWhere.textContent = p.instance
         ? "Your spirit will return to the crypt entrance."
-        : "Your spirit can return to Wayfarer’s Camp.";
+        : "Your spirit will return to the nearest graveyard.";
       document.body.classList.toggle("is-dead", p.dead);
       if (p.dead) systemChat("You have died.", "system");
     }

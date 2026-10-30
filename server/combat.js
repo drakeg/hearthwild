@@ -1,5 +1,5 @@
 // Combat tuning shared by the world simulation. All numbers are original to Hearthwild.
-import { levelAt, subzoneAt } from "../public/world-config.js";
+import { levelAt, subzoneAt, zoneAt } from "../public/world-config.js";
 
 export const MELEE_RANGE = 3.2;
 export const LEASH_RANGE = 32;
@@ -29,12 +29,47 @@ const UNDEAD = [
   { kind: "ashen-hexer", name: "Ashen hexer" },
 ];
 const HAUNTED = ["Amberwatch Ruins", "Moonwell Grove"];
+// The wider world's creatures, by zone. Beasts and people alternate by spawn slot.
+export const ZONE_CREATURES = {
+  stillwood: [BEASTS[1], UNDEAD[1], BEASTS[2], UNDEAD[3], UNDEAD[0]],
+  downs: [
+    { kind: "gorse-hound", name: "Gorsefield hound" },
+    { kind: "harrow-bandit", name: "Harrow bandit" },
+    { kind: "bristleback", name: "Bristleback" },
+    { kind: "downs-poacher", name: "Downs poacher" },
+  ],
+  marsh: [
+    { kind: "bog-lurker", name: "Bog lurker" },
+    { kind: "mire-cultist", name: "Mire cultist" },
+    { kind: "reedfang", name: "Reedfang" },
+    { kind: "mire-witch", name: "Mire witch" },
+  ],
+  frost: [
+    { kind: "rime-wolf", name: "Rime wolf" },
+    { kind: "frost-reaver", name: "Hollowfrost reaver" },
+    { kind: "frostfang", name: "Frostfang alpha" },
+  ],
+  crags: [
+    { kind: "crag-stalker", name: "Crag stalker" },
+    { kind: "greyspire-brigand", name: "Greyspire brigand" },
+    { kind: "stonecaller", name: "Stonecaller" },
+  ],
+};
 // Level, health and creature type follow where a creature (re)spawns.
 export function applyLevel(e) {
   e.level = levelAt(e.x, e.z);
   e.maxHp = mobStats(e.level).maxHp;
-  const slot = Number(String(e.id ?? "").split("-")[1]) || 0,
-    undead = e.level >= 3 || HAUNTED.includes(subzoneAt(e.x, e.z)),
+  const parts = String(e.id ?? "").split("-"),
+    slot = Number(parts.at(-1)) || 0;
+  if (parts[0] === "wild") {
+    const table = ZONE_CREATURES[zoneAt(e.x, e.z)],
+      type = table[slot % table.length];
+    e.kind = type.kind;
+    e.name = type.name;
+    e.zoneId = zoneAt(e.x, e.z);
+    return e;
+  }
+  const undead = e.level >= 3 || HAUNTED.includes(subzoneAt(e.x, e.z)),
     type = undead ? UNDEAD[slot % UNDEAD.length] : BEASTS[slot % BEASTS.length];
   e.kind = type.kind;
   e.name = type.name;

@@ -54,6 +54,19 @@ The playable map is now 160×160, roughly seven times the previous area. Thirty-
 - **The Hollow Crypt:** talk to Scout Haldren at the sealed door in Amberwatch Ruins, then press **F** at the door. Your group gets its own copy of the dungeon. Walk back to the glowing portal by the entrance to leave.
 - Vorlath the Ashen Warden: step out of red circles, interrupt *Soul Drain*, and kill or control his acolytes.
 
+## The world
+
+The Stillwood (levels 1–6) is at the centre, with four zones around it, each with a town:
+
+| Zone | Direction | Levels | Town |
+|---|---|---|---|
+| The Amber Downs | East | 6–10 | Harrowford |
+| Saltreed Marsh | South | 9–13 | Reedwatch |
+| Frostmere Vale | North | 12–16 | Hollowfrost Lodge |
+| Greyspire Crags | West | 15–20 | Cragmoor Hold |
+
+Roads lead from Wayfarer’s Camp to every town, and a ring road joins the towns. Towns are sanctuaries with a provisioner, a quest giver and a graveyard; when you release your spirit, you return to the nearest one. Press **M** for the world map.
+
 ## Guilds
 
 - **Start one:** talk to Registrar Corwin Hale at Wayfarer’s Camp and buy a charter (10 gold). Ask two adventurers of your faction to sign it, either by clicking them and choosing *Ask to sign charter* or from the guild window. Then return to the Registrar and choose *Found your guild*.

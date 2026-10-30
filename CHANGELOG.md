@@ -1,3 +1,22 @@
+## 0.10.0 — The Wider World
+
+- **The world is now about two kilometres across**, up from 160 metres. Running from Wayfarer’s Camp to the edge of the world takes three to four minutes, and a mountain wall rings it all.
+- **Four new zones surround the Stillwood**, each with its own landscape, creatures and level range:
+  - **The Amber Downs** (east, levels 6–10): golden rolling grassland and Miller’s Pond. Gorsefield hounds, Bristlebacks, Harrow bandits and Downs poachers.
+  - **Saltreed Marsh** (south, levels 9–13): flat bog, reed-lined Blackwater Pools and twisted trees. Bog lurkers, Reedfangs, Mire cultists and Mire witches.
+  - **Frostmere Vale** (north, levels 12–16): snowy hills, pine forest and the frozen Glassmere. Rime wolves, Frostfang alphas and Hollowfrost reavers.
+  - **Greyspire Crags** (west, levels 15–20): rocky ridges, boulder fields and Greyspire Tarn. Crag stalkers, Greyspire brigands and Stonecallers.
+  - The Stillwood itself now reaches out to about 250 metres, with tougher creatures (levels 5–6) in its outer woods.
+- **Four towns**, built from timber-framed and stone houses: **Harrowford**, **Reedwatch**, **Hollowfrost Lodge** and **Cragmoor Hold**. Each has a provisioner, a quest giver, a market corner, lamp-lit streets and a graveyard shrine. Towns are sanctuaries: creatures won’t follow you in, and you heal faster there. You can’t walk through the houses.
+- **Roads** run from Wayfarer’s Camp to every town, and a ring road links the towns to each other.
+- **When you die, your spirit returns to the nearest graveyard**: the camp or a town.
+- **New quests:** *Trouble on the Downs*, *Fog over the Pools*, *The Pale Hunt* and *Brigands of Greyspire*. Each asks you to defeat eight creatures of its zone.
+- **Exploration:** the first time you reach a new zone, town or lake you gain experience, and a “Discovered” message appears.
+- **Maps:** the world map shows the whole world, with its zones, level ranges, roads, towns and lakes. The minimap now shows roads and houses around you.
+- **Zone banners** show the zone you’re entering, and mark towns as sanctuaries.
+- The terrain streams in around you as you travel, with finer detail up close. Lower graphics quality loads less of it.
+- Seventy-five checks, including new tests for zones, creature levels, house collisions, graveyards, town quests and exploration.
+
 ## 0.9.0 — Guilds
 
 - **Found a guild.** Registrar Corwin Hale, beside the campfire at Wayfarer’s Camp, sells a guild charter for 10 gold. Name your guild, ask two adventurers of your faction to sign it (click them and choose *Ask to sign charter*), then bring it back to found the guild. You become its Guild Master and the signers become Members.

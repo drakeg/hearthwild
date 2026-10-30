@@ -1,4 +1,4 @@
-import { dryLand, WORLD_LIMIT } from "../public/world-config.js";
+import { stillwoodLand as dryLand, STILLWOOD_LIMIT as WORLD_LIMIT } from "../public/world-config.js";
 // Server-owned gathering nodes. Positions stay inside the playable map and avoid water/camp.
 export const HERB_RESPAWN = { min: 30000, max: 90000, count: 32 };
 const dry = dryLand;

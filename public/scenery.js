@@ -1,4 +1,6 @@
-import { WORLD_SIZE, inCamp } from "./world-config.js";
+import { inCamp } from "./world-config.js";
+import { terrainHeight } from "./terrain.js";
+import { createWorldStream } from "./world-stream.js";
 import * as THREE from "./vendor/three.module.js";
 import { mergeVertices } from "./vendor/addons/BufferGeometryUtils.js";
 import { GLTFLoader } from "./vendor/addons/GLTFLoader.js";
@@ -23,13 +25,7 @@ export function setIndoors(on) {
 }
 export function height(x, z) {
   if (indoors) return 0;
-  const basin = Math.hypot(x + 16, z + 12);
-  return (
-    Math.sin(x * 0.1) * 0.4 +
-    Math.cos(z * 0.13) * 0.35 -
-    Math.max(0, 1 - basin / 8) * 1.5 +
-    Math.max(0, Math.hypot(x, z) - 24) * 0.055
-  );
+  return terrainHeight(x, z);
 }
 export function createScenery(scene) {
   let seed = 71;
@@ -87,38 +83,8 @@ export function createScenery(scene) {
     parent.add(m);
     return m;
   }
-  const ground = new THREE.PlaneGeometry(220, 220, 180, 180);
-  ground.rotateX(-Math.PI / 2);
-  const pos = ground.attributes.position,
-    colors = [];
-  for (let i = 0; i < pos.count; i++) {
-    const x = pos.getX(i),
-      z = pos.getZ(i);
-    pos.setY(i, height(x, z));
-    // Lush, saturated meadow greens with warmer, drier patches on the slopes.
-    const dry = Math.max(0, Math.sin(x * 0.045 + 1.3) * Math.cos(z * 0.05)) * 0.6,
-      c = new THREE.Color().setHSL(
-        0.25 - dry * 0.07 + Math.sin(x * 0.06) * 0.012,
-        0.5 - dry * 0.12,
-        0.33 + Math.sin(x * 0.24 + z * 0.19) * 0.03 + random() * 0.03,
-      );
-    colors.push(c.r, c.g, c.b);
-  }
-  ground.setAttribute("color", new THREE.Float32BufferAttribute(colors, 3));
-  ground.computeVertexNormals();
+  // The ground itself streams in chunks around the player (see world-stream.js).
   const groundMap = paintedGround(random);
-  groundMap.repeat.set(36, 36);
-  add(
-    ground,
-    new THREE.MeshStandardMaterial({
-      vertexColors: true,
-      map: groundMap,
-      roughness: 1,
-    }),
-    0,
-    0,
-    0,
-  ).castShadow = false;
   const dummy = new THREE.Object3D(),
     trunkGeo = new THREE.CylinderGeometry(0.2, 0.42, 1, 10, 4);
   // Flare the roots and add a little wobble so trunks read as wood, not pipes.
@@ -449,35 +415,7 @@ export function createScenery(scene) {
       z,
     );
   }
-  // Distant layered ridgelines and drifting fireflies give depth beyond the playable clearing.
-  for (let i = 0; i < 18; i++) {
-    const a = (i / 18) * Math.PI * 2,
-      r = 145,
-      h = 15 + random() * 24;
-    const geo = new THREE.ConeGeometry(15 + random() * 18, h, 14, 6),
-      mp = geo.attributes.position,
-      mc = [];
-    for (let k = 0; k < mp.count; k++) {
-      const y = mp.getY(k) / h + 0.5;
-      if (y < 0.98 && y > 0.02) {
-        const n = 1 + (random() - 0.5) * 0.22;
-        mp.setX(k, mp.getX(k) * n);
-        mp.setZ(k, mp.getZ(k) * n);
-      }
-      const col = y > 0.78 ? new THREE.Color("#eef3f7") : new THREE.Color("#5f7f86").lerp(new THREE.Color("#8aa3a8"), y);
-      mc.push(col.r, col.g, col.b);
-    }
-    geo.setAttribute("color", new THREE.Float32BufferAttribute(mc, 3));
-    geo.computeVertexNormals();
-    const mountain = add(
-      geo,
-      new THREE.MeshStandardMaterial({ vertexColors: true, roughness: 1, flatShading: true }),
-      Math.sin(a) * r,
-      h / 2 - 4,
-      Math.cos(a) * r,
-    );
-    mountain.castShadow = false;
-  }
+  // Drifting fireflies over the clearing.
   const motesGeo = new THREE.BufferGeometry(),
     motes = [];
   for (let i = 0; i < 150; i++)
@@ -518,7 +456,10 @@ export function createScenery(scene) {
           gl_FragColor=vec4(col,1.);}`,
     }),
   );
+  sky.renderOrder = -1;
+  sky.frustumCulled = false;
   scene.add(sky);
+  const stream = createWorldStream(scene, { GRAPHICS, groundMap, rockMat, roadMap: stone, dequantize });
   const camp = createCamp(scene, add, rockMat, barkMat, random);
   // Hand-made trees, foliage and rocks replace the procedural stand-ins once they load.
   const occluders = [trunks, leaves, pines];
@@ -530,8 +471,12 @@ export function createScenery(scene) {
   });
   let frame = 0;
   return {
-    occluders,
-    update(t) {
+    get occluders() {
+      return stream.occluders.length ? [...occluders, ...stream.occluders] : occluders;
+    },
+    update(t, player, camera) {
+      if (camera) sky.position.copy(camera.position);
+      if (player) stream.update(t, player.x, player.z);
       camp.update(t);
       wind.value = t;
       sky.material.uniforms.uTime.value = t;

@@ -1,14 +1,27 @@
-export const WORLD_HALF = 80,
-  WORLD_LIMIT = 78,
-  WORLD_SIZE = WORLD_HALF * 2;
+import { WORLD_HALF, WORLD_LIMIT, WORLD_SIZE, ZONES, TOWNS, LAKES, zoneAt, townAt, lakeAt, roadDistance, levelAt } from "./terrain.js";
+export { WORLD_HALF, WORLD_LIMIT, WORLD_SIZE, ZONES, TOWNS, levelAt, zoneAt };
+
+// The original Stillwood clearing (starter creatures and starleaf patches stay inside it).
+export const STILLWOOD_LIMIT = 78;
 export const inCamp = (p) => Math.abs(p.x) < 9 && p.z > 6 && p.z < 25;
-export const dryLand = (x, z) =>
-  Math.abs(x) <= WORLD_LIMIT - 2 &&
-  Math.abs(z) <= WORLD_LIMIT - 2 &&
+// Towns and camp are sanctuaries: creatures won't follow you in and you heal faster.
+export const inSanctuary = (p) => inCamp(p) || !!townAt(p.x, p.z);
+export const stillwoodLand = (x, z) =>
+  Math.abs(x) <= STILLWOOD_LIMIT - 2 &&
+  Math.abs(z) <= STILLWOOD_LIMIT - 2 &&
   Math.hypot(x + 16, z + 12) > 8 &&
   !inCamp({ x, z });
+// Open wilderness anywhere in the world: off the roads, out of towns and water.
+export const dryLand = (x, z) =>
+  Math.abs(x) <= WORLD_LIMIT - 12 &&
+  Math.abs(z) <= WORLD_LIMIT - 12 &&
+  Math.hypot(x + 16, z + 12) > 8 &&
+  !inCamp({ x, z }) &&
+  !townAt(x, z, 14) &&
+  !lakeAt(x, z, 4) &&
+  roadDistance(x, z) > 5;
 
-// Named places, used for zone-entry text and the creature level bands.
+// Named places, used for zone-entry text.
 export const CAMP_CENTER = { x: 0, z: 14 };
 export const SUBZONES = [
   { name: "Wayfarer’s Camp", x: 0, z: 16, r: 11, sanctuary: true },
@@ -17,17 +30,11 @@ export const SUBZONES = [
   { name: "Amberwatch Ruins", x: -48, z: 45, r: 20 },
   { name: "Mossfall Ridge", x: 43, z: -46, r: 22 },
   { name: "Moonwell Grove", x: -55, z: -50, r: 20 },
+  ...TOWNS.map((t) => ({ name: t.name, x: t.x, z: t.z, r: t.r + 6, sanctuary: true })),
+  ...LAKES.map((l) => ({ name: l.name, x: l.x, z: l.z, r: l.r + 8 })),
 ];
 export function subzoneAt(x, z) {
-  return (
-    SUBZONES.find((s) => Math.hypot(x - s.x, z - s.z) <= s.r)?.name ??
-    "The Stillwood"
-  );
-}
-// Creatures grow tougher the farther they roam from camp: levels 1–5.
-export function levelAt(x, z) {
-  const d = Math.hypot(x - CAMP_CENTER.x, z - CAMP_CENTER.z);
-  return d < 34 ? 1 : d < 52 ? 2 : d < 70 ? 3 : d < 88 ? 4 : 5;
+  return SUBZONES.find((s) => Math.hypot(x - s.x, z - s.z) <= s.r)?.name ?? ZONES[zoneAt(x, z)].name;
 }
 // Standard MMO "con" colours relative to the viewer's level.
 export function levelColor(mobLevel, playerLevel) {

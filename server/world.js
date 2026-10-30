@@ -1,4 +1,5 @@
-import { WORLD_LIMIT, inCamp, subzoneAt } from "../public/world-config.js";
+import { WORLD_LIMIT, inSanctuary, subzoneAt, zoneAt, ZONES } from "../public/world-config.js";
+import { GRAVEYARDS, insideHouse } from "../public/terrain.js";
 import { createMonsters, monsterDelay, monsterPosition } from "./wilderness.js";
 import {
   ITEMS,
@@ -241,6 +242,7 @@ export class World {
       this.system(p, "The crypt has reset. You find yourself back at Amberwatch Ruins.", now);
     }
     for (const k of ["partyInvite", "guildInvite", "charterRequest"]) if (p[k] && p[k].expiresAt <= now) p[k] = null;
+    if (!p.instance && !p.dead) this.explore(p, now);
     const zone = zoneOf(p);
     return {
       chatEpoch: this.chatEpoch,
@@ -268,6 +270,8 @@ export class World {
         dead: !!p.dead,
         eating: p.eating ?? null,
         subzone: p.instance ? CRYPT.name : subzoneAt(p.x, p.z),
+        zone: p.instance ? CRYPT.name : ZONES[zoneAt(p.x, p.z)].name,
+        sanctuary: !p.instance && inSanctuary(p),
         instance: p.instance ?? null,
         party: this.parties.view(p, now),
         partyInvite: p.partyInvite ? { from: p.partyInvite.from } : null,
@@ -323,7 +327,7 @@ export class World {
     p.seen = now;
     reject(
       p.dead && !["chat", "leave", "release"].includes(a.type),
-      "You are dead. Release your spirit to return to camp.",
+      "You are dead. Release your spirit to return to the nearest graveyard.",
       409,
     );
     const trade = commerce(p, a, this.npcs, now);
@@ -346,12 +350,13 @@ export class World {
     if (a.type === "guild") return this.guilds.act(p, a, now, reject);
     if (a.type === "release") {
       reject(!p.dead, "You are not dead.");
+      const where = p.instance ? null : this.graveyardFor(p).name;
       this.revive(p, now);
-      return { message: "Your spirit returns to Wayfarer’s Camp." };
+      return { message: where ? `Your spirit returns to ${where}.` : "Your spirit returns to the crypt entrance." };
     }
     reject(
       p.dead && a.type !== "chat",
-      "You are dead. Release your spirit to return to camp.",
+      "You are dead. Release your spirit to return to the nearest graveyard.",
       409,
     );
     if (a.type === "enter") return this.crypts.enter(p, now, reject);
@@ -664,6 +669,14 @@ export class World {
         progress.progress = Math.min(3, progress.progress + 1);
         if (progress.progress === 3) progress.status = "ready";
       }
+      // Zone quests from the towns count any creature of their zone.
+      for (const [id, def] of Object.entries(QUESTS)) {
+        const qp = q.quests[id];
+        if (def.kill && qp?.status === "active" && e.zoneId === def.kill.zone) {
+          qp.progress = Math.min(def.required, qp.progress + 1);
+          if (qp.progress >= def.required) qp.status = "ready";
+        }
+      }
       const crypt = q.quests.crypt;
       if (e.boss && crypt?.status === "active") {
         crypt.progress = 1;
@@ -736,8 +749,24 @@ export class World {
       this.crypts.leave(p);
       return;
     }
-    p.x = p.faction === "dawnward" ? -2 : 2;
-    p.z = 10;
+    // Spirits return to the nearest graveyard: camp or a town.
+    const g = this.graveyardFor(p);
+    p.x = g.x + (p.faction === "dawnward" ? -2 : 2);
+    p.z = g.z - 2;
+  }
+  // Exploration: the first visit to a zone, town or lake is worth some experience.
+  explore(p, now) {
+    for (const place of [ZONES[zoneAt(p.x, p.z)].name, subzoneAt(p.x, p.z)]) {
+      if (p.explored.includes(place)) continue;
+      p.explored.push(place);
+      if (place === "The Stillwood" || place === "Wayfarer’s Camp") continue;
+      const xp = 25 + p.level * 15;
+      addExperience(p, xp);
+      this.system(p, `Discovered: ${place} (+${xp} experience)`, now);
+    }
+  }
+  graveyardFor(p) {
+    return GRAVEYARDS.reduce((best, g) => (distance(g, p) < distance(best, p) ? g : best), GRAVEYARDS[0]);
   }
   killPlayer(p, now) {
     p.eating = null;
@@ -782,7 +811,7 @@ export class World {
           cls.resource === "Mana" && now - (p.lastSpend ?? -Infinity) < 5000;
         p.power = Math.min(100, p.power + cls.regen * (slowed ? 0.25 : 1) * dt);
       }
-      if (!inCombat && !inCamp(p))
+      if (!inCombat && !inSanctuary(p))
         p.hp = Math.min(stats(p).maxHp, p.hp + stats(p).maxHp * 0.02 * dt);
       if (p.eating) {
         if (now >= p.eating.until || inCombat) p.eating = null;
@@ -822,7 +851,7 @@ export class World {
       }
     }
     for (const p of online)
-      if (inCamp(p) && !p.dead) p.hp = Math.min(stats(p).maxHp, p.hp + dt * 6);
+      if (inSanctuary(p) && !p.dead) p.hp = Math.min(stats(p).maxHp, p.hp + dt * 6);
     for (const p of online)
       if (now - p.inputAt < 400 && !p.dead) {
         if (p.instance) {
@@ -834,14 +863,12 @@ export class World {
           else if (walkableAt(p.x, nz)) p.z = nz;
           continue;
         }
-        p.x = Math.max(
-          -WORLD_LIMIT,
-          Math.min(WORLD_LIMIT, p.x + p.input.x * 5 * dt),
-        );
-        p.z = Math.max(
-          -WORLD_LIMIT,
-          Math.min(WORLD_LIMIT, p.z + p.input.z * 5 * dt),
-        );
+        // Out in the world: stay inside the mountains and walk around houses, not through them.
+        const nx = Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, p.x + p.input.x * 5 * dt)),
+          nz = Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, p.z + p.input.z * 5 * dt));
+        if (!insideHouse(nx, nz)) (p.x = nx), (p.z = nz);
+        else if (!insideHouse(nx, p.z)) p.x = nx;
+        else if (!insideHouse(p.x, nz)) p.z = nz;
       }
     this.crypts.tick(now, dt);
     this.tickEnemies(this.enemies, online.filter((p) => !p.instance), dt, now, null);
@@ -891,7 +918,7 @@ export class World {
       for (const p of online)
         if (
           !p.dead &&
-          !inCamp(p) &&
+          !inSanctuary(p) &&
           !e.threat.has(p.id) &&
           distance(e, p) < aggroRadius(e.level ?? 1, p.level)
         )
@@ -899,7 +926,7 @@ export class World {
       // Drop players who died, left, or fled into the camp's sanctuary.
       for (const id of e.threat.keys()) {
         const p = this.players.get(id);
-        if (!p || p.dead || now - p.seen >= 15000 || inCamp(p) || zoneOf(p) !== zoneOf(e)) e.threat.delete(id);
+        if (!p || p.dead || now - p.seen >= 15000 || inSanctuary(p) || zoneOf(p) !== zoneOf(e)) e.threat.delete(id);
       }
       let target = null,
         top = -1;
@@ -971,6 +998,7 @@ export class World {
         hp: e.hp,
         level: e.level,
         respawnAt: e.respawnAt,
+        ...(e.anchorX !== undefined ? { anchorX: e.anchorX, anchorZ: e.anchorZ } : {}),
       })),
       players: [...this.players.values()].map((p) => ({
         ...publicPlayer(p),
@@ -990,6 +1018,7 @@ export class World {
         inventory: p.inventory,
         equipment: p.equipment,
         quests: p.quests,
+        explored: p.explored,
         materials: p.materials,
         xp: p.xp,
         power: p.power,

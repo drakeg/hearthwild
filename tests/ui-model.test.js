@@ -1,3 +1,4 @@
+import { WORLD_HALF } from "../public/world-config.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import {
@@ -10,7 +11,7 @@ test("action bar has twelve conventional slots and map coordinates preserve nort
   assert.equal(BAR_KEYS.length, 12);
   assert.deepEqual(mapPoint(0, 0), { x: 50, y: 50 });
   assert.ok(mapPoint(0, -20).y < 50);
-  assert.deepEqual(mapPoint(100, -100), { x: 100, y: 0 });
+  assert.deepEqual(mapPoint(WORLD_HALF, -WORLD_HALF), { x: 100, y: 0 });
 });
 test("quest lookup searches objectives and area, with active/complete filters", () => {
   const defs = {

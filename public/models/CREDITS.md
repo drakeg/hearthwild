@@ -7,6 +7,9 @@ All models are used under their stated licences. No commercial game assets are i
 - Bronze sword, bronze axe, wooden shield, bronze pickaxe and metal torch from the **Fantasy Props MegaKit** by Quaternius. CC0 1.0.
 - Staff, dagger, wand and spellbook from the **KayKit Character Pack: Adventures 1.0** by Kay Lousberg (kaylousberg.com). CC0 1.0.
 
+## Towns (`models/props/village.glb`)
+- Walls, doors, windows, shutters, roofs, gables and chimneys of the houses in Harrowford, Reedwatch, Hollowfrost Lodge and Cragmoor Hold from the **Medieval Village MegaKit** by Quaternius (quaternius.com). CC0 1.0. The pieces are packed into one file with shared, compressed textures; the houses are assembled from them in the game.
+
 ## Dungeon (`models/dungeon/`)
 - Floors, walls, pillars, torches, banners, barrels, crates, rubble, chest and other furnishings of the Hollow Crypt from the **KayKit Dungeon Remastered Pack 1.1** by Kay Lousberg (kaylousberg.com). CC0 1.0.
 

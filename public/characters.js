@@ -43,6 +43,10 @@ const CLOTH = {
   ember: { hue: 0.03, sat: 0.9, val: 0.5 },
   royal: { hue: 0.6, sat: 0.9, val: 0.8 },
   wine: { hue: 0.92, sat: 0.7, val: 0.45 },
+  tan: { hue: 0.1, sat: 0.55, val: 0.75 },
+  frost: { hue: 0.57, sat: 0.35, val: 0.95 },
+  slate: { hue: 0.6, sat: 0.12, val: 0.6 },
+  bog: { hue: 0.2, sat: 0.45, val: 0.45 },
 };
 const HAIR = { black: "#1b1512", brown: "#4a2e1b", auburn: "#7a3418", blond: "#b98b4f", grey: "#8b8780", copper: "#a5552a" };
 // Held props: which bone, and an offset (position, Euler rotation, scale) in that bone's space.
@@ -78,6 +82,17 @@ export const LOOKS = {
   "ashen-stalker": { g: "female", outfit: "ranger", hood: true, cloth: "wine", held: ["dagger", "daggerOff"], attack: "attackDual" },
   "ashen-hexer": { g: "male", outfit: "ranger", hood: true, cloth: "ash", held: ["staff"], attack: "castInstant", caster: true },
   "ashen-warden": { g: "male", outfit: "ranger", hood: true, cloth: "ember", pauldron: true, held: ["staff"], attack: "castInstant", caster: true, scale: 1.4 },
+  // The wider world's people: Harrow bandits, mire cultists, Hollowfrost reavers and Greyspire brigands.
+  "harrow-bandit": { g: "male", outfit: "ranger", hood: true, cloth: "tan", held: ["sword"], attack: "attack1h" },
+  "downs-poacher": { g: "female", outfit: "ranger", hair: "hair_simpleparted", hairColor: "auburn", cloth: "tan", held: ["dagger", "daggerOff"], attack: "attackDual" },
+  "mire-cultist": { g: "male", outfit: "ranger", hood: true, cloth: "bog", held: ["staff"], attack: "castInstant", caster: true },
+  "mire-witch": { g: "female", outfit: "ranger", hood: true, cloth: "wine", held: ["wand", "book"], attack: "castInstant", caster: true },
+  "frost-reaver": { g: "male", outfit: "ranger", hair: "hair_long", beard: true, hairColor: "blond", cloth: "frost", pauldron: true, held: ["axe"], attack: "attack1h" },
+  "greyspire-brigand": { g: "male", outfit: "ranger", hair: "hair_buzzed", beard: true, hairColor: "black", cloth: "slate", pauldron: true, held: ["sword", "shield"], attack: "attack1h" },
+  "stonecaller": { g: "female", outfit: "ranger", hood: true, cloth: "slate", held: ["staff"], attack: "castInstant", caster: true },
+  "npc-town": { g: "male", outfit: "peasant", hair: "hair_simpleparted", beard: true, hairColor: "brown", held: [], idle: "talk" },
+  "npc-town-f": { g: "female", outfit: "peasant", hair: "hair_buns", hairColor: "blond", held: [], idle: "talk" },
+  "npc-captain": { g: "male", outfit: "ranger", hair: "hair_buzzed", beard: true, hairColor: "grey", cloth: "royal", pauldron: true, held: ["sword", "shield"], idle: "idle" },
   "npc-registrar": { g: "male", outfit: "peasant", hair: "hair_simpleparted", beard: true, hairColor: "brown", cloth: "royal", held: ["book"], idle: "talk" },
   "npc-scout": { g: "male", outfit: "ranger", hair: "hair_simpleparted", hairColor: "blond", cloth: "moss", pauldron: true, held: ["dagger"], idle: "talk" },
 };
@@ -96,6 +111,20 @@ export const CREATURES = {
   "ashen-stalker": { model: "ashen-stalker" },
   "ashen-hexer": { model: "ashen-hexer" },
   "ashen-warden": { model: "ashen-warden" },
+  "gorse-hound": { model: "fox", size: 1.15, tint: "#c49a52" },
+  bristleback: { model: "fox", size: 1.5, tint: "#6b4a2e" },
+  "bog-lurker": { model: "fox", size: 1.35, tint: "#556446" },
+  reedfang: { model: "fox", size: 1.05, tint: "#2f3a2a" },
+  "rime-wolf": { model: "fox", size: 1.55, tint: "#e8eef2" },
+  frostfang: { model: "fox", size: 1.95, tint: "#9fb4c8" },
+  "crag-stalker": { model: "fox", size: 2.0, tint: "#6e6a64" },
+  "harrow-bandit": { model: "harrow-bandit" },
+  "downs-poacher": { model: "downs-poacher" },
+  "mire-cultist": { model: "mire-cultist" },
+  "mire-witch": { model: "mire-witch" },
+  "frost-reaver": { model: "frost-reaver" },
+  "greyspire-brigand": { model: "greyspire-brigand" },
+  stonecaller: { model: "stonecaller" },
 };
 const BEASTS = {
   fox: { file: "/models/fox.glb", scale: 0.0105, yaw: -Math.PI / 2, clips: { idle: "Survey", run: "Run", back: "Walk" } },

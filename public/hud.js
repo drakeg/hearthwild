@@ -1,5 +1,6 @@
 import { CRYPT } from "./dungeon-layout.js";
-import { WORLD_HALF, WORLD_SIZE } from "./world-config.js";
+import { WORLD_HALF, WORLD_SIZE, WORLD_LIMIT, ZONES, TOWNS } from "./world-config.js";
+import { zoneWeights, terrainHeight, lakeAt, ROADS, HOUSES } from "./terrain.js";
 import { mapPoint, filterQuests, questMarker } from "./ui-model.js";
 const $ = (id) => document.getElementById(id);
 export function iconStyle(index) {
@@ -106,67 +107,151 @@ export function createHud({
       c.fillText(CRYPT.name, size / 2, 30);
     }
   }
+  // A shaded painting of the whole world, built once in small slices so it never stalls a frame.
+  const BG = 256,
+    bgCanvas = document.createElement("canvas");
+  bgCanvas.width = bgCanvas.height = BG;
+  const bgCtx = bgCanvas.getContext("2d"),
+    bgImage = bgCtx.createImageData(BG, BG),
+    zoneRGB = Object.fromEntries(
+      Object.entries(ZONES).map(([k, z]) => [k, [1, 3, 5].map((i) => parseInt(z.color.slice(i, i + 2), 16))]),
+    );
+  let bgRow = 0;
+  function paintBackground() {
+    if (bgRow >= BG) return true;
+    const step = WORLD_SIZE / BG;
+    for (const end = Math.min(BG, bgRow + 12); bgRow < end; bgRow++) {
+      const z = -WORLD_HALF + (bgRow + 0.5) * step;
+      for (let i = 0; i < BG; i++) {
+        const x = -WORLD_HALF + (i + 0.5) * step,
+          w = zoneWeights(x, z),
+          h = terrainHeight(x, z),
+          shade = Math.max(0.72, Math.min(1.25, 1 + (terrainHeight(x - step, z - step) - h) * 0.045));
+        let r = 0,
+          g = 0,
+          b = 0;
+        for (const k in w) (r += zoneRGB[k][0] * w[k]), (g += zoneRGB[k][1] * w[k]), (b += zoneRGB[k][2] * w[k]);
+        if (Math.max(Math.abs(x), Math.abs(z)) > WORLD_LIMIT + 10) [r, g, b] = h > 45 ? [236, 238, 240] : [128, 122, 112];
+        const lake = lakeAt(x, z);
+        if (lake) [r, g, b] = lake.frozen ? [214, 232, 242] : [92, 140, 160];
+        const k = (bgRow * BG + i) * 4;
+        bgImage.data[k] = r * shade;
+        bgImage.data[k + 1] = g * shade;
+        bgImage.data[k + 2] = b * shade;
+        bgImage.data[k + 3] = 255;
+      }
+    }
+    bgCtx.putImageData(bgImage, 0, 0);
+    return bgRow >= BG;
+  }
   function drawMap(canvas, s, mini = false) {
     if (s.self.instance) return drawCrypt(canvas, s, mini);
+    let ready = paintBackground();
+    // The full map paints the whole world at once (a fraction of a second, once).
+    if (!mini) while (!ready) ready = paintBackground();
     const c = canvas.getContext("2d"),
       size = canvas.width,
-      span = mini ? 60 : WORLD_SIZE,
+      span = mini ? 170 : WORLD_SIZE,
       scale = size / span,
       originX = mini ? s.self.x - span / 2 : -WORLD_HALF,
       originZ = mini ? s.self.z - span / 2 : -WORLD_HALF,
       pt = (x, z) => [(x - originX) * scale, (z - originZ) * scale];
     c.clearRect(0, 0, size, size);
-    c.fillStyle = mini ? "#445d35" : "#c4ad78";
+    c.fillStyle = "#4f6a3c";
     c.fillRect(0, 0, size, size);
-    let n = 17;
-    const rnd = () => {
-      n = (n * 1664525 + 1013904223) >>> 0;
-      return n / 4294967296;
-    };
-    for (let i = 0; i < 350; i++) {
-      const x = rnd() * size,
-        y = rnd() * size;
-      c.fillStyle = mini ? "#60764355" : "#72694220";
-      c.beginPath();
-      c.ellipse(x, y, 4 + rnd() * 12, 3 + rnd() * 10, rnd(), 0, Math.PI * 2);
-      c.fill();
+    // The painted world, cropped for the minimap.
+    const bgScale = BG / WORLD_SIZE;
+    c.imageSmoothingEnabled = true;
+    c.drawImage(bgCanvas, (originX + WORLD_HALF) * bgScale, (originZ + WORLD_HALF) * bgScale, span * bgScale, span * bgScale, 0, 0, size, size);
+    if (!ready && !mini) {
+      c.fillStyle = "#00000055";
+      c.fillRect(0, 0, size, size);
     }
-    c.fillStyle = mini ? "#76a0a4" : "#86a5a1";
+    // Stillwater Pond and the arch trail at the heart of the Stillwood.
+    c.fillStyle = "#6e9aa6";
     const [px, py] = pt(-16, -12);
     c.beginPath();
     c.ellipse(px, py, 7 * scale, 6.5 * scale, -0.2, 0, Math.PI * 2);
     c.fill();
-    c.strokeStyle = "#604c2b";
-    c.lineWidth = mini ? 5 : 14;
-    c.beginPath();
-    let pos = pt(0, 78);
-    c.moveTo(...pos);
-    pos = pt(0, 0);
-    c.lineTo(...pos);
-    pos = pt(-2, -78);
-    c.lineTo(...pos);
-    c.stroke();
-    c.strokeStyle = mini ? "#bfb382" : "#ddc994";
-    c.lineWidth = mini ? 3 : 9;
-    c.stroke();
-    if (!mini) {
+    // Roads.
+    const road = (points) => {
+      c.beginPath();
+      points.forEach(([x, z], i) => (i ? c.lineTo(...pt(x, z)) : c.moveTo(...pt(x, z))));
+    };
+    for (const [color, width] of [
+      ["#5a4628", mini ? 5 : 4.5],
+      ["#d6c08a", mini ? 2.8 : 2.2],
+    ]) {
+      c.strokeStyle = color;
+      c.lineWidth = width;
+      c.lineJoin = c.lineCap = "round";
+      road([[0, 84], [0, 0], [-2, -78]]);
+      c.stroke();
+      for (const r of ROADS) {
+        road(r);
+        c.stroke();
+      }
+    }
+    // Houses on the minimap; town dots and names on the world map.
+    if (mini) {
+      c.fillStyle = "#8a4b33";
+      for (const h of HOUSES) {
+        if (Math.abs(h.x - s.self.x) > span || Math.abs(h.z - s.self.z) > span) continue;
+        const [hx, hz] = pt(h.x, h.z);
+        c.save();
+        c.translate(hx, hz);
+        c.rotate(-h.rot);
+        c.fillRect((-h.w / 2) * scale, (-h.d / 2) * scale, h.w * scale, h.d * scale);
+        c.restore();
+      }
+    } else {
       c.textAlign = "center";
-      c.font = "italic 22px Georgia";
-      c.fillStyle = "#3e4b43";
-      c.fillText("Stillwater Pond", px, py);
-      c.fillStyle = "#5b492e";
-      c.font = "bold 22px Georgia";
-      c.fillText("THE STILLWOOD", size * 0.6, size * 0.15);
-      c.font = "17px Georgia";
-      c.fillText("Wayfarer’s Camp", ...pt(0, 18));
-      c.fillText("Old Stone Arch", ...pt(0, -2));
-      c.font = "14px Georgia";
-      c.fillText("Amberwatch Ruins", ...pt(-48, 45));
-      c.fillText("Mossfall Ridge", ...pt(43, -46));
-      c.fillText("Moonwell Grove", ...pt(-55, -50));
+      for (const t of TOWNS) {
+        const [x, y] = pt(t.x, t.z);
+        c.fillStyle = "#f3e2b0";
+        c.strokeStyle = "#2a1d10";
+        c.lineWidth = 2;
+        c.beginPath();
+        c.arc(x, y, 6, 0, Math.PI * 2);
+        c.fill();
+        c.stroke();
+        c.font = "bold 15px Georgia";
+        c.lineWidth = 4;
+        c.strokeText(t.name, x, y - 11);
+        c.fillText(t.name, x, y - 11);
+      }
+      // Zone names, placed in each zone's heartland.
+      c.font = "italic bold 19px Georgia";
+      for (const [id, x, z] of [
+        ["stillwood", 0, -150],
+        ["downs", 650, 330],
+        ["marsh", 240, 700],
+        ["crags", -700, 250],
+        ["frost", -300, -720],
+      ]) {
+        const [lx, ly] = pt(x, z);
+        c.strokeStyle = "#1d1810cc";
+        c.lineWidth = 5;
+        c.strokeText(ZONES[id].name.toUpperCase(), lx, ly);
+        c.fillStyle = "#f4ead0";
+        c.fillText(ZONES[id].name.toUpperCase(), lx, ly);
+        c.font = "13px Georgia";
+        const [lo, hi] = ZONES[id].levels;
+        c.strokeText(`Levels ${lo}–${hi}`, lx, ly + 17);
+        c.fillText(`Levels ${lo}–${hi}`, lx, ly + 17);
+        c.font = "italic bold 19px Georgia";
+      }
+      c.font = "13px Georgia";
+      c.fillStyle = "#fff4cc";
+      c.strokeStyle = "#1d1810";
+      c.lineWidth = 3;
+      c.strokeText("Wayfarer’s Camp", ...pt(0, 34));
+      c.fillText("Wayfarer’s Camp", ...pt(0, 34));
+      c.textAlign = "start";
     }
     const marker = (o, color, r) => {
       const [x, y] = pt(o.x, o.z);
+      if (x < -10 || y < -10 || x > size + 10 || y > size + 10) return;
       c.fillStyle = color;
       c.strokeStyle = "#152216";
       c.lineWidth = 1.3;
@@ -175,21 +260,17 @@ export function createHud({
       c.fill();
       c.stroke();
     };
-    for (const e of s.enemies)
-      if (e.hp > 0) marker(e, "#c66d4e", mini ? 2.5 : 4);
-    if (s.self.quests.starleaf.status === "active")
-      for (const r of s.resources)
-        if (r.available) marker(r, "#75ddbc", mini ? 2.5 : 5);
+    if (mini) for (const e of s.enemies) if (e.hp > 0) marker(e, "#c66d4e", 2.5);
+    if (mini && s.self.quests.starleaf.status === "active")
+      for (const r of s.resources) if (r.available) marker(r, "#75ddbc", 2.5);
     for (const n of s.npcs) {
       const q = s.self.quests[n.quest] ?? { status: "merchant" };
-      const info =
-        q.status === "merchant"
-          ? { symbol: "¤", color: "#d9b465" }
-          : questMarker(q.status);
-      marker(n, info.color, mini ? 3 : 6);
+      const info = q.status === "merchant" ? { symbol: mini ? "¤" : "", color: "#d9b465" } : questMarker(q.status);
+      if (!mini && !info.symbol) continue;
+      marker(n, info.color, mini ? 3 : 4);
       if (info.symbol) {
         const [x, y] = pt(n.x, n.z);
-        c.font = `bold ${mini ? 12 : 20}px Georgia`;
+        c.font = `bold ${mini ? 12 : 16}px Georgia`;
         c.textAlign = "center";
         c.strokeStyle = "#152216";
         c.lineWidth = 3;
@@ -199,25 +280,21 @@ export function createHud({
         c.textAlign = "start";
       }
     }
-    for (const p of s.players)
-      if (p.id !== s.self.id)
-        marker(
-          p,
-          p.faction === s.self.faction ? "#93c9dc" : "#ce705e",
-          mini ? 2.5 : 4,
-        );
-    for (const l of s.loot) marker(l, "#ffe284", mini ? 3 : 5);
+    for (const m of s.self.party?.members ?? []) if (m.id !== s.self.id && !m.instance) marker(m, "#6fa0ff", mini ? 3 : 5);
+    for (const p of s.players) if (p.id !== s.self.id) marker(p, p.faction === s.self.faction ? "#93c9dc" : "#ce705e", mini ? 2.5 : 3.5);
+    for (const l of s.loot) marker(l, "#ffe284", mini ? 3 : 4);
     if (waypoint) {
       const point = pt(waypoint.x, waypoint.z);
       c.strokeStyle = "#f6d474";
       c.lineWidth = 2;
       c.beginPath();
-      c.arc(...point, mini ? 7 : 14, 0, Math.PI * 2);
+      c.arc(...point, mini ? 7 : 12, 0, Math.PI * 2);
       c.stroke();
     }
     const [x, y] = pt(s.self.x, s.self.z);
     c.fillStyle = "#fff0b1";
     c.strokeStyle = "#231c11";
+    c.lineWidth = 1.5;
     c.beginPath();
     c.moveTo(x, y - (mini ? 5 : 10));
     c.lineTo(x - (mini ? 4 : 8), y + (mini ? 5 : 9));

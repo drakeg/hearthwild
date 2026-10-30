@@ -362,7 +362,7 @@ const uiError = (text) => combatUi.error(text);
 function npcModel(n) {
   const g = avatar(
     { ...n, faction: n.id === "warden" ? "dawnward" : "mossbound" },
-    NPC_MODEL[n.id] ?? "npc-merchant",
+    n.look ?? NPC_MODEL[n.id] ?? "npc-merchant",
   );
   if (g.userData.rig) {
     g.remove(g.userData.nameTag);
@@ -1914,7 +1914,7 @@ function render() {
   requestAnimationFrame(render);
   const dt = Math.min(clock.getDelta(), 0.1),
     t = clock.elapsedTime;
-  scenery.update(t);
+  scenery.update(t, state && !state.self.instance ? state.self : null, camera);
   dungeon.update(t, playing && state ? playerModels.get(state.self.id)?.position : null);
   const serverNowMs = combatUi.serverNow();
   for (const g of telegraphModels.values()) {

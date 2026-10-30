@@ -60,7 +60,8 @@ test("all quest requirements have enough local renewable targets, and gathering 
   const { w, a, p } = setup();
   assert.ok(w.enemies.length >= 3);
   assert.ok(w.resources.length >= 4);
-  for (const o of [...w.npcs, ...w.resources, ...w.enemies])
+  // Starter content stays inside the original Stillwood clearing.
+  for (const o of [...w.npcs.filter((n) => !n.town), ...w.resources, ...w.enemies.filter((e) => e.id.startsWith("bramble-"))])
     assert.ok(Math.abs(o.x) < 79 && Math.abs(o.z) < 79);
   move(p, w.npcs[1]);
   w.act(a.token, { type: "talk", target: w.npcs[1].id }, 1000);

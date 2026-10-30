@@ -1,3 +1,4 @@
+import { ZONE_POPULATION } from "../server/wilderness.js";
 import test from "node:test";
 import assert from "node:assert/strict";
 import { World } from "../server/world.js";
@@ -9,8 +10,10 @@ const rng = () => {
 };
 test("expanded wilderness distributes monsters widely and persists their random spawn schedule and locations", () => {
   const w = new World({}, { random: rng() }),
-    live = w.enemies.filter((e) => e.hp > 0);
-  assert.equal(w.enemies.length, 32);
+    starters = w.enemies.filter((e) => e.id.startsWith("bramble-")),
+    live = starters.filter((e) => e.hp > 0);
+  assert.equal(starters.length, 32, "the Stillwood keeps its 32 starter creatures");
+  assert.equal(w.enemies.length - starters.length, Object.values(ZONE_POPULATION).reduce((a, b) => a + b), "plus the wider world");
   assert.ok(
     Math.max(...live.map((e) => e.x)) - Math.min(...live.map((e) => e.x)) > 100,
   );
@@ -54,8 +57,8 @@ test("movement reaches the expanded boundary and leaving clears input and online
     a = w.join({ name: "Explorer", faction: "dawnward" }),
     b = w.join({ name: "Watcher", faction: "dawnward" }),
     p = w.players.get(a.id);
-  p.x = 77.9;
-  p.z = -77.9;
+  p.x = WORLD_LIMIT - 0.1;
+  p.z = -WORLD_LIMIT + 0.1;
   w.act(a.token, { type: "input", x: 1, z: -1 }, 1000);
   w.tick(0.1, 1100);
   assert.equal(p.x, WORLD_LIMIT);
