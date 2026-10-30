@@ -135,3 +135,7 @@ Added verification covers twelve-slot ordering, north-up map projection, quest l
 ## Window sizes
 
 The HUD has been measured at 320×480, 480×480, 640×480, 800×600, 1024×768 and 1440×900. Compact windows use Chat/Objectives toggles and stacked menus; modal windows scroll to fit. The desktop app offers Compact/Standard/Large sizes in View.
+
+## Releases
+
+Raising the `version` in `package.json` on `main` publishes a release automatically. GitHub Actions (`.github/workflows/release.yml`) runs the tests, builds the Mac (Apple Silicon and Intel), Windows and Linux packages, and attaches them to a new GitHub release. The release notes come from that version's `CHANGELOG.md` section. You can also run the workflow by hand from the repository's **Actions** tab.

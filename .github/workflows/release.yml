@@ -1,0 +1,120 @@
+# Builds Hearthwild for macOS, Windows and Linux and publishes a GitHub release
+# whenever the version in package.json changes on main (or when run by hand).
+name: Release
+
+on:
+  push:
+    branches: [main]
+    paths: [package.json]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.v.outputs.version }}
+      exists: ${{ steps.v.outputs.exists }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - id: v
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V=$(node -p "require('./package.json').version")
+          echo "version=$V" >> "$GITHUB_OUTPUT"
+          if gh release view "v$V" --repo "$GITHUB_REPOSITORY" --json isDraft -q .isDraft 2>/dev/null | grep -q false; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Release v$V is already published; nothing to do."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+      - name: Run tests
+        if: steps.v.outputs.exists == 'false'
+        run: node --test tests/*.test.js
+
+  mac:
+    needs: check
+    if: needs.check.outputs.exists == 'false'
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save @electron/packager@20.3.0
+      - name: Build Mac installers
+        run: |
+          V=${{ needs.check.outputs.version }}
+          mkdir -p release
+          for pair in "arm64:Apple-Silicon" "x64:Intel"; do
+            ARCH=${pair%%:*}; NAME=${pair##*:}
+            node tools/pack.mjs darwin "$ARCH" dist
+            APP="dist/Hearthwild-darwin-$ARCH/Hearthwild.app"
+            codesign --force --deep --sign - "$APP"
+            pkgbuild --component "$APP" --install-location /Applications \
+              --identifier com.hearthwild.game --version "$V" \
+              "release/Hearthwild-$V-Mac-$NAME.pkg"
+          done
+          ls -la release
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mac
+          path: release/*
+
+  windows-linux:
+    needs: check
+    if: needs.check.outputs.exists == 'false'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-save @electron/packager@20.3.0
+      - name: Build Windows and Linux packages
+        run: |
+          V=${{ needs.check.outputs.version }}
+          mkdir -p release
+          node tools/pack.mjs win32 x64 dist
+          (cd dist && mv Hearthwild-win32-x64 Hearthwild && zip -qry "../release/Hearthwild-$V-Windows-x64.zip" Hearthwild)
+          node tools/pack.mjs linux x64 dist
+          (cd dist && mv Hearthwild-linux-x64 "hearthwild-$V" && tar -czf "../release/Hearthwild-$V-Linux-x64.tar.gz" "hearthwild-$V")
+          # Smoke test: the bundled runtime starts the game server and reports this version.
+          cd "dist/hearthwild-$V"
+          ELECTRON_RUN_AS_NODE=1 timeout 60 ./hearthwild -e "import('./resources/app/server/http.js').then(async m=>{const a=m.createGameServer({dataDir:'/tmp/smoke'});a.server.listen(4329,'127.0.0.1',async()=>{const j=await (await fetch('http://127.0.0.1:4329/api/info')).json();console.log('smoke',j.version);process.exit(j.version==='$V'?0:1)})})"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-linux
+          path: release/*
+
+  publish:
+    needs: [check, mac, windows-linux]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: release
+          merge-multiple: true
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          V=${{ needs.check.outputs.version }}
+          cd release && sha256sum *.pkg *.zip *.tar.gz > SHA256SUMS.txt && cd ..
+          python3 tools/release-notes.py "$V" > notes.md
+          TITLE=$(grep -m1 "^## $V" CHANGELOG.md | sed "s/^## $V — //")
+          # Replace any half-finished draft left by an earlier attempt.
+          gh release delete "v$V" --repo "$GITHUB_REPOSITORY" --yes --cleanup-tag 2>/dev/null || true
+          gh release create "v$V" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+            --title "Hearthwild $V — ${TITLE:-Release}" --notes-file notes.md release/*
