@@ -66,7 +66,7 @@ jobs:
               "release/Hearthwild-$V-Mac-$NAME.pkg"
           done
           ls -la release
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: mac
           path: release/*
@@ -92,7 +92,7 @@ jobs:
           # Smoke test: the bundled runtime starts the game server and reports this version.
           cd "dist/hearthwild-$V"
           ELECTRON_RUN_AS_NODE=1 timeout 60 ./hearthwild -e "import('./resources/app/server/http.js').then(async m=>{const a=m.createGameServer({dataDir:'/tmp/smoke'});a.server.listen(4329,'127.0.0.1',async()=>{const j=await (await fetch('http://127.0.0.1:4329/api/info')).json();console.log('smoke',j.version);process.exit(j.version==='$V'?0:1)})})"
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: windows-linux
           path: release/*
@@ -102,7 +102,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v8
         with:
           path: release
           merge-multiple: true
