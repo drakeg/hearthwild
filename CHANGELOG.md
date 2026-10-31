@@ -1,3 +1,7 @@
+## 0.10.2 — Facing forward
+
+- **Characters no longer run sideways.** The character models were turned a quarter turn away from the direction they moved, so your hero (and NPCs and humanoid enemies) ran with their body side-on. Running forward now shows your character’s back, strafing leans the body toward the direction of travel, and enemies face you as they charge.
+
 ## 0.10.1 — Random loot and no Documents prompt
 
 - **Loot is random again.** Each kill rolls its own drop: often just coin, sometimes an Uncommon item, now and then a Rare, and occasionally a draught, bread or water. Gold now scales with the creature’s level. (Before, the item was picked by your total kill count, so after five kills every drop was the same.)

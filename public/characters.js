@@ -12,6 +12,7 @@ const PARTS = [
   "hair_simpleparted", "hair_long", "hair_buns", "hair_beard", "hair_buzzed", "hair_buzzedfemale",
   "w_sword", "w_axe", "w_shield", "w_pickaxe", "w_torch", "w_staff", "w_dagger", "w_wand", "w_book",
 ];
+export const HUMANOID_YAW = Math.PI / 2;
 // Logical animation → clip in the Universal Animation Library (timeScale < 0 plays backwards).
 const CLIPS = {
   idle: { name: "Idle_Loop" },
@@ -259,6 +260,9 @@ function humanoidRig(look) {
   const { model } = built,
     root = new THREE.Group(),
     turn = new THREE.Group();
+  // The character meshes are authored facing a quarter turn to the side of +z (the game's
+  // "forward"), so turn them once here; otherwise everyone runs sideways.
+  model.rotation.y = HUMANOID_YAW;
   turn.add(model);
   root.add(turn);
   if (look.scale) turn.scale.setScalar(look.scale);
