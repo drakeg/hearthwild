@@ -19,7 +19,8 @@ import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { Parties } from "./party.js";
 import { Guilds } from "./guild.js";
 import { Crypts, walkableAt } from "./crypt.js";
-import { CRYPT } from "../public/dungeon-layout.js";
+import { CRYPT, DUNGEON_LIST, dungeonOf } from "../public/dungeon-layout.js";
+import { DUNGEON_LOOT } from "./content-world.js";
 import {
   MELEE_RANGE,
   LEASH_RANGE,
@@ -73,7 +74,6 @@ const publicPlayer = (p) => ({
   partyId: p.partyId ?? null,
 });
 const zoneOf = (o) => o?.instance ?? null;
-const BOSS_LOOT = ["ashbound-greatblade", "ashen-mantle", "ember-of-vorlath"];
 export class World {
   constructor(saved = {}, { random = Math.random, combatRandom = random, charterSignatures } = {}) {
     this.random = random;
@@ -121,7 +121,7 @@ export class World {
     this.system(p, `Waystone interrupted${why ? ` (${why})` : ""}.`, now);
   }
   zoneName(p) {
-    return p.instance ? CRYPT.name : subzoneAt(p.x, p.z);
+    return p.instance ? (dungeonOf(p.instance) ?? CRYPT).name : subzoneAt(p.x, p.z);
   }
   // Enemies that share the player's zone: the open world, or their dungeon copy.
   enemiesFor(p) {
@@ -159,9 +159,9 @@ export class World {
     if (p.hp <= 0) this.killPlayer(p, now);
   }
   leavePartyInstance(p, party, now) {
-    if (p.instance && this.crypts.instances.get(p.instance)?.key === `party:${party.id}`) {
+    if (p.instance && this.crypts.instances.get(p.instance)?.key.endsWith(`party:${party.id}`)) {
       this.crypts.leave(p);
-      this.system(p, "You left the group and were returned to Amberwatch Ruins.", now);
+      this.system(p, "You left the group and were returned to the dungeon entrance.", now);
     }
   }
   join(payload) {
@@ -261,7 +261,7 @@ export class World {
     if (p.instance && !this.crypts.instances.has(p.instance)) {
       // The dungeon copy reset while they were away.
       this.crypts.leave(p);
-      this.system(p, "The crypt has reset. You find yourself back at Amberwatch Ruins.", now);
+      this.system(p, "The dungeon has reset. You find yourself back at its entrance.", now);
     }
     for (const k of ["partyInvite", "guildInvite", "charterRequest"]) if (p[k] && p[k].expiresAt <= now) p[k] = null;
     if (!p.instance && !p.dead) this.explore(p, now);
@@ -291,8 +291,8 @@ export class World {
         inCombat: (p.combatUntil ?? 0) > now,
         dead: !!p.dead,
         eating: p.eating ?? null,
-        subzone: p.instance ? CRYPT.name : subzoneAt(p.x, p.z),
-        zone: p.instance ? CRYPT.name : ZONES[zoneAt(p.x, p.z)].name,
+        subzone: p.instance ? (dungeonOf(p.instance) ?? CRYPT).name : subzoneAt(p.x, p.z),
+        zone: p.instance ? (dungeonOf(p.instance) ?? CRYPT).name : ZONES[zoneAt(p.x, p.z)].name,
         sanctuary: !p.instance && inSanctuary(p),
         instance: p.instance ?? null,
         party: this.parties.view(p, now),
@@ -321,8 +321,8 @@ export class World {
       abilities: ABILITIES[p.classId],
       npcs: p.instance ? [] : this.npcs,
       portals: p.instance
-        ? [{ id: "crypt-exit", type: "exit", name: "Crypt exit", x: CRYPT.origin.x + CRYPT.exit.x, z: CRYPT.origin.z + CRYPT.exit.z }]
-        : [{ id: "crypt-door", type: "enter", name: CRYPT.name, x: CRYPT.door.x, z: CRYPT.door.z }],
+        ? [(({ origin, exit, id }) => ({ id: `${id}-exit`, type: "exit", name: "Exit", x: origin.x + exit.x, z: origin.z + exit.z }))(dungeonOf(p.instance) ?? CRYPT)]
+        : DUNGEON_LIST.map((d) => ({ id: `${d.id}-door`, type: "enter", name: d.name, x: d.door.x, z: d.door.z })),
       telegraphs: p.instance ? (this.crypts.instances.get(p.instance)?.telegraphs ?? []) : [],
       questDefinitions: QUESTS,
       resources: this.resources.map((r) => ({
@@ -384,7 +384,7 @@ export class World {
       reject(!p.dead, "You are not dead.");
       const where = p.instance ? null : this.graveyardFor(p).name;
       this.revive(p, now);
-      return { message: where ? `Your spirit returns to ${where}.` : "Your spirit returns to the crypt entrance." };
+      return { message: where ? `Your spirit returns to ${where}.` : "Your spirit returns to the dungeon entrance." };
     }
     reject(
       p.dead && a.type !== "chat",
@@ -770,7 +770,7 @@ export class World {
       addExperience(q, xp);
       if (xp) this.event("xp", { to: q.id, amount: xp, name: e.name, x: e.x, z: e.z, zone: zoneOf(e) }, now);
       const items = e.boss
-        ? [{ id: randomUUID(), template: BOSS_LOOT[Math.floor(this.random() * BOSS_LOOT.length)] }]
+        ? [{ id: randomUUID(), template: ((list) => list[Math.floor(this.random() * list.length)])(DUNGEON_LOOT[dungeonOf(e.instance)?.id] ?? DUNGEON_LOOT["hollow-crypt"]) }]
         : e.summoned
           ? []
           : template
@@ -803,11 +803,15 @@ export class World {
         if (def.collect) this.system(q, `${def.collect.item}: ${qp.progress}/${def.required}`, now);
         if (qp.progress >= def.required) qp.status = "ready";
       }
-      const crypt = q.quests.crypt;
-      if (e.boss && crypt?.status === "active") {
-        crypt.progress = 1;
-        crypt.status = "ready";
-      }
+      // Dungeon quests complete when that dungeon's boss falls.
+      if (e.boss)
+        for (const [id, def] of Object.entries(QUESTS)) {
+          const qp = q.quests[id];
+          if (def.boss && def.boss === dungeonOf(e.instance)?.id && qp?.status === "active") {
+            qp.progress = 1;
+            qp.status = "ready";
+          }
+        }
     }
     if (e.boss) {
       const inst = this.crypts.instances.get(e.instance);
@@ -1246,7 +1250,7 @@ export class World {
       })),
       players: [...this.players.values()].map((p) => ({
         ...publicPlayer(p),
-        ...(p.instance ? { x: CRYPT.door.x, z: CRYPT.door.z - 2.5 } : {}),
+        ...(p.instance ? (({ door }) => ({ x: door.x, z: door.z - 2.5 }))(dungeonOf(p.instance) ?? CRYPT) : {}),
         instance: null,
         partyId: null,
         guild: undefined,

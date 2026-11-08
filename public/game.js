@@ -17,7 +17,7 @@ import {
 const charactersReady = preloadCharacters();
 import * as THREE from "./vendor/three.module.js";
 import { createDungeon } from "./dungeon-scene.js";
-import { CRYPT } from "./dungeon-layout.js";
+import { CRYPT, dungeonOf } from "./dungeon-layout.js";
 import {
   GRAPHICS,
   setGraphicsQuality,
@@ -92,17 +92,26 @@ function mesh(geometry, color, x = 0, y = 0, z = 0, parent = scene) {
 const worldRoot = new THREE.Group();
 scene.add(worldRoot);
 const scenery = createScenery(worldRoot);
-const dungeon = createDungeon(scene);
+// Dungeons are built the first time you enter them, then kept for quick returns.
+const dungeons = new Map();
+let dungeon = null;
+function dungeonFor(instance) {
+  const d = dungeonOf(instance) ?? CRYPT;
+  if (!dungeons.has(d.id)) dungeons.set(d.id, createDungeon(scene, d));
+  return dungeons.get(d.id);
+}
 let currentZone = null;
 const OUTDOOR = { bg: "#a9c8de", fog: "#c3d6dc", density: 0.0065, hemi: ["#cfe4ff", "#4b4126", 1.6], sun: ["#ffe2a8", 3.4] },
   INDOOR = { bg: "#07060a", fog: "#0b0910", density: 0.04, hemi: ["#8f98c4", "#2a1d10", 1.05], sun: ["#b4c0ff", 0.7] };
 function switchZone(instance) {
   if (instance === currentZone) return;
   currentZone = instance;
-  const inside = !!instance,
-    look = inside ? INDOOR : OUTDOOR;
+  const inside = !!instance;
+  dungeon?.setActive(false);
+  dungeon = inside ? dungeonFor(instance) : null;
+  const look = inside ? (dungeon.theme.indoor ?? INDOOR) : OUTDOOR;
   worldRoot.visible = !inside;
-  dungeon.setActive(inside);
+  dungeon?.setActive(true);
   setIndoors(inside);
   scene.background.set(look.bg);
   scene.fog.color.set(look.fog);
@@ -1998,7 +2007,7 @@ function render() {
   const dt = Math.min(clock.getDelta(), 0.1),
     t = clock.elapsedTime;
   scenery.update(t, state && !state.self.instance ? state.self : null, camera);
-  dungeon.update(t, playing && state ? playerModels.get(state.self.id)?.position : null);
+  dungeon?.update(t, playing && state ? playerModels.get(state.self.id)?.position : null);
   const serverNowMs = combatUi.serverNow();
   for (const g of telegraphModels.values()) {
     const left = Math.max(0, g.userData.explodeAt - serverNowMs),
@@ -2164,7 +2173,7 @@ function render() {
       cameraRay.set(look, cameraDelta.clone().normalize());
       cameraRay.far = cameraDelta.length();
       if (t - lastCollisionAt > 0.12) {
-        const blockers = cameraRay.intersectObjects(currentZone ? dungeon.occluders : scenery.occluders, false);
+        const blockers = cameraRay.intersectObjects(currentZone && dungeon ? dungeon.occluders : scenery.occluders, false);
         cameraCollision = blockers[0]?.distance ?? Infinity;
         lastCollisionAt = t;
       }
