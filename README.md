@@ -67,6 +67,12 @@ The Stillwood (levels 1–6) is at the centre, with four zones around it, each w
 
 Roads lead from Wayfarer’s Camp to every town, and a ring road joins the towns. Towns are sanctuaries with a provisioner, a quest giver and a graveyard; when you release your spirit, you return to the nearest one. Press **M** for the world map.
 
+## Getting around
+
+- **Riding:** learn from a stablemaster (Wayfarer’s Camp or Harrowford) at level 10 for 50 gold, then press **U** to mount up. You ride 60% faster.
+- **Caravans:** caravan masters in the camp and every town carry you along the roads to towns you’ve discovered.
+- **Waystone:** make any provisioner’s town your home, then press **H** to channel your way back there (10 seconds; recharges in 15 minutes).
+
 ## Guilds
 
 - **Start one:** talk to Registrar Corwin Hale at Wayfarer’s Camp and buy a charter (10 gold). Ask two adventurers of your faction to sign it, either by clicking them and choosing *Ask to sign charter* or from the guild window. Then return to the Registrar and choose *Found your guild*.

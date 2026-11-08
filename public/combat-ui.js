@@ -237,6 +237,14 @@ export function createCombatUi({ camera, height, onRelease, onTargetChange, act 
         info(`${e.by} interrupted ${e.spell}!`);
       } else if (e.kind === "ashfall") {
         float("Ashfall", e.x, gy + 1.5, e.z, "taken");
+      } else if (e.kind === "absorb" && e.to === me) {
+        float(`Absorbed ${e.amount}`, e.x, gy + 2.6, e.z, "heal");
+      } else if (e.kind === "shield" && e.to === me) {
+        float(`Shield ${e.amount}`, e.x, gy + 2.8, e.z, "heal", true);
+      } else if (e.kind === "stunned") {
+        float("Stunned", e.x, gy + 2.8, e.z, "spell", true);
+      } else if (e.kind === "immune") {
+        float("Immune", e.x, gy + 2.6, e.z, "miss");
       } else if (e.kind === "telegraph") {
         if (Math.hypot(state.self.x - e.x, state.self.z - e.z) <= e.radius + 1) error("Move out of the Ashfall!");
       }
@@ -461,7 +469,17 @@ export function createCombatUi({ camera, height, onRelease, onTargetChange, act 
     // Cast bar
     const c = p.casting;
     const ability = c && state.abilities.find((a) => a.id === c.ability);
-    if (c && ability) {
+    if (p.recall || p.travel) {
+      // The waystone and the caravan share the cast bar.
+      const span = p.recall ? [p.recall.startedAt, p.recall.endsAt] : [p.travel.startedAt, p.travel.eta],
+        done = Math.max(0, Math.min(1, (serverNow() - span[0]) / (span[1] - span[0])));
+      castBar.hidden = false;
+      castBar.className = "cui-cast";
+      castFill.style.width = `${done * 100}%`;
+      castName.textContent = p.recall ? `Waystone · ${p.homeName}` : `Caravan to ${p.travel.name}`;
+      castTime.textContent = `${Math.max(0, (span[1] - serverNow()) / 1000).toFixed(p.recall ? 1 : 0)}`;
+      castFlash = p.recall ? { text: "Waystone", kind: "complete", until: now + 350 } : null;
+    } else if (c && ability) {
       const total = c.endsAt - (c.startedAt ?? c.endsAt - (ability.castTime ?? 1)),
         done = Math.max(0, Math.min(1, (serverNow() - (c.startedAt ?? c.endsAt - total)) / total));
       castBar.hidden = false;

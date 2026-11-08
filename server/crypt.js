@@ -39,6 +39,9 @@ export class Crypts {
     fail(p.instance, "You are already inside.");
     fail(Math.hypot(p.x - CRYPT.door.x, p.z - CRYPT.door.z) > 6, "Move closer to the crypt door.");
     fail((p.combatUntil ?? 0) > now, "You can’t enter while in combat.");
+    fail(p.travel, "Wait until the caravan stops.");
+    p.mounted = false;
+    p.recall = null;
     let inst = this.find(p);
     if (!inst) inst = this.create(this.key(p), this.world.parties.members(p).length, now);
     p.instance = inst.id;

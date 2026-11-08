@@ -1,6 +1,9 @@
 import { ITEMS, stats } from "./content.js";
 import { randomUUID } from "node:crypto";
+import { GEAR_PRICES } from "./content-world.js";
 export const PRICES = {
+  // Zone gear: sold to merchants, never stocked (buy price null).
+  ...GEAR_PRICES,
   "warden-blade": [24, 6],
   "grove-coat": [30, 8],
   "amber-charm": [20, 5],
@@ -70,6 +73,7 @@ export function commerce(p, a, npcs, now) {
       typeof a.template === "string" && Object.hasOwn(PRICES, a.template),
       "That item is not for sale.",
     );
+    requireThat(PRICES[a.template][0] !== null, "That item is not for sale.");
     room(a.template);
     const price = PRICES[a.template][0];
     requireThat(p.coins >= price, "Not enough gold.");

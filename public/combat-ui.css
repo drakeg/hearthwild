@@ -1016,3 +1016,38 @@ body.is-dead #world {
     display: none;
   }
 }
+
+/* ---------- Conversation options: deliveries, caravans, riding, home ---------- */
+#npc-extra {
+  display: grid;
+  gap: 6px;
+  margin-top: 10px;
+}
+#npc-extra[hidden] {
+  display: none;
+}
+.npc-option {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  padding: 7px 10px;
+  text-align: left;
+  color: #f3e6c2;
+  background: linear-gradient(#3a2c14, #20170a);
+  border: 1px solid #8a6d36;
+  border-radius: 4px;
+  font: 600 13.5px system-ui, sans-serif;
+  cursor: pointer;
+}
+.npc-option small {
+  color: #c4b18a;
+  font-weight: 400;
+}
+.npc-option:hover:not(:disabled) {
+  border-color: #e0c27a;
+}
+.npc-option:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
