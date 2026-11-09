@@ -42,6 +42,7 @@ const assets = new Map([
   ["/combat-ui.css", ["combat-ui.css", "text/css"]],
   ["/ui-model.js", ["ui-model.js", "text/javascript"]],
   ["/art/abilities.png", ["art/abilities.png", "image/png"]],
+  ["/art/abilities-2.png", ["art/abilities-2.png", "image/png"]],
   ["/vendor/three.module.js", ["vendor/three.module.js", "text/javascript"]],
   ["/vendor/three.core.js", ["vendor/three.core.js", "text/javascript"]],
   ["/favicon.ico", [null, "image/x-icon"]],

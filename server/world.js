@@ -1,5 +1,6 @@
 import { WORLD_LIMIT, inSanctuary, subzoneAt, zoneAt, ZONES } from "../public/world-config.js";
 import { GRAVEYARDS, insideHouse } from "../public/terrain.js";
+import { RIDING, CARAVAN_SPEED, WAYSTONE, STOPS, stopById, homePoint, route, caravanFare } from "./travel.js";
 import { createMonsters, monsterDelay, monsterPosition } from "./wilderness.js";
 import {
   ITEMS,
@@ -107,7 +108,17 @@ export class World {
   }
   // What other players see, including the guild name under their nameplate.
   pub(p) {
-    return { ...publicPlayer(p), guild: this.guilds.nameOf(p) };
+    return { ...publicPlayer(p), guild: this.guilds.nameOf(p), mounted: !!(p.mounted || p.travel) };
+  }
+  // Riding ends the moment you fight, get hurt, die or go underground.
+  dismount(p) {
+    p.mounted = false;
+  }
+  // A waystone recall is broken by moving, fighting or taking a hit.
+  breakRecall(p, now, why) {
+    if (!p.recall) return;
+    p.recall = null;
+    this.system(p, `Waystone interrupted${why ? ` (${why})` : ""}.`, now);
   }
   zoneName(p) {
     return p.instance ? CRYPT.name : subzoneAt(p.x, p.z);
@@ -128,9 +139,20 @@ export class World {
     if (p.messages.length > 80) p.messages.shift();
   }
   // Damage from encounter mechanics (Ashfall, Soul Drain) rather than melee swings.
+  // A damage shield soaks up hits before health does.
+  absorb(p, damage, now, source) {
+    if (!p.shield || p.shield.until <= now || p.shield.amount <= 0) return damage;
+    const soaked = Math.min(p.shield.amount, damage);
+    p.shield.amount -= soaked;
+    if (p.shield.amount <= 0) p.shield = null;
+    this.event("absorb", { to: p.id, from: source?.id, amount: soaked, x: p.x, z: p.z, zone: zoneOf(p) }, now);
+    return damage - soaked;
+  }
   hurtPlayer(p, amount, now, source, name) {
-    const damage = Math.max(1, Math.round(amount - stats(p).armor * 0.5));
+    const damage = this.absorb(p, Math.max(1, Math.round(amount - stats(p).armor * 0.5)), now, source);
     p.hp -= damage;
+    this.dismount(p);
+    this.breakRecall(p, now, "you were hit");
     p.eating = null;
     p.combatUntil = now + COMBAT_LINGER;
     this.event("hit", { from: source?.id, to: p.id, damage, spell: name, x: p.x, z: p.z, zone: zoneOf(p) }, now);
@@ -253,7 +275,7 @@ export class World {
         buyback: p.buyback.map(describeItem),
         potionReadyAt: p.potionReadyAt,
         equipment: p.equipment,
-        quests: p.quests,
+        quests: Object.fromEntries(Object.entries(p.quests).map(([id, q]) => [id, this.questLock(p, QUESTS[id]) ? { ...q, locked: true } : q])),
         materials: p.materials,
         power: p.power,
         xp: p.xp,
@@ -275,12 +297,20 @@ export class World {
         instance: p.instance ?? null,
         party: this.parties.view(p, now),
         partyInvite: p.partyInvite ? { from: p.partyInvite.from } : null,
+        shield: p.shield && p.shield.until > now ? { amount: p.shield.amount, until: p.shield.until } : null,
+        riding: !!p.riding,
+        mounted: !!p.mounted,
+        home: p.home ?? "camp",
+        homeName: stopById(p.home ?? "camp").name,
+        waystoneReadyAt: p.waystoneReadyAt ?? 0,
+        recall: p.recall,
+        travel: p.travel ? { to: p.travel.to, name: p.travel.name, startedAt: p.travel.startedAt, eta: p.travel.eta } : null,
         guildInfo: this.guilds.view(p, now),
         guildInvite: p.guildInvite ? { from: p.guildInvite.from, name: p.guildInvite.name } : null,
         charter: this.guilds.charterView(p),
         charterRequest: p.charterRequest ? { from: p.charterRequest.fromName, name: p.charterRequest.name } : null,
       },
-      shop: Object.entries(PRICES).map(([template, [buy, sell]]) => ({
+      shop: Object.entries(PRICES).filter(([, [buy]]) => buy !== null).map(([template, [buy, sell]]) => ({
         ...ITEMS[template],
         template,
         buy,
@@ -313,9 +343,11 @@ export class World {
         .map((q) => this.pub(q)),
       enemies: this.enemiesFor(p)
         .filter((e) => distance(p, e) < 180)
-        .map(({ contributors, homeX, homeZ, lastAttack, threat, ...e }) => ({
+        .map(({ contributors, homeX, homeZ, lastAttack, threat, dots, stunnedUntil, ...e }) => ({
           ...e,
           engaged: threat?.has(p.id) ?? false,
+          stunned: (stunnedUntil ?? 0) > now,
+          afflicted: dots?.some((d) => d.from === p.id) ?? false,
         })),
       messages: p.messages.filter((m) => m.id > after),
       serverTime: now,
@@ -384,14 +416,92 @@ export class World {
       p.input = { x: a.x / length, z: a.z / length };
       p.inputAt = now;
       if (p.eating && Math.hypot(a.x, a.z) > 0.01) p.eating = null;
+      if (Math.hypot(a.x, a.z) > 0.01) this.breakRecall(p, now, "you moved");
       return;
+    }
+    if (a.type === "riding") {
+      const npc = this.npcs.find((n) => n.id === p.talkedNpc && n.stable);
+      reject(!npc || distance(p, npc) > 4.5, "Speak to a stablemaster to learn riding.");
+      reject(p.riding, "You already know how to ride.");
+      reject(p.level < RIDING.level, `Riding is taught from level ${RIDING.level}.`);
+      reject(p.coins < RIDING.cost, `Riding lessons cost ${RIDING.cost} gold.`);
+      p.coins -= RIDING.cost;
+      p.riding = true;
+      return { message: "You learned to ride! Press U to call your mount." };
+    }
+    if (a.type === "mount") {
+      if (p.mounted) {
+        p.mounted = false;
+        return { message: "Dismounted." };
+      }
+      reject(!p.riding, "You haven’t learned to ride. Visit a stablemaster at level 10.");
+      reject(p.instance, "Mounts can’t follow you underground.");
+      reject((p.combatUntil ?? 0) > now, "You can’t mount while in combat.");
+      reject(p.travel, "You’re already riding with the caravan.");
+      p.mounted = true;
+      p.eating = null;
+      p.autoAttack = null;
+      this.breakRecall(p, now);
+      return { message: "Mounted." };
+    }
+    if (a.type === "travel") {
+      const npc = this.npcs.find((n) => n.id === p.talkedNpc && n.caravan);
+      reject(!npc || distance(p, npc) > 4.5, "Speak to a caravan master to travel.");
+      const to = stopById(a.to);
+      reject(!to || to.id === npc.caravan, "Choose a destination.");
+      reject(!this.knownStop(p, to), `You haven’t found ${to?.name ?? "that place"} yet. Travel there on foot first.`);
+      reject((p.combatUntil ?? 0) > now, "You can’t leave while in combat.");
+      const r = route(npc.caravan, to.id);
+      reject(!r, "No road leads there.");
+      const fare = caravanFare(r.length);
+      reject(p.coins < fare, `The fare is ${fare} gold.`);
+      p.coins -= fare;
+      p.mounted = false;
+      p.autoAttack = null;
+      p.input = { x: 0, z: 0 };
+      this.breakRecall(p, now);
+      p.travel = { to: to.id, name: to.name, points: r.points, i: 0, startedAt: now, eta: now + (r.length / CARAVAN_SPEED) * 1000 };
+      return { message: `The caravan sets off for ${to.name} (${fare} gold).` };
+    }
+    if (a.type === "home") {
+      const npc = this.npcs.find((n) => n.id === p.talkedNpc && n.inn);
+      reject(!npc || distance(p, npc) > 4.5, "Speak to an innkeeper or provisioner to make a town your home.");
+      p.home = npc.inn;
+      return { message: `${stopById(npc.inn).name} is now your home. Your waystone will return you here.` };
+    }
+    if (a.type === "waystone") {
+      if (a.cancel) {
+        this.breakRecall(p, now);
+        return;
+      }
+      reject(p.instance, "Leave the dungeon before using your waystone.");
+      reject(p.travel, "You’re riding with the caravan.");
+      reject(p.recall, "You’re already using your waystone.");
+      reject((p.combatUntil ?? 0) > now, "You can’t use your waystone in combat.");
+      const wait = (p.waystoneReadyAt ?? 0) - now;
+      reject(wait > 0, `Your waystone is recharging (${Math.ceil(wait / 60000)} min).`);
+      p.mounted = false;
+      p.input = { x: 0, z: 0 };
+      p.recall = { startedAt: now, endsAt: now + WAYSTONE.castTime };
+      return { message: `Your waystone glows… returning to ${stopById(p.home ?? "camp").name}.` };
     }
     if (a.type === "talk") {
       const npc = this.npcs.find((n) => n.id === a.target);
       reject(!npc, "Choose a villager.");
       reject(distance(p, npc) > 4.5, "Move closer to talk.");
       p.talkedNpc = npc.id;
-      return { npc, quest: QUESTS[npc.quest], progress: p.quests[npc.quest] };
+      const deliveries = Object.values(QUESTS)
+        .filter((q) => q.deliver?.to === npc.id && p.quests[q.id]?.status === "ready")
+        .map((q) => ({ id: q.id, name: q.name, reward: q.reward, xp: q.xp }));
+      const destinations = npc.caravan
+        ? STOPS.filter((s) => s.id !== npc.caravan).map((s) => {
+            const r = route(npc.caravan, s.id);
+            return { id: s.id, name: s.name, known: this.knownStop(p, s), fare: r ? caravanFare(r.length) : null, seconds: r ? Math.round(r.length / CARAVAN_SPEED) : null };
+          })
+        : null;
+      const riding = npc.stable ? { known: !!p.riding, level: RIDING.level, cost: RIDING.cost } : null;
+      const inn = npc.inn ? { home: p.home ?? "camp", here: npc.inn, name: stopById(npc.inn).name } : null;
+      return { npc, quest: QUESTS[npc.quest], progress: p.quests[npc.quest], locked: this.questLock(p, QUESTS[npc.quest]), deliveries, destinations, riding, inn };
     }
     if (a.type === "quest") {
       const quest =
@@ -399,8 +509,9 @@ export class World {
           ? QUESTS[a.quest]
           : null;
       reject(!quest, "Unknown quest.");
-      const npc = this.npcs.find((n) => n.id === quest.npc),
-        progress = p.quests[quest.id];
+      const progress = p.quests[quest.id],
+        // Deliveries are handed in to the person they're addressed to.
+        npc = this.npcs.find((n) => n.id === (a.operation === "complete" && quest.deliver ? quest.deliver.to : quest.npc));
       reject(distance(p, npc) > 4.5, "Move closer to the quest giver.");
       reject(p.talkedNpc !== npc.id, "Talk to the quest giver first.");
       if (a.operation === "accept") {
@@ -408,12 +519,16 @@ export class World {
           progress.status !== "offered",
           "You already accepted this quest.",
         );
-        progress.status = "active";
+        reject(quest.requires && p.quests[quest.requires]?.status !== "complete", `First complete “${QUESTS[quest.requires]?.name}”.`);
+        reject(p.level < (quest.minLevel ?? 1), `Come back at level ${quest.minLevel}.`);
+        progress.status = quest.deliver ? "ready" : "active";
+        if (quest.deliver) progress.progress = 0;
         if (quest.id === "starleaf")
           progress.progress = Math.min(quest.required, p.materials.starleaf);
-        if (progress.progress >= quest.required) progress.status = "ready";
+        if (!quest.deliver && progress.progress >= quest.required) progress.status = "ready";
       } else if (a.operation === "complete") {
         reject(progress.status !== "ready", "Finish the objectives first.");
+        if (quest.deliver) progress.progress = 1;
         if (quest.id === "starleaf") {
           reject(p.materials.starleaf < 4, "You need four starleaf sprigs.");
           p.materials.starleaf -= 4;
@@ -472,11 +587,17 @@ export class World {
         !["weapon", "chest", "charm"].includes(definition.slot),
         "That item cannot be equipped.",
       );
+      reject(p.level < (definition.level ?? 1), `Requires level ${definition.level}.`);
       p.equipment[definition.slot] = item.id;
       p.hp = Math.min(p.hp, stats(p).maxHp);
       return { message: `Equipped ${definition.name}.` };
     }
-    if (["ability", "attack", "autoattack"].includes(a.type)) p.eating = null;
+    if (["ability", "attack", "autoattack"].includes(a.type)) {
+      reject(p.travel, "You can’t fight from a caravan.");
+      p.eating = null;
+      this.dismount(p);
+      this.breakRecall(p, now);
+    }
     if (a.type === "ability" || a.type === "attack") {
       const ability = ABILITIES[p.classId].find(
         (b) => b.id === (a.ability ?? ABILITIES[p.classId][0].id),
@@ -499,7 +620,7 @@ export class World {
         `Not enough ${CLASSES[p.classId].resource}.`,
       );
       const target = this.enemiesFor(p).find((e) => e.id === a.target);
-      if (ability.multiplier) {
+      if (ability.multiplier || ability.dot || ability.stun) {
         reject(!target || target.hp <= 0, "You have no target.");
         reject(
           distance(p, target) > ability.range,
@@ -670,13 +791,17 @@ export class World {
         progress.progress = Math.min(3, progress.progress + 1);
         if (progress.progress === 3) progress.status = "ready";
       }
-      // Zone quests from the towns count any creature of their zone.
+      // Town quests: kill creatures of a zone or a kind, or collect drops from certain kinds.
       for (const [id, def] of Object.entries(QUESTS)) {
         const qp = q.quests[id];
-        if (def.kill && qp?.status === "active" && e.zoneId === def.kill.zone) {
-          qp.progress = Math.min(def.required, qp.progress + 1);
-          if (qp.progress >= def.required) qp.status = "ready";
-        }
+        if (qp?.status !== "active") continue;
+        const counts =
+          (def.kill && (def.kill.zone ? e.zoneId === def.kill.zone : e.kind === def.kill.kind)) ||
+          (def.collect && def.collect.kinds.includes(e.kind) && this.random() < def.collect.chance);
+        if (!counts) continue;
+        qp.progress = Math.min(def.required, qp.progress + 1);
+        if (def.collect) this.system(q, `${def.collect.item}: ${qp.progress}/${def.required}`, now);
+        if (qp.progress >= def.required) qp.status = "ready";
       }
       const crypt = q.quests.crypt;
       if (e.boss && crypt?.status === "active") {
@@ -697,7 +822,13 @@ export class World {
   rollLoot(e) {
     const roll = this.random(),
       pick = (list) => list[Math.floor(this.random() * list.length)];
-    const of = (rarity) => Object.keys(ITEMS).filter((k) => ITEMS[k].rarity === rarity && ITEMS[k].slot !== "consumable" && ITEMS[k].slot);
+    // Gear matches the creature: items whose required level is within a few levels below it.
+    const level = e.level ?? 1,
+      gear = (rarity) => Object.keys(ITEMS).filter((k) => ITEMS[k].rarity === rarity && ITEMS[k].slot && ITEMS[k].slot !== "consumable"),
+      of = (rarity) => {
+        const near = gear(rarity).filter((k) => ITEMS[k].level <= level && ITEMS[k].level >= level - 5);
+        return near.length ? near : gear(rarity).filter((k) => ITEMS[k].level <= Math.max(level, 1)).slice(-3);
+      };
     const rareChance = e.instance ? 0.14 : 0.06 + Math.min(0.08, (e.level ?? 1) * 0.004);
     if (roll < rareChance) return pick(of("Rare"));
     if (roll < rareChance + 0.3) return pick(of("Uncommon"));
@@ -721,8 +852,9 @@ export class World {
       if (e.hp > 0 && e.threat.has(p.id)) this.addThreat(e, p, amount * 0.5, now);
   }
   resolveAbility(p, ability, target, now) {
+    const targeted = ability.multiplier || ability.dot || ability.stun;
     if (
-      ability.multiplier &&
+      targeted &&
       (!target || target.hp <= 0 || target.evading || distance(p, target) > ability.range)
     )
       return;
@@ -736,6 +868,36 @@ export class World {
     if (ability.heal) {
       const crit = this.roll();
       this.healPlayer(p, ability.heal * (crit ? 1.5 : 1), now, ability);
+    }
+    if (ability.shield) {
+      p.shield = { amount: ability.shield.base + ability.shield.perLevel * p.level, until: now + ability.shield.duration, ability: ability.id };
+      this.event("shield", { to: p.id, amount: p.shield.amount, ability: ability.id, x: p.x, z: p.z, zone: zoneOf(p) }, now);
+    }
+    if (targeted && target && !ability.multiplier) {
+      // Pure afflictions still start a fight.
+      this.addThreat(target, p, 5, now);
+      target.contributors.add(p.id);
+    }
+    if (targeted && target && target.hp > 0) {
+      if (ability.dot) {
+        target.dots = (target.dots ?? []).filter((d) => !(d.from === p.id && d.ability === ability.id));
+        target.dots.push({
+          from: p.id,
+          ability: ability.id,
+          amount: Math.max(1, Math.round(stats(p).damage * ability.dot.multiplier)),
+          ticks: ability.dot.ticks,
+          every: ability.dot.every,
+          nextAt: now + ability.dot.every,
+        });
+      }
+      if (ability.stun) {
+        if (target.boss) this.event("immune", { target: target.id, x: target.x, z: target.z, zone: zoneOf(target) }, now);
+        else {
+          target.stunnedUntil = now + ability.stun;
+          if (target.casting) target.casting = null;
+          this.event("stunned", { target: target.id, by: p.name, until: target.stunnedUntil, x: target.x, z: target.z, zone: zoneOf(target) }, now);
+        }
+      }
     }
     const targets = ability.multiplier
       ? ability.aoe
@@ -781,11 +943,23 @@ export class World {
       this.system(p, `Discovered: ${place} (+${xp} experience)`, now);
     }
   }
+  knownStop(p, s) {
+    return s.id === "camp" || (p.explored ?? []).includes(s.place);
+  }
+  // Why a quest can't be taken yet (an earlier quest in its chain, or level), or null.
+  questLock(p, quest) {
+    if (!quest || p.quests[quest.id]?.status !== "offered") return null;
+    if (quest.requires && p.quests[quest.requires]?.status !== "complete") return `Complete “${QUESTS[quest.requires].name}” first.`;
+    if (p.level < (quest.minLevel ?? 1)) return `Available at level ${quest.minLevel}.`;
+    return null;
+  }
   graveyardFor(p) {
     return GRAVEYARDS.reduce((best, g) => (distance(g, p) < distance(best, p) ? g : best), GRAVEYARDS[0]);
   }
   killPlayer(p, now) {
     p.eating = null;
+    p.mounted = false;
+    p.recall = null;
     p.hp = 0;
     p.dead = true;
     p.casting = null;
@@ -799,6 +973,8 @@ export class World {
     e.evading = true;
     e.threat.clear();
     e.casting = null;
+    e.dots = [];
+    e.stunnedUntil = 0;
     this.event("evade", { target: e.id, x: e.x, z: e.z, zone: zoneOf(e) }, now);
     for (const p of this.players.values())
       if (p.autoAttack === e.id) p.autoAttack = null;
@@ -868,8 +1044,42 @@ export class World {
     }
     for (const p of online)
       if (inSanctuary(p) && !p.dead) p.hp = Math.min(stats(p).maxHp, p.hp + dt * 6);
+    for (const p of online) {
+      // The caravan rolls along the road at its own pace.
+      if (p.travel) {
+        let step = CARAVAN_SPEED * dt;
+        const pts = p.travel.points;
+        while (step > 0 && p.travel.i < pts.length - 1) {
+          const next = pts[p.travel.i + 1],
+            d = Math.hypot(next.x - p.x, next.z - p.z);
+          if (d <= step) {
+            p.x = next.x;
+            p.z = next.z;
+            p.travel.i++;
+            step -= d;
+          } else {
+            p.x += ((next.x - p.x) / d) * step;
+            p.z += ((next.z - p.z) / d) * step;
+            step = 0;
+          }
+        }
+        if (p.travel.i >= pts.length - 1) {
+          this.system(p, `The caravan arrives at ${p.travel.name}.`, now);
+          p.travel = null;
+        }
+      }
+      if (p.recall && now >= p.recall.endsAt && !p.dead) {
+        const home = homePoint(p.home ?? "camp");
+        p.recall = null;
+        p.waystoneReadyAt = now + WAYSTONE.cooldown;
+        p.x = home.x + (this.random() - 0.5) * 2;
+        p.z = home.z - 3;
+        this.system(p, `Your waystone returns you to ${stopById(p.home ?? "camp").name}.`, now);
+      }
+    }
     for (const p of online)
-      if (now - p.inputAt < 400 && !p.dead) {
+      if (now - p.inputAt < 400 && !p.dead && !p.travel) {
+        const speed = 5 * (p.mounted ? RIDING.speed : 1);
         if (p.instance) {
           // Inside the crypt, slide along walls instead of passing through them.
           const nx = p.x + p.input.x * 5 * dt,
@@ -880,8 +1090,8 @@ export class World {
           continue;
         }
         // Out in the world: stay inside the mountains and walk around houses, not through them.
-        const nx = Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, p.x + p.input.x * 5 * dt)),
-          nz = Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, p.z + p.input.z * 5 * dt));
+        const nx = Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, p.x + p.input.x * speed * dt)),
+          nz = Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, p.z + p.input.z * speed * dt));
         if (!insideHouse(nx, nz)) (p.x = nx), (p.z = nz);
         else if (!insideHouse(nx, p.z)) p.x = nx;
         else if (!insideHouse(p.x, nz)) p.z = nz;
@@ -906,7 +1116,7 @@ export class World {
             e.respawnAt = now + 5000;
             continue;
           }
-          Object.assign(e, pos, { homeX: pos.x, homeZ: pos.z });
+          Object.assign(e, pos, { homeX: pos.x, homeZ: pos.z, dots: [], stunnedUntil: 0 });
           applyLevel(e);
           e.hp = e.maxHp;
           e.evading = false;
@@ -934,6 +1144,7 @@ export class World {
       for (const p of online)
         if (
           !p.dead &&
+          !p.travel &&
           !inSanctuary(p) &&
           !e.threat.has(p.id) &&
           distance(e, p) < aggroRadius(e.level ?? 1, p.level)
@@ -942,7 +1153,7 @@ export class World {
       // Drop players who died, left, or fled into the camp's sanctuary.
       for (const id of e.threat.keys()) {
         const p = this.players.get(id);
-        if (!p || p.dead || now - p.seen >= 15000 || inSanctuary(p) || zoneOf(p) !== zoneOf(e)) e.threat.delete(id);
+        if (!p || p.dead || p.travel || now - p.seen >= 15000 || inSanctuary(p) || zoneOf(p) !== zoneOf(e)) e.threat.delete(id);
       }
       let target = null,
         top = -1;
@@ -951,10 +1162,24 @@ export class World {
           top = amount;
           target = this.players.get(id);
         }
+      // Damage over time ticks on its own schedule.
+      if (e.dots?.length) {
+        for (const d of e.dots) {
+          if (now < d.nextAt || e.hp <= 0) continue;
+          const source = this.players.get(d.from);
+          d.ticks--;
+          d.nextAt += d.every;
+          if (source) this.damageEnemy(source, e, d.amount, now, { ability: d.ability, dot: true });
+        }
+        e.dots = e.dots.filter((d) => d.ticks > 0);
+        if (e.hp <= 0) continue;
+      }
       if (e.casting) {
         e.targetId = target?.id ?? null;
         continue;
       }
+      // Stunned creatures stand dazed: no moving, no swinging.
+      if ((e.stunnedUntil ?? 0) > now) continue;
       if (target && distance(e, home) > (inst ? 70 : LEASH_RANGE)) {
         this.evade(e, now);
         continue;
@@ -982,8 +1207,11 @@ export class World {
           damage = Math.max(
             1,
             Math.round(((e.damage ?? ms.damage) * (e.damageScale ?? 1) - stats(target).armor) * (crit ? 1.5 : 1)),
-          );
-        target.hp -= damage;
+          ),
+          taken = this.absorb(target, damage, now, e);
+        target.hp -= taken;
+        this.dismount(target);
+        this.breakRecall(target, now, "you were hit");
         target.eating = null;
         target.combatUntil = now + COMBAT_LINGER;
         e.lastAttack = now;
@@ -1035,6 +1263,9 @@ export class World {
         equipment: p.equipment,
         quests: p.quests,
         explored: p.explored,
+        riding: !!p.riding,
+        home: p.home ?? "camp",
+        waystoneReadyAt: p.waystoneReadyAt ?? 0,
         materials: p.materials,
         xp: p.xp,
         power: p.power,

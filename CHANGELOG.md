@@ -1,3 +1,17 @@
+## 0.11.0 — Roads and Riches
+
+- **Gear for every zone.** Each new zone drops its own Uncommon and Rare weapon, chest piece and charm, 24 new items in all, from the *Harrowford militia sword* to the *Eye of the Tarn*. Gear now has a level requirement, and creatures drop gear close to their own level, so every few levels brings an upgrade. Zone gear sells to merchants but isn’t in their shops.
+- **Abilities up to level 20.** Every class learns four more abilities at levels 6, 10, 14 and 18, on action bar keys **9, 0, - and =**, each with new artwork. They bring three new effects:
+  - **Shields** absorb damage: *Shield wall*, *Bone ward*, *Oakhide*, *Smoke veil*.
+  - **Damage over time:** *Wither* and *Bleeding gash* keep hurting after the hit, even if you fall.
+  - **Stuns** freeze a creature and break its spell: *Thunder slam*, *Paralysing hex*, *Thornsnare*, *Hilt strike*. Bosses are immune.
+  - And big finishers: *Cleaving sweep*, *Titan’s strike*, *Cataclysm*, *Sunlance*, *Verdant tide*, *Heartseeker*.
+- **Four quest givers in every town, with 16 quests in all.** As well as each town’s zone hunt, there are collection quests (seed grain, bog-oak idols, wolf pelts, runestones…), hunts for particular creatures, and quest chains that unlock as you go. Courier quests send you down the road to the next town to deliver a letter, report or map. Quests you can’t take yet (an earlier step, or your level) show why.
+- **Riding.** Stablemasters at Wayfarer’s Camp and Harrowford teach riding from level 10 for 50 gold. Press **U** (or the Mount button) to ride a great amber fox at 60% more speed. You dismount when you fight, take a hit or go underground.
+- **Caravans.** A caravan master at the camp and in every town will carry you along the roads to any town you’ve already discovered, for a small fare. Creatures leave caravan passengers alone.
+- **Waystone.** Talk to any provisioner to make their town your home. Press **H** (or the Waystone button) to return home after a 10-second channel. Moving or taking a hit breaks it, and it recharges over 15 minutes.
+- Eighty-two checks, including six new tests for gear tiers, abilities and their effects, quest chains and deliveries, riding, caravans and the waystone.
+
 ## 0.10.2 — Facing forward
 
 - **Characters no longer run sideways.** The character models were turned a quarter turn away from the direction they moved, so your hero (and NPCs and humanoid enemies) ran with their body side-on. Running forward now shows your character’s back, strafing leans the body toward the direction of travel, and enemies face you as they charge.

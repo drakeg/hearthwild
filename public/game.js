@@ -4,7 +4,7 @@ import { WORLD_HALF, WORLD_SIZE } from "./world-config.js";
 import { characterUi } from "./character-ui.js";
 import { accountUi } from "./accounts-ui.js";
 import { BAR_KEYS, bagCells, bagItems, questMarker, stackConsumables, itemIconStyle } from "./ui-model.js";
-import { createHud, iconStyle } from "./hud.js";
+import { createHud, iconStyle, abilityIcon } from "./hud.js";
 import { createCombatUi } from "./combat-ui.js";
 import { createGuildUi } from "./guild-ui.js";
 import {
@@ -592,14 +592,7 @@ function updateHotbar() {
         const art = element("span", undefined, "ability-art");
         Object.assign(
           art.style,
-          iconStyle(
-            ["warrior", "warlock", "druid", "rogue"].indexOf(
-              state.self.classId,
-            ) *
-              4 +
-              a.key -
-              1,
-          ),
+          abilityIcon(state.self.classId, a.key),
         );
         b.append(
           art,
@@ -894,6 +887,7 @@ function showConversation(data) {
   };
   $("quest-action").hidden = !data.quest && !data.npc.registrar;
   $("npc-quest").textContent = "";
+  dialogueExtras(data);
   if (data.npc.registrar) {
     const c = state.self.charter;
     $("quest-action").textContent = state.self.guildInfo
@@ -919,8 +913,76 @@ function showConversation(data) {
     $("quest-action").disabled = !["offered", "ready"].includes(
       data.progress.status,
     );
+    if (data.locked) {
+      $("quest-action").textContent = data.locked;
+      $("quest-action").disabled = true;
+    }
+    if (data.quest.deliver && data.progress.status === "ready")
+      $("quest-action").textContent = "Delivery in progress";
+    if (data.quest.deliver && data.progress.status === "ready") $("quest-action").disabled = true;
   }
   if (!$("dialogue").open) $("dialogue").showModal();
+}
+// Extra conversation options: deliveries addressed to this person, caravan routes,
+// riding lessons and choosing a waystone home.
+function dialogueExtras(data) {
+  const box = $("npc-extra");
+  box.replaceChildren();
+  const option = (text, detail, run, disabled = false) => {
+    const b = element("button", undefined, "npc-option");
+    b.append(element("span", text));
+    if (detail) b.append(element("small", detail));
+    b.disabled = disabled;
+    b.onclick = async () => {
+      try {
+        const r = await run();
+        if (r?.message) notice(r.message);
+        $("dialogue").close();
+      } catch (e) {
+        uiError(e.message);
+      }
+    };
+    box.append(b);
+  };
+  for (const d of data.deliveries ?? [])
+    option(`Deliver: ${d.name}`, `Reward ${d.reward} gold + ${d.xp} XP`, () =>
+      api("/api/actions", { type: "quest", quest: d.id, operation: "complete" }),
+    );
+  if (data.riding)
+    option(
+      data.riding.known ? "You already know how to ride" : `Learn to ride · ${data.riding.cost} gold`,
+      data.riding.known ? "Press U to call your mount" : `Requires level ${data.riding.level}`,
+      () => api("/api/actions", { type: "riding" }),
+      data.riding.known || state.self.level < data.riding.level,
+    );
+  if (data.inn)
+    option(
+      data.inn.home === data.inn.here ? `${data.inn.name} is your home` : `Make ${data.inn.name} your home`,
+      "Your waystone (H) returns you here",
+      () => api("/api/actions", { type: "home" }),
+      data.inn.home === data.inn.here,
+    );
+  for (const d of data.destinations ?? [])
+    option(
+      d.known ? `Travel to ${d.name}` : `${d.name} · not yet discovered`,
+      d.known ? `${d.fare} gold · about ${d.seconds} seconds` : "Find it on foot first",
+      () => api("/api/actions", { type: "travel", to: d.id }),
+      !d.known,
+    );
+  box.hidden = !box.children.length;
+}
+async function travelAction(a) {
+  if (!state || !playing) return;
+  try {
+    const r = await api("/api/actions", a);
+    if (r?.message) notice(r.message);
+  } catch (e) {
+    uiError(e.message);
+  }
+}
+function useWaystone() {
+  if (!state || !playing) return;
+  travelAction(state.self.recall ? { type: "waystone", cancel: true } : { type: "waystone" });
 }
 $("quest-action").onclick = async () => {
   if (!dialogueNpc) return;
@@ -1201,6 +1263,21 @@ function updateModels() {
         models.set(item.id, g);
       }
       g.userData.target = { x: item.x, z: item.z };
+      // Riders sit on a great amber fox; caravan passengers ride one too.
+      if (models === playerModels && g.userData.rig && !!item.mounted !== !!g.userData.mount) {
+        if (item.mounted) {
+          const steed = createRig("fox", { tint: "#9a6b3c", size: 2.4 });
+          if (steed) {
+            g.add(steed.root);
+            g.userData.mount = steed;
+            g.userData.rig.root.position.y = 1.05;
+          }
+        } else {
+          g.remove(g.userData.mount.root);
+          g.userData.mount = null;
+          g.userData.rig.root.position.y = 0;
+        }
+      }
       if (models === playerModels && g.userData.guildName !== (item.guild ?? null)) {
         g.userData.guildName = item.guild ?? null;
         const old = g.userData.nameTag,
@@ -1231,7 +1308,7 @@ function updateModels() {
   }
   for (const n of state.npcs) {
     const g = npcModels.get(n.id),
-      status = state.self.quests[n.quest]?.status ?? "merchant";
+      status = state.self.quests[n.quest]?.locked ? "locked" : (state.self.quests[n.quest]?.status ?? (n.quest ? "merchant" : n.caravan || n.stable ? "service" : "merchant"));
     if (g.userData.questStatus === status) continue;
     const old = g.userData.questMarker;
     if (old) {
@@ -1242,7 +1319,9 @@ function updateModels() {
     const info =
       status === "merchant"
         ? { symbol: "¤", label: "Merchant", color: "#e4c473" }
-        : questMarker(status);
+        : status === "service"
+          ? { symbol: "", label: "", color: "#e4c473" }
+          : questMarker(status);
     g.userData.questStatus = status;
     g.userData.questMarker = null;
     if (info.symbol && status !== "merchant") {
@@ -1633,6 +1712,10 @@ addEventListener("keydown", (e) => {
   }
   if (/^Digit[1-4]$/.test(e.code) && !e.repeat)
     useAbility(Number(e.code.slice(-1)));
+  const lateKey = { Digit9: 9, Digit0: 10, Minus: 11, Equal: 12 }[e.code];
+  if (lateKey && !e.repeat) useAbility(lateKey);
+  if (e.code === "KeyU" && !e.repeat) travelAction({ type: "mount" });
+  if (e.code === "KeyH" && !e.repeat) useWaystone();
   if (e.code === "Digit5" && !e.repeat) toggleAutoAttack();
   if (/^Digit[678]$/.test(e.code) && !e.repeat) {
     const slot = Number(e.code.slice(-1)) - 1;
@@ -1967,11 +2050,12 @@ function render() {
         else if (g.userData.wasDead) rig.revive();
         g.userData.wasDead = g.userData.dead;
         const e = models === enemyModels ? state?.enemies.find((x) => x.id === g.userData.enemy) : null;
+        g.userData.mount?.update(dt, { moving, dir: "forward" });
         rig.update(dt, {
-          moving,
+          moving: moving && !g.userData.mount,
           dir,
-          casting: own ? !!state.self.casting : g.userData.casting,
-          sitting: own ? !!state.self.eating : g.userData.sitting,
+          casting: own ? !!state.self.casting || !!state.self.recall : g.userData.casting,
+          sitting: g.userData.mount ? true : own ? !!state.self.eating : g.userData.sitting,
           combat: own ? !!state.self.inCombat || !!state.self.autoAttack : !!e?.engaged,
         });
       }
@@ -2174,6 +2258,8 @@ const guildUi = createGuildUi({
   },
 });
 $("guild-menu").onclick = () => guildUi.toggle();
+$("mount-menu").onclick = () => travelAction({ type: "mount" });
+$("waystone-menu").onclick = () => useWaystone();
 const hud = createHud({
   getState: () => state,
   toggleBag,

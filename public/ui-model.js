@@ -62,7 +62,8 @@ export function bagItems(inventory, materials) {
       : []),
   ];
 }
-export function questMarker(status) {
+export function questMarker(status, locked = false) {
+  if (locked && status === "offered") return { symbol: "", label: "Not yet available", color: "#b8beb4" };
   if (status === "ready")
     return { symbol: "?", label: "Ready for turn-in", color: "#ffd200" };
   if (status === "offered")

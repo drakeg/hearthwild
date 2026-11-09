@@ -3,9 +3,14 @@ import { WORLD_HALF, WORLD_SIZE, WORLD_LIMIT, ZONES, TOWNS } from "./world-confi
 import { zoneWeights, terrainHeight, lakeAt, ROADS, HOUSES } from "./terrain.js";
 import { mapPoint, filterQuests, questMarker } from "./ui-model.js";
 const $ = (id) => document.getElementById(id);
-export function iconStyle(index) {
+// Ability icons: keys 1–4 come from the first sheet, keys 9–12 from the second (one row per class).
+export function abilityIcon(classId, key) {
+  const row = ["warrior", "warlock", "druid", "rogue"].indexOf(classId);
+  return key > 4 ? iconStyle(row * 4 + key - 9, "/art/abilities-2.png") : iconStyle(row * 4 + key - 1);
+}
+export function iconStyle(index, sheet = "/art/abilities.png") {
   return {
-    backgroundImage: 'url("/art/abilities.png")',
+    backgroundImage: `url("${sheet}")`,
     backgroundSize: "400% 400%",
     backgroundPosition: `${((index % 4) / 3) * 100}% ${(Math.floor(index / 4) / 3) * 100}%`,
   };
@@ -265,7 +270,7 @@ export function createHud({
       for (const r of s.resources) if (r.available) marker(r, "#75ddbc", 2.5);
     for (const n of s.npcs) {
       const q = s.self.quests[n.quest] ?? { status: "merchant" };
-      const info = q.status === "merchant" ? { symbol: mini ? "¤" : "", color: "#d9b465" } : questMarker(q.status);
+      const info = q.status === "merchant" ? { symbol: mini && n.merchant ? "¤" : "", color: "#d9b465" } : questMarker(q.status, q.locked);
       if (!mini && !info.symbol) continue;
       marker(n, info.color, mini ? 3 : 4);
       if (info.symbol) {
@@ -439,12 +444,7 @@ export function createHud({
         i.className = "spell-icon";
         Object.assign(
           i.style,
-          iconStyle(
-            ["warrior", "warlock", "druid", "rogue"].indexOf(s.self.classId) *
-              4 +
-              a.key -
-              1,
-          ),
+          abilityIcon(s.self.classId, a.key),
         );
         const text = document.createElement("span");
         text.textContent = `${a.name} · ${a.description} · ${a.cooldown / 1000}s cooldown · ${a.cost} ${s.classes[s.self.classId].resource}${s.self.level < a.level ? ` · Unlocks at level ${a.level}` : ` · Key ${a.key}`}`;

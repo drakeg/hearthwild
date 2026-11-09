@@ -1,4 +1,5 @@
 export const ITEMS = {
+  ...GEAR,
   "ashbound-greatblade": {
     name: "Ashbound greatblade",
     slot: "weapon",
@@ -109,20 +110,13 @@ export const ITEMS = {
   },
 };
 import { TOWNS } from "../public/terrain.js";
+import { GEAR, LATE_ABILITIES, WORLD_FOLK, WORLD_QUESTS, TRAVEL_FOLK } from "./content-world.js";
 const town = (id) => TOWNS.find((t) => t.id === id);
 // Each town has a quest giver near its square and a provisioner beside the road.
 const TOWN_FOLK = [
-  ["harrowford", "Captain Bram Tolliver", "Captain of the Harrowford watch", "harrow", "npc-captain",
-    "Bandits and hungry hounds have the farms of the Downs on edge. Thin them out — eight should do — and the farmers will sleep easier."],
   ["harrowford", "Della Marsh", "Provisioner", null, "npc-town-f", "Bread, water and a dry roof. What can I get you?"],
-  ["reedwatch", "Warden Isolde Fen", "Keeper of the marsh road", "fog", "npc-captain",
-    "Something stirs in the Blackwater Pools. Cultists chant in the fog and the lurkers grow bold. Drive back eight of them."],
   ["reedwatch", "Tobin Reed", "Provisioner", null, "npc-town", "Mind your boots. Everything here is wet, including the bread."],
-  ["hollowfrost", "Huntmaster Oswin Brae", "Hollowfrost hunters’ lodge", "hunt", "npc-captain",
-    "The pale wolves have come down from the high snow, and the reavers follow them. Bring down eight and the lodge will remember it."],
   ["hollowfrost", "Marta Snow", "Provisioner", null, "npc-town-f", "Warm stew, hard bread, and water that hasn’t frozen yet."],
-  ["cragmoor", "Captain Hedda Stone", "Commander of Cragmoor Hold", "brigands", "npc-captain",
-    "Greyspire brigands hold the high passes, and their stonecallers wake things best left sleeping. Break eight of them."],
   ["cragmoor", "Jory Flint", "Provisioner", null, "npc-town", "Supplies for the climb. You’ll want plenty."],
 ].map(([townId, name, role, quest, look, text], i) => {
   const t = town(townId),
@@ -188,12 +182,13 @@ export const NPCS = [
     text: "Welcome, traveler. I buy spare gear and herbs, and sell supplies. Mira teaches Herbalism and Alchemy nearby.",
   },
   ...TOWN_FOLK,
+  ...WORLD_FOLK,
+  ...TRAVEL_FOLK,
 ];
+// Provisioners double as innkeepers: you can make their town your waystone home.
+for (const n of NPCS) if (n.merchant) n.inn = n.town ?? "camp";
 export const QUESTS = {
-  harrow: { id: "harrow", name: "Trouble on the Downs", npc: "harrowford-quest", required: 8, reward: 120, xp: 650, objective: "Defeat creatures of the Amber Downs", area: "The Amber Downs · east of the Stillwood · levels 6–10", kill: { zone: "downs" } },
-  fog: { id: "fog", name: "Fog over the Pools", npc: "reedwatch-quest", required: 8, reward: 160, xp: 950, objective: "Defeat creatures of Saltreed Marsh", area: "Saltreed Marsh · south of the Stillwood · levels 9–13", kill: { zone: "marsh" } },
-  hunt: { id: "hunt", name: "The Pale Hunt", npc: "hollowfrost-quest", required: 8, reward: 200, xp: 1250, objective: "Defeat creatures of Frostmere Vale", area: "Frostmere Vale · north of the Stillwood · levels 12–16", kill: { zone: "frost" } },
-  brigands: { id: "brigands", name: "Brigands of Greyspire", npc: "cragmoor-quest", required: 8, reward: 260, xp: 1650, objective: "Defeat creatures of Greyspire Crags", area: "Greyspire Crags · west of the Stillwood · levels 15–20", kill: { zone: "crags" } },
+  ...Object.fromEntries(Object.entries(WORLD_QUESTS).map(([id, q]) => [id, { id, ...q }])),
   wildgrowth: {
     id: "wildgrowth",
     name: "A thorn in the wood",
@@ -465,6 +460,11 @@ export const ABILITIES = {
     },
   ],
 };
+for (const [classId, list] of Object.entries(LATE_ABILITIES)) ABILITIES[classId].push(...list);
+// Starter gear is wearable from level 1 (Uncommon) and 3 (Rare); the Hollow Crypt's Epics from 6.
+for (const item of Object.values(ITEMS))
+  if (item.slot && item.slot !== "consumable" && item.level === undefined)
+    item.level = item.rarity === "Epic" ? 6 : item.rarity === "Rare" ? 3 : 1;
 export function addExperience(p, amount) {
   p.xp += amount;
   while (p.level < 20 && p.xp >= p.level * 100) {
