@@ -1,3 +1,13 @@
+## 0.13.0 — Room to Grow
+
+Groundwork so the world can keep getting bigger without slowing down.
+
+- **Zone maps.** **M** now opens a map of the zone you're in, with its town, houses, lakes, dungeon (and its levels) and quest givers. Switch to **World** for the whole world, and click any zone there to open its map. Zone maps are painted in finer detail than the world map, and the minimap uses the sharper painting too.
+- **Smoother maps.** Maps are painted a few milliseconds at a time in the background, so they never stall the game.
+- **Smaller, faster updates.** The server now sends each player only what's around them: creatures, herbs and loot within 200 m, and other adventurers within 160 m. Before, other adventurers vanished beyond 40 m. Content that never changes (shop, quests, classes, abilities, people) is sent once instead of several times a second, so updates are 50–85% smaller.
+- **Sleeping creatures.** Creatures with nobody within 230 m stop wandering until someone arrives. Fights, effects over time and respawns carry on as before. The server's work no longer grows with the size of the world, only with where players are.
+- Ninety checks, including new tests for nearby-only updates, content sent once, sleeping creatures and zone map views.
+
 ## 0.12.0 — Dungeons of the Wider World
 
 - **A dungeon in every zone**, each with its own layout, look and boss. A watcher stands at every door with a quest to bring the boss down, and each dungeon has its own creatures. Like the Hollow Crypt, every group (or solo adventurer) gets a private copy, and health scales with group size.

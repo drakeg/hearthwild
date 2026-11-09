@@ -1,4 +1,30 @@
-import { WORLD_HALF, WORLD_SIZE } from "./world-config.js";
+import { WORLD_HALF, WORLD_SIZE, WORLD_LIMIT, ZONES, zoneAt } from "./world-config.js";
+// The square each zone's map shows, and the middle of its land for its name on the world map.
+let bounds = null;
+export function zoneBounds() {
+  if (bounds) return bounds;
+  const pts = {},
+    step = 20;
+  for (let x = -WORLD_LIMIT; x <= WORLD_LIMIT; x += step)
+    for (let z = -WORLD_LIMIT; z <= WORLD_LIMIT; z += step) (pts[zoneAt(x, z)] ??= []).push([x, z]);
+  bounds = {};
+  // Trim the thin tips of each zone so its map stays close on the land that matters.
+  const pct = (v, f) => v[Math.min(v.length - 1, Math.floor(v.length * f))];
+  for (const id of Object.keys(ZONES)) {
+    const p = pts[id];
+    if (!p) continue;
+    const xs = p.map((q) => q[0]).sort((a, b) => a - b),
+      zs = p.map((q) => q[1]).sort((a, b) => a - b),
+      minX = pct(xs, 0.04), maxX = pct(xs, 0.96), minZ = pct(zs, 0.04), maxZ = pct(zs, 0.96),
+      cx = xs.reduce((a, b) => a + b) / xs.length,
+      cz = zs.reduce((a, b) => a + b) / zs.length,
+      // Centred on the heart of the zone, wide enough for most of it.
+      span = Math.max(520, Math.min(1100, Math.max(maxX - minX, maxZ - minZ) * 0.72)),
+      clamp = (v) => Math.max(-WORLD_HALF, Math.min(WORLD_HALF - span, v));
+    bounds[id] = { originX: clamp(cx - span / 2), originZ: clamp(cz - span / 2), span, cx, cz };
+  }
+  return bounds;
+}
 export const BAR_KEYS = [
   "1",
   "2",

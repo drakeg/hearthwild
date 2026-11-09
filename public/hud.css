@@ -577,6 +577,22 @@
   inset: 0 0 29px;
   pointer-events: none;
 }
+.map-scope {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  display: flex;
+  gap: 4px;
+}
+.map-scope button {
+  font-size: 11px;
+  padding: 4px 10px;
+}
+.map-scope button.active {
+  background: #6b5428;
+  color: #ffe9a8;
+  border-color: #e0c26a;
+}
 .map-pin {
   position: absolute;
   transform: translate(-50%, -50%);

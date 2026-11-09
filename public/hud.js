@@ -1,7 +1,7 @@
 import { CRYPT, DUNGEON_LIST, dungeonOf } from "./dungeon-layout.js";
 import { WORLD_HALF, WORLD_SIZE, WORLD_LIMIT, ZONES, TOWNS } from "./world-config.js";
-import { zoneWeights, terrainHeight, lakeAt, ROADS, HOUSES } from "./terrain.js";
-import { mapPoint, filterQuests, questMarker } from "./ui-model.js";
+import { zoneWeights, zoneAt, terrainHeight, lakeAt, ROADS, HOUSES, LAKES } from "./terrain.js";
+import { mapPoint, filterQuests, questMarker, zoneBounds } from "./ui-model.js";
 const $ = (id) => document.getElementById(id);
 // Ability icons: keys 1–4 come from the first sheet, keys 9–12 from the second (one row per class).
 export function abilityIcon(classId, key) {
@@ -27,6 +27,7 @@ export function createHud({
     journalKey = "",
     spellKey = "",
     pinKey = "",
+    lastView = null,
     waypoint = null;
   function stop() {
     clearMovement();
@@ -37,6 +38,7 @@ export function createHud({
   }
   function openMap(mode = "map") {
     stop();
+    scope = null;
     $("spellbook").hidden = true;
     $("bag").hidden = true;
     $("character-sheet").hidden = true;
@@ -117,66 +119,130 @@ export function createHud({
       c.fillText(D.name, size / 2, 30);
     }
   }
-  // A shaded painting of the whole world, built once in small slices so it never stalls a frame.
-  const BG = 256,
-    bgCanvas = document.createElement("canvas");
-  bgCanvas.width = bgCanvas.height = BG;
-  const bgCtx = bgCanvas.getContext("2d"),
-    bgImage = bgCtx.createImageData(BG, BG),
-    zoneRGB = Object.fromEntries(
-      Object.entries(ZONES).map(([k, z]) => [k, [1, 3, 5].map((i) => parseInt(z.color.slice(i, i + 2), 16))]),
-    );
-  let bgRow = 0;
-  function paintBackground() {
-    if (bgRow >= BG) return true;
-    const step = WORLD_SIZE / BG;
-    for (const end = Math.min(BG, bgRow + 12); bgRow < end; bgRow++) {
-      const z = -WORLD_HALF + (bgRow + 0.5) * step;
-      for (let i = 0; i < BG; i++) {
-        const x = -WORLD_HALF + (i + 0.5) * step,
-          w = zoneWeights(x, z),
-          h = terrainHeight(x, z),
-          shade = Math.max(0.72, Math.min(1.25, 1 + (terrainHeight(x - step, z - step) - h) * 0.045));
-        let r = 0,
-          g = 0,
-          b = 0;
-        for (const k in w) (r += zoneRGB[k][0] * w[k]), (g += zoneRGB[k][1] * w[k]), (b += zoneRGB[k][2] * w[k]);
-        if (Math.max(Math.abs(x), Math.abs(z)) > WORLD_LIMIT + 10) [r, g, b] = h > 45 ? [236, 238, 240] : [128, 122, 112];
-        const lake = lakeAt(x, z);
-        if (lake) [r, g, b] = lake.frozen ? [214, 232, 242] : [92, 140, 160];
-        const k = (bgRow * BG + i) * 4;
-        bgImage.data[k] = r * shade;
-        bgImage.data[k + 1] = g * shade;
-        bgImage.data[k + 2] = b * shade;
-        bgImage.data[k + 3] = 255;
-      }
-    }
-    bgCtx.putImageData(bgImage, 0, 0);
-    return bgRow >= BG;
+  // Shaded paintings of the land, built in small slices so they never stall a frame: one of the
+  // whole world, and a sharper one of each zone the first time its map is opened.
+  const zoneRGB = Object.fromEntries(
+    Object.entries(ZONES).map(([k, z]) => [k, [1, 3, 5].map((i) => parseInt(z.color.slice(i, i + 2), 16))]),
+  );
+  function painter(originX, originZ, span, res) {
+    const canvas = document.createElement("canvas");
+    canvas.width = canvas.height = res;
+    const ctx = canvas.getContext("2d"),
+      image = ctx.createImageData(res, res),
+      step = span / res,
+      // Heights of the row above, reused for the hill shading.
+      prev = new Float32Array(res + 1);
+    let row = 0;
+    for (let i = 0; i <= res; i++) prev[i] = terrainHeight(originX + (i - 0.5) * step, originZ - 0.5 * step);
+    return {
+      canvas,
+      originX,
+      originZ,
+      span,
+      get done() {
+        return row >= res;
+      },
+      // Paints rows until the time budget (ms) runs out; Infinity finishes the painting.
+      paint(budget = 4) {
+        if (row >= res) return true;
+        const until = performance.now() + budget;
+        while (row < res && performance.now() < until) {
+          const z = originZ + (row + 0.5) * step;
+          let left = terrainHeight(originX - 0.5 * step, z);
+          for (let i = 0; i < res; i++) {
+            const x = originX + (i + 0.5) * step,
+              w = zoneWeights(x, z),
+              h = terrainHeight(x, z),
+              shade = Math.max(0.72, Math.min(1.25, 1 + (prev[i] - h) * (0.35 / Math.max(step, 4))));
+            prev[i] = left;
+            left = h;
+            let r = 0,
+              g = 0,
+              b = 0;
+            for (const k in w) (r += zoneRGB[k][0] * w[k]), (g += zoneRGB[k][1] * w[k]), (b += zoneRGB[k][2] * w[k]);
+            if (Math.max(Math.abs(x), Math.abs(z)) > WORLD_LIMIT + 10) [r, g, b] = h > 45 ? [236, 238, 240] : [128, 122, 112];
+            const lake = lakeAt(x, z);
+            if (lake) [r, g, b] = lake.frozen ? [214, 232, 242] : [92, 140, 160];
+            const k = (row * res + i) * 4;
+            image.data[k] = r * shade;
+            image.data[k + 1] = g * shade;
+            image.data[k + 2] = b * shade;
+            image.data[k + 3] = 255;
+          }
+          prev[res] = left;
+          row++;
+        }
+        ctx.putImageData(image, 0, 0);
+        return row >= res;
+      },
+    };
   }
+  const world = painter(-WORLD_HALF, -WORLD_HALF, WORLD_SIZE, 256),
+    zonePainters = new Map();
+  const zonePainter = (id) => {
+    if (!zonePainters.has(id)) {
+      const b = zoneBounds()[id];
+      zonePainters.set(id, painter(b.originX, b.originZ, b.span, 288));
+    }
+    return zonePainters.get(id);
+  };
+  // Which zone the map shows ("world" for the whole world); null follows the player.
+  let scope = null;
+  const viewFor = (s) => (scope === "world" ? "world" : (scope ?? zoneAt(s.self.x, s.self.z)));
+  $("map-zone").onclick = () => {
+    scope = null;
+    pinKey = "";
+    update();
+  };
+  $("map-world").onclick = () => {
+    scope = "world";
+    pinKey = "";
+    update();
+  };
+  // Clicking a zone on the world map opens that zone's map.
+  $("world-map").onclick = (ev) => {
+    if (scope !== "world") return;
+    const r = ev.currentTarget.getBoundingClientRect(),
+      x = -WORLD_HALF + ((ev.clientX - r.left) / r.width) * WORLD_SIZE,
+      z = -WORLD_HALF + ((ev.clientY - r.top) / r.height) * WORLD_SIZE;
+    if (Math.max(Math.abs(x), Math.abs(z)) > WORLD_LIMIT) return;
+    scope = zoneAt(x, z);
+    pinKey = "";
+    update();
+  };
   function drawMap(canvas, s, mini = false) {
     if (s.self.instance) return drawCrypt(canvas, s, mini);
-    let ready = paintBackground();
-    // The full map paints the whole world at once (a fraction of a second, once).
-    if (!mini) while (!ready) ready = paintBackground();
+    const here = zoneAt(s.self.x, s.self.z),
+      view = mini ? here : viewFor(s);
+    // The zone's painting fills in a few milliseconds at a time, then the world's in spare time;
+    // opening a map finishes its painting at once.
+    const zp = view === "world" ? null : zonePainter(view);
+    if (!mini) (zp ?? world).paint(Infinity);
+    else if (!zp.done) zp.paint(5);
+    else world.paint(3);
     const c = canvas.getContext("2d"),
       size = canvas.width,
-      span = mini ? 170 : WORLD_SIZE,
+      span = mini ? 170 : view === "world" ? WORLD_SIZE : zp.span,
       scale = size / span,
-      originX = mini ? s.self.x - span / 2 : -WORLD_HALF,
-      originZ = mini ? s.self.z - span / 2 : -WORLD_HALF,
-      pt = (x, z) => [(x - originX) * scale, (z - originZ) * scale];
-    c.clearRect(0, 0, size, size);
-    c.fillStyle = "#4f6a3c";
-    c.fillRect(0, 0, size, size);
-    // The painted world, cropped for the minimap.
-    const bgScale = BG / WORLD_SIZE;
-    c.imageSmoothingEnabled = true;
-    c.drawImage(bgCanvas, (originX + WORLD_HALF) * bgScale, (originZ + WORLD_HALF) * bgScale, span * bgScale, span * bgScale, 0, 0, size, size);
-    if (!ready && !mini) {
-      c.fillStyle = "#00000055";
-      c.fillRect(0, 0, size, size);
+      originX = mini ? s.self.x - span / 2 : view === "world" ? -WORLD_HALF : zp.originX,
+      originZ = mini ? s.self.z - span / 2 : view === "world" ? -WORLD_HALF : zp.originZ,
+      pt = (x, z) => [(x - originX) * scale, (z - originZ) * scale],
+      inView = (x, z, pad = 0) => x > originX - pad && z > originZ - pad && x < originX + span + pad && z < originZ + span + pad;
+    if (!mini) lastView = { originX, originZ, span, key: view };
+    if (!mini) {
+      $("map-zone").classList.toggle("active", view !== "world");
+      $("map-world").classList.toggle("active", view === "world");
+      canvas.style.cursor = view === "world" ? "pointer" : "";
+      canvas.setAttribute("aria-label", view === "world" ? "Map of the world" : `Map of ${ZONES[view].name}`);
     }
+    c.clearRect(0, 0, size, size);
+    c.fillStyle = ZONES[here].color;
+    c.fillRect(0, 0, size, size);
+    // The painting: the zone's own where it covers the view, else the world's.
+    c.imageSmoothingEnabled = true;
+    const art = zp?.done && originX >= zp.originX && originZ >= zp.originZ && originX + span <= zp.originX + zp.span && originZ + span <= zp.originZ + zp.span ? zp : world,
+      k = art.canvas.width / art.span;
+    if (art.done || !mini) c.drawImage(art.canvas, (originX - art.originX) * k, (originZ - art.originZ) * k, span * k, span * k, 0, 0, size, size);
     // Stillwater Pond and the arch trail at the heart of the Stillwood.
     c.fillStyle = "#6e9aa6";
     const [px, py] = pt(-16, -12);
@@ -189,8 +255,8 @@ export function createHud({
       points.forEach(([x, z], i) => (i ? c.lineTo(...pt(x, z)) : c.moveTo(...pt(x, z))));
     };
     for (const [color, width] of [
-      ["#5a4628", mini ? 5 : 4.5],
-      ["#d6c08a", mini ? 2.8 : 2.2],
+      ["#5a4628", mini ? 5 : view === "world" ? 4.5 : 6],
+      ["#d6c08a", mini ? 2.8 : view === "world" ? 2.2 : 3.2],
     ]) {
       c.strokeStyle = color;
       c.lineWidth = width;
@@ -202,37 +268,57 @@ export function createHud({
         c.stroke();
       }
     }
-    // Houses on the minimap; town dots and names on the world map.
-    if (mini) {
+    const label = (text, x, y, font, fill, stroke = "#1d1810", width = 3) => {
+      c.font = font;
+      c.strokeStyle = stroke;
+      c.lineWidth = width;
+      c.strokeText(text, x, y);
+      c.fillStyle = fill;
+      c.fillText(text, x, y);
+    };
+    // Houses on the minimap and zone maps; town dots and names on the larger maps.
+    if (mini || view !== "world") {
       c.fillStyle = "#8a4b33";
       for (const h of HOUSES) {
-        if (Math.abs(h.x - s.self.x) > span || Math.abs(h.z - s.self.z) > span) continue;
+        if (!inView(h.x, h.z, 10)) continue;
         const [hx, hz] = pt(h.x, h.z);
         c.save();
         c.translate(hx, hz);
         c.rotate(-h.rot);
-        c.fillRect((-h.w / 2) * scale, (-h.d / 2) * scale, h.w * scale, h.d * scale);
+        c.fillRect((-h.w / 2) * scale, (-h.d / 2) * scale, Math.max(2, h.w * scale), Math.max(2, h.d * scale));
         c.restore();
       }
-    } else {
+    }
+    if (!mini) {
       c.textAlign = "center";
+      const zoneMap = view !== "world";
       for (const t of TOWNS) {
+        if (!inView(t.x, t.z)) continue;
         const [x, y] = pt(t.x, t.z);
-        c.fillStyle = "#f3e2b0";
-        c.strokeStyle = "#2a1d10";
-        c.lineWidth = 2;
-        c.beginPath();
-        c.arc(x, y, 6, 0, Math.PI * 2);
-        c.fill();
-        c.stroke();
-        c.font = "bold 15px Georgia";
-        c.lineWidth = 4;
-        c.strokeText(t.name, x, y - 11);
-        c.fillText(t.name, x, y - 11);
+        if (!zoneMap) {
+          c.fillStyle = "#f3e2b0";
+          c.strokeStyle = "#2a1d10";
+          c.lineWidth = 2;
+          c.beginPath();
+          c.arc(x, y, 6, 0, Math.PI * 2);
+          c.fill();
+          c.stroke();
+        }
+        label(t.name, x, y - (zoneMap ? t.r * scale + 8 : 11), "bold 15px Georgia", "#f3e2b0", "#2a1d10", 4);
+      }
+      // Lakes and named places, on zone maps.
+      if (zoneMap) {
+        const named = new Set();
+        for (const l of LAKES) {
+          if (!inView(l.x, l.z) || named.has(l.name + Math.round(l.x / 200))) continue;
+          named.add(l.name + Math.round(l.x / 200));
+          const [x, y] = pt(l.x, l.z);
+          label(l.name, x, y + 4, "italic 13px Georgia", "#e4f2f6", "#1d2a30");
+        }
       }
       // Dungeon entrances.
-      c.font = "bold 12px Georgia";
       for (const d of DUNGEON_LIST) {
+        if (!inView(d.door.x, d.door.z)) continue;
         const [x, y] = pt(d.door.x, d.door.z);
         c.fillStyle = "#2a1d10";
         c.beginPath();
@@ -245,39 +331,29 @@ export function createHud({
         c.beginPath();
         c.arc(x, y + 1, 2.6, 0, Math.PI * 2);
         c.fill();
-        c.strokeStyle = "#1d1810";
-        c.lineWidth = 3;
-        c.fillStyle = "#e6d8ff";
-        c.strokeText(d.name, x, y + 18);
-        c.fillText(d.name, x, y + 18);
+        if (zoneMap) {
+          label(d.name, x, y + 18, "bold 12px Georgia", "#e6d8ff");
+          const [lo, hi] = d.levels ?? [];
+          if (lo) label(`Dungeon · Levels ${lo}–${d.bossLevel ?? hi}`, x, y + 32, "11px Georgia", "#d8ccef");
+        }
       }
-      // Zone names, placed in each zone's heartland.
-      c.font = "italic bold 19px Georgia";
-      for (const [id, x, z] of [
-        ["stillwood", 0, -150],
-        ["downs", 650, 330],
-        ["marsh", 240, 700],
-        ["crags", -700, 250],
-        ["frost", -300, -720],
-      ]) {
-        const [lx, ly] = pt(x, z);
-        c.strokeStyle = "#1d1810cc";
-        c.lineWidth = 5;
-        c.strokeText(ZONES[id].name.toUpperCase(), lx, ly);
-        c.fillStyle = "#f4ead0";
-        c.fillText(ZONES[id].name.toUpperCase(), lx, ly);
-        c.font = "13px Georgia";
-        const [lo, hi] = ZONES[id].levels;
-        c.strokeText(`Levels ${lo}–${hi}`, lx, ly + 17);
-        c.fillText(`Levels ${lo}–${hi}`, lx, ly + 17);
-        c.font = "italic bold 19px Georgia";
+      // Zone names: placed in each zone's heartland on the world map, as a title on a zone map.
+      if (!zoneMap)
+        for (const [id, b] of Object.entries(zoneBounds())) {
+          const [lx, ly] = pt(b.cx, b.cz);
+          label(ZONES[id].name.toUpperCase(), lx, ly, "italic bold 19px Georgia", "#f4ead0", "#1d1810cc", 5);
+          const [lo, hi] = ZONES[id].levels;
+          label(`Levels ${lo}–${hi}`, lx, ly + 17, "13px Georgia", "#f4ead0", "#1d1810cc", 5);
+        }
+      else {
+        // The zone's name on a parchment plate along the bottom edge.
+        const [lo, hi] = ZONES[view].levels;
+        c.fillStyle = "#1d1810b8";
+        c.fillRect(size / 2 - 190, size - 66, 380, 50);
+        label(ZONES[view].name, size / 2, size - 42, "italic bold 22px Georgia", "#f4ead0", "#1d1810", 4);
+        label(`Levels ${lo}–${hi}`, size / 2, size - 24, "13px Georgia", "#e8d8a8", "#1d1810", 3);
       }
-      c.font = "13px Georgia";
-      c.fillStyle = "#fff4cc";
-      c.strokeStyle = "#1d1810";
-      c.lineWidth = 3;
-      c.strokeText("Wayfarer’s Camp", ...pt(0, 34));
-      c.fillText("Wayfarer’s Camp", ...pt(0, 34));
+      if (zoneMap && inView(0, 34)) label("Wayfarer’s Camp", ...pt(0, 34), "13px Georgia", "#fff4cc");
       c.textAlign = "start";
     }
     const marker = (o, color, r) => {
@@ -424,14 +500,18 @@ export function createHud({
     if (!$("atlas").hidden) {
       drawMap($("world-map"), s);
       journal(s);
-      const key = JSON.stringify(s.self.quests);
+      const key = JSON.stringify([s.self.quests, lastView?.key]);
       if (key !== pinKey) {
         pinKey = key;
         $("map-pins").replaceChildren();
         for (const n of s.npcs) {
           const q = s.self.quests[n.quest] ?? { status: "merchant" },
-            point = mapPoint(n.x, n.z),
+            v = lastView,
+            point = { x: ((n.x - v.originX) / v.span) * 100, y: ((n.z - v.originZ) / v.span) * 100 },
             b = document.createElement("button");
+          if (point.x < 0 || point.y < 0 || point.x > 100 || point.y > 100) continue;
+          // The world map keeps to quest givers; merchants show on zone maps.
+          if (v.key === "world" && !n.quest) continue;
           b.className = "map-pin";
           b.textContent =
             q.status === "merchant"

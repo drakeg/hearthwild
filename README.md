@@ -65,7 +65,7 @@ The Stillwood (levels 1–6) is at the centre, with four zones around it, each w
 | Frostmere Vale | North | 12–16 | Hollowfrost Lodge |
 | Greyspire Crags | West | 15–20 | Cragmoor Hold |
 
-Roads lead from Wayfarer’s Camp to every town, and a ring road joins the towns. Towns are sanctuaries with a provisioner, a quest giver and a graveyard; when you release your spirit, you return to the nearest one. Press **M** for the world map.
+Roads lead from Wayfarer’s Camp to every town, and a ring road joins the towns. Towns are sanctuaries with a provisioner, a quest giver and a graveyard; when you release your spirit, you return to the nearest one. Press **M** for a map of your zone; switch to **World** for the whole world, and click a zone there to open its map.
 
 ## Dungeons
 

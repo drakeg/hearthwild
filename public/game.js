@@ -341,6 +341,16 @@ function animateCorpses(t) {
   }
 }
 const keys = new Set();
+// Content that never changes (shop, quests, classes, people) arrives once and is kept here;
+// later updates carry only what is happening near the player.
+let content = null;
+async function fetchState(after = 0) {
+  const known = content && content.token === token ? `&content=${content.key}` : "";
+  const incoming = await api(`/api/state?after=${after}${known}`);
+  if (incoming.shop) content = { token, key: incoming.content, shop: incoming.shop, recipes: incoming.recipes, classes: incoming.classes, abilities: incoming.abilities, questDefinitions: incoming.questDefinitions, npcs: incoming.npcs };
+  const { token: _, key, ...rest } = content;
+  return { ...rest, ...incoming, npcs: incoming.self.instance ? [] : rest.npcs };
+}
 async function api(path, data) {
   const response = await fetch(path, {
     method: data ? "POST" : "GET",
@@ -1398,7 +1408,7 @@ async function poll() {
   if (!playing) return;
   const epoch = playEpoch;
   try {
-    const incoming = await api(`/api/state?after=${after}`);
+    const incoming = await fetchState(after);
     if (epoch !== playEpoch || !playing) return;
     state = incoming;
     if (chatEpoch && chatEpoch !== state.chatEpoch) after = 0;
@@ -1426,7 +1436,7 @@ async function begin(key) {
   clearTimeout(pollTimer);
   clearInterval(inputTimer);
   try {
-    const incoming = await api("/api/state");
+    const incoming = await fetchState();
     await charactersReady;
     if (epoch !== playEpoch) return;
     state = incoming;
@@ -2294,7 +2304,7 @@ const services = servicesUi({
     const epoch = playEpoch,
       r = await api("/api/actions", a);
     if (epoch === playEpoch) {
-      state = await api("/api/state");
+      state = await fetchState();
       updateModels();
     }
     return r;

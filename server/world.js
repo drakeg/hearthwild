@@ -21,6 +21,7 @@ import { Guilds } from "./guild.js";
 import { Crypts, walkableAt } from "./crypt.js";
 import { CRYPT, DUNGEON_LIST, dungeonOf } from "../public/dungeon-layout.js";
 import { DUNGEON_LOOT } from "./content-world.js";
+import { Grid, VIEW, AWAKE_RADIUS, contentKey } from "./interest.js";
 import {
   MELEE_RANGE,
   LEASH_RANGE,
@@ -100,6 +101,11 @@ export class World {
     this.eventSequence = 0;
     this.resources = createHerbs(this.random, saved.resources);
     this.enemies = createMonsters(this.random, saved.enemies);
+    this.enemyGrid = new Grid(100).build(this.enemies);
+    this.playerGrid = new Grid(100);
+    // Content that never changes is sent once per client (and again only if it changes).
+    this.shop = Object.entries(PRICES).filter(([, [buy]]) => buy !== null).map(([template, [buy, sell]]) => ({ ...ITEMS[template], template, buy, sell }));
+    this.contentBase = contentKey({ shop: this.shop, recipes: RECIPES, classes: CLASSES, quests: QUESTS, npcs: NPCS, abilities: ABILITIES });
     this.parties = new Parties(this);
     this.crypts = new Crypts(this);
     this.guilds = new Guilds(this, saved.guilds, {
@@ -253,7 +259,7 @@ export class World {
     reject(!p, "Your return key is missing or invalid.", 401);
     return p;
   }
-  state(token, after = 0, now = Date.now()) {
+  state(token, after = 0, now = Date.now(), known = null) {
     const p = this.authenticate(token);
     const returning = now - p.seen >= 15000;
     p.seen = now;
@@ -265,9 +271,13 @@ export class World {
     }
     for (const k of ["partyInvite", "guildInvite", "charterRequest"]) if (p[k] && p[k].expiresAt <= now) p[k] = null;
     if (!p.instance && !p.dead) this.explore(p, now);
-    const zone = zoneOf(p);
+    const zone = zoneOf(p),
+      content = `${this.contentBase}:${p.classId}`,
+      fresh = known !== content,
+      near = (list, r) => list.filter((o) => distance(p, o) < r);
     return {
       chatEpoch: this.chatEpoch,
+      content,
       self: {
         ...this.pub(p),
         inventory: p.inventory.map(describeItem),
@@ -310,27 +320,17 @@ export class World {
         charter: this.guilds.charterView(p),
         charterRequest: p.charterRequest ? { from: p.charterRequest.fromName, name: p.charterRequest.name } : null,
       },
-      shop: Object.entries(PRICES).filter(([, [buy]]) => buy !== null).map(([template, [buy, sell]]) => ({
-        ...ITEMS[template],
-        template,
-        buy,
-        sell,
-      })),
-      recipes: RECIPES,
-      classes: CLASSES,
-      abilities: ABILITIES[p.classId],
-      npcs: p.instance ? [] : this.npcs,
+      ...(fresh && { shop: this.shop, recipes: RECIPES, classes: CLASSES, abilities: ABILITIES[p.classId], questDefinitions: QUESTS, npcs: this.npcs }),
       portals: p.instance
         ? [(({ origin, exit, id }) => ({ id: `${id}-exit`, type: "exit", name: "Exit", x: origin.x + exit.x, z: origin.z + exit.z }))(dungeonOf(p.instance) ?? CRYPT)]
         : DUNGEON_LIST.map((d) => ({ id: `${d.id}-door`, type: "enter", name: d.name, x: d.door.x, z: d.door.z })),
       telegraphs: p.instance ? (this.crypts.instances.get(p.instance)?.telegraphs ?? []) : [],
-      questDefinitions: QUESTS,
-      resources: this.resources.map((r) => ({
+      resources: (p.instance ? [] : near(this.resources, VIEW.resources)).map((r) => ({
         ...r,
         available: !r.depleted,
       })),
       loot: this.loot
-        .filter((l) => l.ownerId === p.id && l.expiresAt > now && (l.zone ?? null) === zone)
+        .filter((l) => l.ownerId === p.id && l.expiresAt > now && (l.zone ?? null) === zone && distance(l, p) < VIEW.loot)
         .map(({ ownerId, ...l }) => ({
           ...l,
           items: l.items.map(describeItem),
@@ -339,10 +339,9 @@ export class World {
         (e) => now - e.time < 2500 && (e.zone ?? null) === zone && distance(e, p) < 60,
       ),
       players: [...this.players.values()]
-        .filter((q) => now - q.seen < 15000 && zoneOf(q) === zone && distance(p, q) < 40)
+        .filter((q) => now - q.seen < 15000 && zoneOf(q) === zone && distance(p, q) < VIEW.players)
         .map((q) => this.pub(q)),
-      enemies: this.enemiesFor(p)
-        .filter((e) => distance(p, e) < 180)
+      enemies: (p.instance ? near(this.enemiesFor(p), VIEW.enemies) : this.enemyGrid.near(p.x, p.z, VIEW.enemies))
         .map(({ contributors, homeX, homeZ, lastAttack, threat, dots, stunnedUntil, ...e }) => ({
           ...e,
           engaged: threat?.has(p.id) ?? false,
@@ -1101,7 +1100,9 @@ export class World {
         else if (!insideHouse(p.x, nz)) p.z = nz;
       }
     this.crypts.tick(now, dt);
+    this.playerGrid.build(online.filter((p) => !p.instance && !p.dead));
     this.tickEnemies(this.enemies, online.filter((p) => !p.instance), dt, now, null);
+    this.enemyGrid.build(this.enemies);
     for (const inst of this.crypts.instances.values())
       this.tickEnemies(inst.enemies, online.filter((p) => p.instance === inst.id), dt, now, inst);
   }
@@ -1129,6 +1130,8 @@ export class World {
         }
         continue;
       }
+      // Out in the world, a creature with nobody near and nothing going on sleeps.
+      if (!inst && !e.threat.size && !e.dots?.length && !e.casting && !e.evading && !this.playerGrid.any(e.x, e.z, AWAKE_RADIUS)) continue;
       const ms = mobStats(e.level ?? 1),
         home = { x: e.homeX, z: e.homeZ };
       if (e.evading) {
@@ -1145,7 +1148,7 @@ export class World {
         continue;
       }
       // Proximity aggro: creatures notice players inside their level-scaled radius.
-      for (const p of online)
+      for (const p of inst ? online : this.playerGrid.near(e.x, e.z, 14))
         if (
           !p.dead &&
           !p.travel &&
