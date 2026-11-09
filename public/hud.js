@@ -1,4 +1,4 @@
-import { CRYPT } from "./dungeon-layout.js";
+import { CRYPT, DUNGEON_LIST, dungeonOf } from "./dungeon-layout.js";
 import { WORLD_HALF, WORLD_SIZE, WORLD_LIMIT, ZONES, TOWNS } from "./world-config.js";
 import { zoneWeights, terrainHeight, lakeAt, ROADS, HOUSES } from "./terrain.js";
 import { mapPoint, filterQuests, questMarker } from "./ui-model.js";
@@ -78,25 +78,30 @@ export function createHud({
   };
   // Inside the crypt the map shows its rooms instead of the Stillwood.
   function drawCrypt(canvas, s, mini) {
-    const c = canvas.getContext("2d"),
+    const D = dungeonOf(s.self.instance) ?? CRYPT,
+      minX = Math.min(...D.rooms.map((r) => r.minX)),
+      maxX = Math.max(...D.rooms.map((r) => r.maxX)),
+      minZ = Math.min(...D.rooms.map((r) => r.minZ)),
+      maxZ = Math.max(...D.rooms.map((r) => r.maxZ)),
+      c = canvas.getContext("2d"),
       size = canvas.width,
-      span = mini ? 60 : 100,
+      span = mini ? 60 : Math.max(maxX - minX, maxZ - minZ) + 16,
       scale = size / span,
-      cx = mini ? s.self.x - CRYPT.origin.x : 0,
-      cz = mini ? s.self.z - CRYPT.origin.z : -38,
+      cx = mini ? s.self.x - D.origin.x : (minX + maxX) / 2,
+      cz = mini ? s.self.z - D.origin.z : (minZ + maxZ) / 2,
       pt = (x, z) => [(x - cx) * scale + size / 2, (z - cz) * scale + size / 2];
     c.fillStyle = "#0d0b0a";
     c.fillRect(0, 0, size, size);
     c.fillStyle = "#4a4238";
     c.strokeStyle = "#8d7a5a";
     c.lineWidth = 2;
-    for (const r of CRYPT.rooms) {
+    for (const r of D.rooms) {
       const [x0, y0] = pt(r.minX, r.minZ),
         [x1, y1] = pt(r.maxX, r.maxZ);
       c.fillRect(x0, y0, x1 - x0, y1 - y0);
     }
     const dot = (x, z, color, r) => {
-      const [px, py] = pt(x - CRYPT.origin.x, z - CRYPT.origin.z);
+      const [px, py] = pt(x - D.origin.x, z - D.origin.z);
       c.fillStyle = color;
       c.beginPath();
       c.arc(px, py, r, 0, Math.PI * 2);
@@ -109,7 +114,7 @@ export function createHud({
       c.fillStyle = "#d8c49a";
       c.font = "italic 20px Georgia";
       c.textAlign = "center";
-      c.fillText(CRYPT.name, size / 2, 30);
+      c.fillText(D.name, size / 2, 30);
     }
   }
   // A shaded painting of the whole world, built once in small slices so it never stalls a frame.
@@ -224,6 +229,27 @@ export function createHud({
         c.lineWidth = 4;
         c.strokeText(t.name, x, y - 11);
         c.fillText(t.name, x, y - 11);
+      }
+      // Dungeon entrances.
+      c.font = "bold 12px Georgia";
+      for (const d of DUNGEON_LIST) {
+        const [x, y] = pt(d.door.x, d.door.z);
+        c.fillStyle = "#2a1d10";
+        c.beginPath();
+        c.moveTo(x, y - 7);
+        c.lineTo(x + 6, y + 5);
+        c.lineTo(x - 6, y + 5);
+        c.closePath();
+        c.fill();
+        c.fillStyle = "#c9a2ff";
+        c.beginPath();
+        c.arc(x, y + 1, 2.6, 0, Math.PI * 2);
+        c.fill();
+        c.strokeStyle = "#1d1810";
+        c.lineWidth = 3;
+        c.fillStyle = "#e6d8ff";
+        c.strokeText(d.name, x, y + 18);
+        c.fillText(d.name, x, y + 18);
       }
       // Zone names, placed in each zone's heartland.
       c.font = "italic bold 19px Georgia";

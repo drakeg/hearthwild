@@ -6,7 +6,11 @@ export const ZONE_POPULATION = { stillwood: 24, downs: 46, marsh: 46, frost: 42,
 export const monsterDelay = (random) =>
   MONSTER_RESPAWN.min +
   Math.floor(random() * (MONSTER_RESPAWN.max - MONSTER_RESPAWN.min + 1));
-const nearTown = (x, z) => TOWNS.some((t) => Math.hypot(x - t.x, z - t.z) < t.r + 30);
+import { DUNGEON_LIST } from "../public/dungeon-layout.js";
+// Keep towns and the ground in front of dungeon doors clear of wandering creatures.
+const nearTown = (x, z) =>
+  TOWNS.some((t) => Math.hypot(x - t.x, z - t.z) < t.r + 30) ||
+  DUNGEON_LIST.some((d) => d.zone && Math.hypot(x - d.door.x, z - d.door.z) < 22);
 export function monsterPosition(random, others = [], players = [], old = null, cell = null) {
   // Creatures of the wider world stay near their anchor; starter creatures roam the clearing.
   const anchored = old?.anchorX !== undefined;

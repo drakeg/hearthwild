@@ -1051,3 +1051,11 @@ body.is-dead #world {
   opacity: 0.5;
   cursor: default;
 }
+
+/* Bosses get a wider nameplate so their full names fit. */
+.cui-plate.boss {
+  width: 190px;
+}
+.cui-plate.boss .cui-plate-name {
+  font-size: 12.5px;
+}

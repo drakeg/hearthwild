@@ -67,6 +67,18 @@ The Stillwood (levels 1–6) is at the centre, with four zones around it, each w
 
 Roads lead from Wayfarer’s Camp to every town, and a ring road joins the towns. Towns are sanctuaries with a provisioner, a quest giver and a graveyard; when you release your spirit, you return to the nearest one. Press **M** for the world map.
 
+## Dungeons
+
+| Dungeon | Zone | Levels | Boss |
+|---|---|---|---|
+| The Hollow Crypt | The Stillwood (Amberwatch Ruins) | 4–6 | Vorlath the Ashen Warden |
+| The Barrow of Harrow Hill | The Amber Downs | 9–11 | Gorran Blackhook |
+| The Drowned Chapel | Saltreed Marsh | 12–14 | Mother Sallow |
+| Glassmere Depths | Frostmere Vale | 15–17 | Hrimgar the Frostbound |
+| The Hollow Peak | Greyspire Crags | 19–21 | Stonecaller Varkesh |
+
+Talk to the watcher at the door for the quest, then press **F** at the door to enter. Each group gets its own copy of the dungeon. Bosses drop Epic gear.
+
 ## Getting around
 
 - **Riding:** learn from a stablemaster (Wayfarer’s Camp or Harrowford) at level 10 for 50 gold, then press **U** to mount up. You ride 60% faster.

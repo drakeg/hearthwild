@@ -200,6 +200,7 @@ export const QUESTS = {
   },
   crypt: {
     id: "crypt",
+    boss: "hollow-crypt",
     name: "Ashes beneath Amberwatch",
     npc: "scout",
     required: 1,

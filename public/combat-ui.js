@@ -236,7 +236,7 @@ export function createCombatUi({ camera, height, onRelease, onTargetChange, act 
         float("Interrupted!", e.x, gy + 2.8, e.z, "spell", true);
         info(`${e.by} interrupted ${e.spell}!`);
       } else if (e.kind === "ashfall") {
-        float("Ashfall", e.x, gy + 1.5, e.z, "taken");
+        float(e.name ?? "Ashfall", e.x, gy + 1.5, e.z, "taken");
       } else if (e.kind === "absorb" && e.to === me) {
         float(`Absorbed ${e.amount}`, e.x, gy + 2.6, e.z, "heal");
       } else if (e.kind === "shield" && e.to === me) {
@@ -246,7 +246,7 @@ export function createCombatUi({ camera, height, onRelease, onTargetChange, act 
       } else if (e.kind === "immune") {
         float("Immune", e.x, gy + 2.6, e.z, "miss");
       } else if (e.kind === "telegraph") {
-        if (Math.hypot(state.self.x - e.x, state.self.z - e.z) <= e.radius + 1) error("Move out of the Ashfall!");
+        if (Math.hypot(state.self.x - e.x, state.self.z - e.z) <= e.radius + 1) error(`Move out of the ${e.name ?? "Ashfall"}!`);
       }
       if (e.kind === "death" && e.boss) {
         shout(`${e.name} has been defeated!`, "victory");
@@ -438,6 +438,7 @@ export function createCombatUi({ camera, height, onRelease, onTargetChange, act 
       plate.fill.style.width = `${(e.hp / (e.maxHp ?? 60)) * 100}%`;
       plate.node.classList.toggle("selected", e.id === selected);
       plate.node.classList.toggle("engaged", !!e.engaged);
+      plate.node.classList.toggle("boss", !!e.boss);
       plate.node.classList.toggle("evading", !!e.evading);
       const scale = Math.max(0.7, Math.min(1, 18 / Math.max(dist, 1)));
       plate.node.style.transform = `translate(${pos.x}px, ${pos.y}px) translate(-50%, -100%) scale(${e.id === selected ? 1.12 : scale})`;

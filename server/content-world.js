@@ -1,6 +1,7 @@
 // Content for the wider world: zone gear tiers, abilities to level 20, and each town's
 // quest givers and quest chains. All names and text are original to Hearthwild.
 import { TOWNS } from "../public/terrain.js";
+import { DUNGEONS } from "../public/dungeon-layout.js";
 
 // ---------- Gear ----------
 // Each zone has an Uncommon and a Rare tier of weapon, chest and charm. Stats follow the
@@ -186,3 +187,51 @@ export const TRAVEL_FOLK = [
     text: "Wagons leave whenever you’re ready. I can take you to any town you’ve already found.",
   })),
 ].map(({ place, dx, dz, ...n }) => ({ ...n, x: at(place).x + dx, z: at(place).z + dz, town: place === "camp" ? undefined : place }));
+
+// ---------- Dungeons: Epic rewards, door scouts and boss quests ----------
+const EPIC_NAMES = {
+  "harrow-barrow": ["Blackhook’s cleaver", "Bandit King’s greatcoat", "Gorran’s lucky coin"],
+  "drowned-chapel": ["Mirewood greatstaff", "Vestments of the Drowned", "Mother Sallow’s rosary"],
+  "glassmere-depths": ["Frostbound warhammer", "Glassmere icemail", "Shard of the Frozen Heart"],
+  "hollow-peak": ["Varkesh’s runeblade", "Mountain-heart plate", "Summit runestone"],
+};
+// Each boss drops one of its dungeon's three Epics (the Hollow Crypt's are defined in content.js).
+export const DUNGEON_LOOT = { "hollow-crypt": ["ashbound-greatblade", "ashen-mantle", "ember-of-vorlath"] };
+for (const [id, names] of Object.entries(EPIC_NAMES)) {
+  const level = DUNGEONS[id].levels[1],
+    boost = 1.6;
+  DUNGEON_LOOT[id] = [];
+  names.forEach((name, i) => {
+    const key = slug(name),
+      slot = ["weapon", "chest", "charm"][i];
+    GEAR[key] =
+      slot === "weapon"
+        ? { name, slot, rarity: "Epic", level, dungeon: id, damage: Math.round((8 + level * 2.1) * boost), armor: 0, maxHp: 0 }
+        : slot === "chest"
+          ? { name, slot, rarity: "Epic", level, dungeon: id, damage: 0, armor: Math.round((3 + level * 0.7) * boost), maxHp: Math.round((30 + level * 11) * boost) }
+          : { name, slot, rarity: "Epic", level, dungeon: id, damage: Math.round((2 + level * 0.7) * boost), armor: Math.round((1 + level * 0.25) * boost), maxHp: Math.round((14 + level * 5) * boost) };
+    GEAR_PRICES[key] = [null, Math.round(level * level * 1.2 + 30)];
+    DUNGEON_LOOT[id].push(key);
+  });
+}
+const SCOUTS = {
+  "harrow-barrow": ["barrow", "Ranger Tess Mallory", "The Harrow bandits have dug into the old barrow on the hill, and their king holds court in the deepest hall. Bring down Gorran Blackhook and the Downs will breathe again."],
+  "drowned-chapel": ["chapel", "Brother Ennis", "My chapel sank into the mire a generation ago. Now something sings beneath the water. Silence Mother Sallow, I beg you."],
+  "glassmere-depths": ["depths", "Huntress Sigrun", "Beneath the frozen lake sleeps Hrimgar the Frostbound, and the pale wolves gather to him. Go down into the Depths and end his long winter."],
+  "hollow-peak": ["peak", "Warden Kael Thorne", "Varkesh and her Stonecallers have hollowed out the mountain to wake whatever lies at its heart. Climb to the summit chamber and stop her."],
+};
+for (const [id, [short, name, text]] of Object.entries(SCOUTS)) {
+  const d = DUNGEONS[id];
+  TRAVEL_FOLK.push({ id: `${short}-scout`, dungeon: id, name, role: `Watcher at ${d.name}`, x: d.door.x + 4, z: d.door.z + 2.5, look: "npc-scout", quest: `${short}-boss`, text });
+  WORLD_QUESTS[`${short}-boss`] = {
+    name: `Into ${d.name}`,
+    npc: `${short}-scout`,
+    required: 1,
+    reward: d.levels[1] * 24,
+    xp: d.levels[1] * 220,
+    objective: `Defeat ${d.boss.name} in ${d.name}`,
+    area: `${d.name} · dungeon · levels ${d.levels[0]}–${d.bossLevel} · bring a group`,
+    boss: id,
+    minLevel: d.levels[0] - 2,
+  };
+}

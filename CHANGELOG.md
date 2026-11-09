@@ -1,3 +1,17 @@
+## 0.12.0 — Dungeons of the Wider World
+
+- **A dungeon in every zone**, each with its own layout, look and boss. A watcher stands at every door with a quest to bring the boss down, and each dungeon has its own creatures. Like the Hollow Crypt, every group (or solo adventurer) gets a private copy, and health scales with group size.
+  - **The Barrow of Harrow Hill** (Amber Downs, levels 9–11): a bandit hideout dug into an old barrow, with earthen floors and warm torchlight. **Gorran Blackhook** spins his *Whirling Hook* around him (step away), scatters *Caltrops* and calls his cutthroats at half health.
+  - **The Drowned Chapel** (Saltreed Marsh, levels 12–14): a sunken chapel under murky water. **Mother Sallow** raises *Bog Mire* under your feet, channels an interruptible *Drowning Hex* that heals her, and calls lurkers from the deep.
+  - **Glassmere Depths** (Frostmere Vale, levels 15–17): ice caverns beneath the frozen lake. **Hrimgar the Frostbound** unleashes *Frost Nova* around himself and rains *Ice Shards*, and the pale wolves answer his call.
+  - **The Hollow Peak** (Greyspire Crags, levels 19–21): the hollowed heart of the mountain, lit by ember-glow. **Stonecaller Varkesh** brings down *Rockfall* in threes and channels an interruptible *Mountain’s Wrath*, and her guards hold the summit.
+  - Every boss enrages if the fight drags on, and resets on a wipe.
+- **12 new Epic items**: three from each boss (weapon, chest and charm), such as *Blackhook’s cleaver*, *Vestments of the Drowned*, *Shard of the Frozen Heart* and *Varkesh’s runeblade*.
+- Dungeon entrances appear on the world map, and the minimap shows each dungeon’s rooms inside.
+- Boss nameplates are wider, so long names fit.
+- Under the hood, bosses are described as data (ground circles, area blasts, interruptible channels, adds and enrage), so new dungeons are quick to add. The Hollow Crypt plays exactly as before.
+- Eighty-five checks, including new tests for every dungeon’s door, layout, levels, boss mechanics, loot and quest.
+
 ## 0.11.0 — Roads and Riches
 
 - **Gear for every zone.** Each new zone drops its own Uncommon and Rare weapon, chest piece and charm, 24 new items in all, from the *Harrowford militia sword* to the *Eye of the Tarn*. Gear now has a level requirement, and creatures drop gear close to their own level, so every few levels brings an upgrade. Zone gear sells to merchants but isn’t in their shops.
