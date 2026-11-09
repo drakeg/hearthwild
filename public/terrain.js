@@ -6,11 +6,18 @@
 //   South · Saltreed Marsh    — flat bog, reed beds and dark pools
 //   North · Frostmere Vale    — snowy hills, pines and a frozen lake
 //   West  · Greyspire Crags   — high rocky ridges
+// Beyond them, past about a kilometre from camp, lies the Outer Ring (levels 20–30):
+//   North-west · The Emberwaste      — ash plains, black ridges and lava pools
+//   South-west · Gloamwood           — an old, dark forest of twisted trees
+//   South-east · The Sunscar Dunes   — sand seas and a lone oasis
+//   North-east · Starfall Reach      — high violet meadows strewn with fallen starstone
 // A mountain wall rings the world beyond WORLD_LIMIT.
 
-export const WORLD_HALF = 1000,
-  WORLD_LIMIT = 880,
+export const WORLD_HALF = 2000,
+  WORLD_LIMIT = 1880,
   WORLD_SIZE = WORLD_HALF * 2;
+// Characters grow to this level in the Outer Ring.
+export const MAX_LEVEL = 30;
 
 export const ZONES = {
   stillwood: { id: "stillwood", name: "The Stillwood", levels: [1, 6], color: "#5f8f45" },
@@ -18,8 +25,14 @@ export const ZONES = {
   marsh: { id: "marsh", name: "Saltreed Marsh", levels: [9, 13], color: "#5f7a5a", angle: Math.PI / 2 },
   crags: { id: "crags", name: "Greyspire Crags", levels: [15, 20], color: "#8a8780", angle: Math.PI },
   frost: { id: "frost", name: "Frostmere Vale", levels: [12, 16], color: "#c9d6e2", angle: -Math.PI / 2 },
+  ember: { id: "ember", name: "The Emberwaste", levels: [20, 23], color: "#5e4a44", angle: (-3 * Math.PI) / 4, ring: true },
+  gloam: { id: "gloam", name: "Gloamwood", levels: [22, 25], color: "#3d5a44", angle: (3 * Math.PI) / 4, ring: true },
+  dunes: { id: "dunes", name: "The Sunscar Dunes", levels: [24, 27], color: "#d9b97c", angle: Math.PI / 4, ring: true },
+  reach: { id: "reach", name: "Starfall Reach", levels: [27, 30], color: "#9b97c4", angle: -Math.PI / 4, ring: true },
 };
-const OUTER = ["downs", "marsh", "crags", "frost"];
+const OUTER = ["downs", "marsh", "crags", "frost"],
+  RING = ["ember", "gloam", "dunes", "reach"],
+  ALL = ["stillwood", ...OUTER, ...RING];
 
 // ---------- Noise ----------
 function hash(ix, iz, seed) {
@@ -57,30 +70,45 @@ const smooth = (a, b, x) => {
 };
 
 // ---------- Zones ----------
-const STILL_R = 255;
+const STILL_R = 255,
+  RING_R = 1010;
+// Sector shares for zones laid out around the compass (each a quarter turn wide).
+function sectors(ids, a, r, blend) {
+  let total = 0;
+  const m = {};
+  for (const id of ids) {
+    let d = Math.abs(a - ZONES[id].angle) % (Math.PI * 2);
+    if (d > Math.PI) d = Math.PI * 2 - d;
+    m[id] = Math.max(0, Math.min(1, ((Math.PI / 4 - d) * Math.max(r, 60)) / blend + 0.5));
+    total += m[id];
+  }
+  for (const id of ids) m[id] /= total || 1;
+  return m;
+}
 export function zoneWeights(x, z) {
   const r = Math.hypot(x, z),
     edge = STILL_R + fbm(x * 0.006, z * 0.006, 3) * 40,
     outer = smooth(edge - 35, edge + 35, r),
-    w = { stillwood: 1 - outer, downs: 0, marsh: 0, crags: 0, frost: 0 };
+    w = { stillwood: 1 - outer, downs: 0, marsh: 0, crags: 0, frost: 0, ember: 0, gloam: 0, dunes: 0, reach: 0 };
   if (outer <= 0) return w;
-  const a = Math.atan2(z, x) + fbm(x * 0.004, z * 0.004, 9) * 0.22;
-  let total = 0;
-  const m = {};
-  for (const id of OUTER) {
-    let d = Math.abs(a - ZONES[id].angle) % (Math.PI * 2);
-    if (d > Math.PI) d = Math.PI * 2 - d;
-    // Borders blend over about 70 m of ground.
-    m[id] = Math.max(0, Math.min(1, ((Math.PI / 4 - d) * Math.max(r, 60)) / 70 + 0.5));
-    total += m[id];
-  }
-  for (const id of OUTER) w[id] = outer * (m[id] / (total || 1));
+  // Borders blend over about 70 m of ground.
+  const a = Math.atan2(z, x) + fbm(x * 0.004, z * 0.004, 9) * 0.22,
+    m = sectors(OUTER, a, r, 70);
+  for (const id of OUTER) w[id] = outer * m[id];
+  // The Outer Ring begins about a kilometre out, along a wandering edge.
+  const ringEdge = RING_R + fbm(x * 0.004, z * 0.004, 13) * 80,
+    ring = smooth(ringEdge - 50, ringEdge + 50, r);
+  if (ring <= 0) return w;
+  const ra = Math.atan2(z, x) + fbm(x * 0.003, z * 0.003, 19) * 0.18,
+    rm = sectors(RING, ra, r, 90);
+  for (const id of ALL) w[id] *= 1 - ring;
+  for (const id of RING) w[id] = ring * rm[id];
   return w;
 }
 export function zoneAt(x, z) {
   const w = zoneWeights(x, z);
   let best = "stillwood";
-  for (const id of OUTER) if (w[id] > w[best]) best = id;
+  for (const id of ALL) if (w[id] > w[best]) best = id;
   return best;
 }
 
@@ -135,6 +163,55 @@ export const TOWNS = [
       [-16, 14, 6, 6, Math.PI, 0], [16, 14, 6, 6, Math.PI, 0],
     ],
   },
+  // The Outer Ring.
+  {
+    id: "cinderhold",
+    name: "Cinderhold",
+    zone: "ember",
+    x: -1040,
+    z: -1020,
+    r: 34,
+    houses: [
+      [-16, -14, 8, 8, 0, 1], [2, -18, 6, 6, 0, 1], [17, -13, 6, 8, 0, 1],
+      [-17, 13, 6, 6, Math.PI, 1], [0, 18, 6, 8, Math.PI, 1], [17, 14, 4, 4, Math.PI, 1],
+    ],
+  },
+  {
+    id: "duskhollow",
+    name: "Duskhollow",
+    zone: "gloam",
+    x: -1030,
+    z: 1040,
+    r: 32,
+    houses: [
+      [-15, -12, 6, 6, Math.PI / 2, 0], [-16, 8, 4, 6, Math.PI / 2, 0], [15, -11, 6, 8, -Math.PI / 2, 0],
+      [15, 10, 6, 6, -Math.PI / 2, 0], [0, 18, 6, 8, Math.PI, 0],
+    ],
+  },
+  {
+    id: "sunmere",
+    name: "Sunmere",
+    zone: "dunes",
+    x: 1040,
+    z: 1030,
+    r: 34,
+    houses: [
+      [-16, -14, 6, 6, 0, 1], [0, -18, 6, 8, 0, 1], [16, -14, 6, 6, 0, 1],
+      [-17, 12, 6, 8, Math.PI, 1], [3, 18, 6, 6, Math.PI, 1], [18, 13, 4, 6, Math.PI, 1],
+    ],
+  },
+  {
+    id: "starfall",
+    name: "Starfall Rest",
+    zone: "reach",
+    x: 1030,
+    z: -1040,
+    r: 32,
+    houses: [
+      [0, -17, 8, 8, 0, 0], [-16, -6, 6, 6, Math.PI / 2, 0], [16, -6, 6, 8, -Math.PI / 2, 0],
+      [-14, 14, 6, 6, Math.PI, 1], [14, 14, 4, 4, Math.PI, 1],
+    ],
+  },
 ];
 // Wayfarer's Camp is the first sanctuary and graveyard.
 export const GRAVEYARDS = [{ id: "camp", name: "Wayfarer’s Camp", x: 0, z: 12 }, ...TOWNS.map((t) => ({ id: t.id, name: t.name, x: t.x, z: t.z + 6 }))];
@@ -171,6 +248,17 @@ const ROAD_PATHS = [
   [[560, 64], [520, 230], [400, 380], [230, 500], [80, 560], [-10, 580]],
   [[-70, 580], [-240, 520], [-420, 400], [-540, 230], [-600, 90], [-600, -8]],
   [[-600, -72], [-560, -240], [-440, -400], [-280, -520], [-120, -590], [0, -600]],
+  // Out to the Outer Ring: Cragmoor to Cinderhold and Duskhollow, Reedwatch to Sunmere,
+  // Harrowford to Starfall Rest.
+  [[-630, -60], [-650, -200], [-700, -340], [-800, -480], [-890, -660], [-955, -840], [-1010, -970], [-1040, -1020]],
+  [[-630, -20], [-720, 120], [-820, 360], [-900, 620], [-975, 860], [-1015, 990], [-1030, 1040]],
+  [[-20, 612], [-10, 680], [60, 790], [200, 840], [420, 890], [660, 945], [880, 990], [1000, 1020], [1040, 1030]],
+  [[590, 0], [700, -160], [800, -390], [900, -630], [975, -850], [1010, -990], [1030, -1040]],
+  // The outer ring road between the four Outer Ring towns.
+  [[-1000, -1050], [-700, -1250], [-300, -1390], [100, -1410], [500, -1330], [850, -1190], [1000, -1070]],
+  [[1060, -1010], [1250, -700], [1390, -300], [1410, 100], [1330, 500], [1190, 840], [1070, 1000]],
+  [[1010, 1060], [700, 1260], [300, 1395], [-100, 1415], [-500, 1330], [-850, 1190], [-1000, 1070]],
+  [[-1060, 1010], [-1250, 700], [-1390, 300], [-1410, -100], [-1330, -500], [-1190, -840], [-1070, -1000]],
 ];
 function catmull(p, step = 6) {
   const out = [];
@@ -233,6 +321,14 @@ export const LAKES = [
   { name: "Blackwater Pools", x: 90, z: 720, r: 34, depth: 1.0 },
   { name: "Glassmere", x: -150, z: -500, r: 70, depth: 0, frozen: true },
   { name: "Greyspire Tarn", x: -720, z: -260, r: 36, depth: 1.2 },
+  // The Outer Ring. Lava burns anyone who wades in.
+  { name: "Cinder Pools", x: -1320, z: -820, r: 42, depth: 0.8, lava: true },
+  { name: "Cinder Pools", x: -820, z: -1380, r: 36, depth: 0.8, lava: true },
+  { name: "Cinder Pools", x: -1500, z: -1300, r: 50, depth: 0.8, lava: true },
+  { name: "Murkmere", x: -1380, z: 860, r: 58, depth: 1.0, bog: true },
+  { name: "Murkmere", x: -800, z: 1420, r: 40, depth: 1.0, bog: true },
+  { name: "The Oasis of Sunmere", x: 1210, z: 1180, r: 34, depth: 1.2 },
+  { name: "Starglass Tarn", x: 1340, z: -1250, r: 48, depth: 1.2, star: true },
 ];
 
 // ---------- Height ----------
@@ -253,9 +349,23 @@ function landHeight(x, z, w = zoneWeights(x, z)) {
     const ridge = 1 - Math.abs(fbm(x * 0.007, z * 0.007, 61, 5));
     h += w.crags * (ridge * ridge * 30 + fbm(x * 0.04, z * 0.04, 62) * 2 - 4) * road;
   }
+  // The Emberwaste: black ridges and broken ash flats.
+  if (w.ember > 0) {
+    const ridge = 1 - Math.abs(fbm(x * 0.005, z * 0.005, 91, 5));
+    h += w.ember * (ridge * ridge * ridge * 26 + fbm(x * 0.03, z * 0.03, 92) * 1.6 - 2) * road;
+  }
+  // Gloamwood: deep hollows between wooded hills.
+  if (w.gloam > 0) h += w.gloam * (fbm(x * 0.007, z * 0.007, 101) * 13 + fbm(x * 0.025, z * 0.025, 102) * 1.5 + 1) * road;
+  // The Sunscar Dunes: long wind-combed dunes over a rolling sand sea.
+  if (w.dunes > 0) {
+    const crest = Math.abs(Math.sin((x * 0.8 + z * 0.35) * 0.03 + fbm(x * 0.004, z * 0.004, 111) * 5));
+    h += w.dunes * ((1 - crest) ** 2 * 7 + fbm(x * 0.004, z * 0.004, 112) * 10) * road;
+  }
+  // Starfall Reach: high, gently rolling meadows.
+  if (w.reach > 0) h += w.reach * (fbm(x * 0.005, z * 0.005, 121) * 12 + fbm(x * 0.02, z * 0.02, 122) * 1.4 + 8) * road;
   // The world's rim rises into impassable mountains.
   const rim = Math.max(Math.abs(x), Math.abs(z));
-  if (rim > 890) h += ((rim - 890) / 110) ** 2 * 70 * (0.8 + fbm(x * 0.01, z * 0.01, 71) * 0.4);
+  if (rim > WORLD_LIMIT + 10) h += ((rim - WORLD_LIMIT - 10) / 110) ** 2 * 70 * (0.8 + fbm(x * 0.01, z * 0.01, 71) * 0.4);
   return h;
 }
 const townLevel = new Map(TOWNS.map((t) => [t.id, landHeight(t.x, t.z)]));
@@ -287,6 +397,8 @@ export function levelAt(x, z) {
     d = Math.hypot(x, z - 14);
   if (zone === "stillwood") return d < 34 ? 1 : d < 52 ? 2 : d < 70 ? 3 : d < 88 ? 4 : d < 170 ? 5 : 6;
   const [lo, hi] = ZONES[zone].levels,
-    t = Math.max(0, Math.min(1, (Math.hypot(x, z) - 280) / 520));
+    t = ZONES[zone].ring
+      ? Math.max(0, Math.min(1, (Math.hypot(x, z) - 1100) / 650))
+      : Math.max(0, Math.min(1, (Math.hypot(x, z) - 280) / 520));
   return Math.round(lo + (hi - lo) * t);
 }

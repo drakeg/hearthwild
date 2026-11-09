@@ -162,7 +162,7 @@ export function createHud({
             for (const k in w) (r += zoneRGB[k][0] * w[k]), (g += zoneRGB[k][1] * w[k]), (b += zoneRGB[k][2] * w[k]);
             if (Math.max(Math.abs(x), Math.abs(z)) > WORLD_LIMIT + 10) [r, g, b] = h > 45 ? [236, 238, 240] : [128, 122, 112];
             const lake = lakeAt(x, z);
-            if (lake) [r, g, b] = lake.frozen ? [214, 232, 242] : [92, 140, 160];
+            if (lake) [r, g, b] = lake.frozen ? [214, 232, 242] : lake.lava ? [236, 104, 34] : lake.star ? [138, 126, 214] : lake.bog ? [74, 98, 82] : [92, 140, 160];
             const k = (row * res + i) * 4;
             image.data[k] = r * shade;
             image.data[k + 1] = g * shade;
@@ -230,6 +230,7 @@ export function createHud({
       inView = (x, z, pad = 0) => x > originX - pad && z > originZ - pad && x < originX + span + pad && z < originZ + span + pad;
     if (!mini) lastView = { originX, originZ, span, key: view };
     if (!mini) {
+      $("map-pins").classList.toggle("world", view === "world");
       $("map-zone").classList.toggle("active", view !== "world");
       $("map-world").classList.toggle("active", view === "world");
       canvas.style.cursor = view === "world" ? "pointer" : "";
@@ -304,7 +305,7 @@ export function createHud({
           c.fill();
           c.stroke();
         }
-        label(t.name, x, y - (zoneMap ? t.r * scale + 8 : 11), "bold 15px Georgia", "#f3e2b0", "#2a1d10", 4);
+        label(t.name, x, y - (zoneMap ? t.r * scale + 8 : 9), zoneMap ? "bold 15px Georgia" : "bold 11px Georgia", "#f3e2b0", "#2a1d10", 3);
       }
       // Lakes and named places, on zone maps.
       if (zoneMap) {
@@ -340,10 +341,14 @@ export function createHud({
       // Zone names: placed in each zone's heartland on the world map, as a title on a zone map.
       if (!zoneMap)
         for (const [id, b] of Object.entries(zoneBounds())) {
-          const [lx, ly] = pt(b.cx, b.cz);
-          label(ZONES[id].name.toUpperCase(), lx, ly, "italic bold 19px Georgia", "#f4ead0", "#1d1810cc", 5);
-          const [lo, hi] = ZONES[id].levels;
-          label(`Levels ${lo}–${hi}`, lx, ly + 17, "13px Georgia", "#f4ead0", "#1d1810cc", 5);
+          // Outer Ring names sit out past their town, toward the zone's far corner.
+          const push = ZONES[id].ring ? 1.3 : 1,
+            [lx, ly] = pt(b.cx * push, b.cz * push);
+          // The Outer Ring's names are larger; the inner zones are small at this scale.
+          const big = ZONES[id].ring,
+            [lo, hi] = ZONES[id].levels;
+          label(ZONES[id].name.toUpperCase(), lx, ly + (big ? 0 : 14), big ? "italic bold 18px Georgia" : "italic bold 11px Georgia", "#f4ead0", "#1d1810cc", big ? 5 : 3);
+          label(`Levels ${lo}–${hi}`, lx, ly + (big ? 16 : 25), big ? "12px Georgia" : "10px Georgia", "#f4ead0", "#1d1810cc", 3);
         }
       else {
         // The zone's name on a parchment plate along the bottom edge.

@@ -577,6 +577,12 @@
   inset: 0 0 29px;
   pointer-events: none;
 }
+#map-pins.world .map-pin {
+  min-width: 13px;
+  height: 15px;
+  padding: 0 2px;
+  font-size: 10px;
+}
 .map-scope {
   position: absolute;
   top: 8px;

@@ -1,5 +1,5 @@
 import { WORLD_LIMIT, inSanctuary, subzoneAt, zoneAt, ZONES } from "../public/world-config.js";
-import { GRAVEYARDS, insideHouse } from "../public/terrain.js";
+import { GRAVEYARDS, insideHouse, lakeAt } from "../public/terrain.js";
 import { RIDING, CARAVAN_SPEED, WAYSTONE, STOPS, stopById, homePoint, route, caravanFare } from "./travel.js";
 import { createMonsters, monsterDelay, monsterPosition } from "./wilderness.js";
 import {
@@ -1099,6 +1099,13 @@ export class World {
         else if (!insideHouse(nx, p.z)) p.x = nx;
         else if (!insideHouse(p.x, nz)) p.z = nz;
       }
+    // Lava burns anyone who wades into the Cinder Pools.
+    for (const p of online) {
+      if (p.dead || p.instance || p.travel || !lakeAt(p.x, p.z, -2)?.lava) continue;
+      if (now < (p.burnAt ?? 0)) continue;
+      p.burnAt = now + 1000;
+      this.hurtPlayer(p, this.maxHp(p) * 0.08 + stats(p).armor * 0.5, now, null, "Lava");
+    }
     this.crypts.tick(now, dt);
     this.playerGrid.build(online.filter((p) => !p.instance && !p.dead));
     this.tickEnemies(this.enemies, online.filter((p) => !p.instance), dt, now, null);

@@ -2,6 +2,7 @@
 // cast bar, error/zone text, XP bar, death and level-up feedback. Original Hearthwild UI.
 import * as THREE from "./vendor/three.module.js";
 import { levelColor } from "./world-config.js";
+import { MAX_LEVEL } from "./terrain.js";
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, className, text) => {
@@ -356,7 +357,7 @@ export function createCombatUi({ camera, height, onRelease, onTargetChange, act 
     if (p.partyInvite) inviteText.textContent = `${p.partyInvite.from} invites you to join their group.`;
     xpFill.style.width = `${(p.xp / p.xpNeeded) * 100}%`;
     xpText.textContent =
-      p.level >= 20 ? "Maximum level" : `Level ${p.level} · XP ${p.xp} / ${p.xpNeeded}`;
+      p.level >= MAX_LEVEL ? "Maximum level" : `Level ${p.level} · XP ${p.xp} / ${p.xpNeeded}`;
   }
 
   function update(next) {

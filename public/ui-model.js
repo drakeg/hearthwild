@@ -4,7 +4,7 @@ let bounds = null;
 export function zoneBounds() {
   if (bounds) return bounds;
   const pts = {},
-    step = 20;
+    step = Math.max(20, Math.round(WORLD_LIMIT / 45));
   for (let x = -WORLD_LIMIT; x <= WORLD_LIMIT; x += step)
     for (let z = -WORLD_LIMIT; z <= WORLD_LIMIT; z += step) (pts[zoneAt(x, z)] ??= []).push([x, z]);
   bounds = {};

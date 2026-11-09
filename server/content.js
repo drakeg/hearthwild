@@ -109,7 +109,7 @@ export const ITEMS = {
     rarity: "Rare",
   },
 };
-import { TOWNS } from "../public/terrain.js";
+import { TOWNS, MAX_LEVEL } from "../public/terrain.js";
 import { GEAR, LATE_ABILITIES, WORLD_FOLK, WORLD_QUESTS, TRAVEL_FOLK } from "./content-world.js";
 const town = (id) => TOWNS.find((t) => t.id === id);
 // Each town has a quest giver near its square and a provisioner beside the road.
@@ -118,6 +118,10 @@ const TOWN_FOLK = [
   ["reedwatch", "Tobin Reed", "Provisioner", null, "npc-town", "Mind your boots. Everything here is wet, including the bread."],
   ["hollowfrost", "Marta Snow", "Provisioner", null, "npc-town-f", "Warm stew, hard bread, and water that hasn’t frozen yet."],
   ["cragmoor", "Jory Flint", "Provisioner", null, "npc-town", "Supplies for the climb. You’ll want plenty."],
+  ["cinderhold", "Greta Ash", "Provisioner", null, "npc-town-f", "Water’s dear out here. So is everything else, but I’m fair."],
+  ["duskhollow", "Hob Lantern", "Provisioner", null, "npc-town", "Bread, water, and a lantern if you’re going past the edge of the light."],
+  ["sunmere", "Zahra Well", "Provisioner", null, "npc-town-f", "Drink before you’re thirsty. That’s the first rule of the dunes."],
+  ["starfall", "Edwin Skye", "Provisioner", null, "npc-town", "Supplies for the high Reach. The air’s thin, but the bread’s thick."],
 ].map(([townId, name, role, quest, look, text], i) => {
   const t = town(townId),
     giver = !!quest;
@@ -468,11 +472,11 @@ for (const item of Object.values(ITEMS))
     item.level = item.rarity === "Epic" ? 6 : item.rarity === "Rare" ? 3 : 1;
 export function addExperience(p, amount) {
   p.xp += amount;
-  while (p.level < 20 && p.xp >= p.level * 100) {
+  while (p.level < MAX_LEVEL && p.xp >= p.level * 100) {
     p.xp -= p.level * 100;
     p.level++;
     p.hp = stats(p).maxHp;
     p.power = 100;
   }
-  if (p.level === 20) p.xp = 0;
+  if (p.level === MAX_LEVEL) p.xp = 0;
 }

@@ -63,6 +63,41 @@ export const BOSSES = {
     adds: { at: 0.5, kind: "greyspire-brigand", name: "Varkesh’s guard", count: 2, yell: "Varkesh calls: “Guards! Hold the summit!”" },
     enrage: { after: 300000, yell: "The mountain shakes with Varkesh’s fury! (Enraged)" },
   },
+  // The Outer Ring.
+  cinderforge: {
+    mechanics: [
+      { type: "nova", name: "Molten Burst", first: 6000, every: 11000, radius: 7, delay: 2300, times: 2.4 },
+      { type: "circles", name: "Slag Rain", first: 4000, every: 9000, radius: 3.5, delay: 2300, times: 1.8, count: 3 },
+    ],
+    adds: { at: 0.5, kind: "cinder-hound", name: "Forge hound", count: 2, yell: "Ashkar strikes the anvil: “Hounds! Burn them!”" },
+    enrage: { after: 300000, yell: "The forge roars white-hot around Ashkar! (Enraged)" },
+  },
+  thornheart: {
+    mechanics: [
+      { type: "circles", name: "Grasping Roots", first: 5000, every: 8500, radius: 4, delay: 2500, times: 2, count: 2 },
+      { type: "channel", name: "Sap the Living", first: 9000, every: 15000, castTime: 3000, times: 2.8, heal: 0.05 },
+    ],
+    adds: { at: 0.4, kind: "thornweaver", name: "Briar acolyte", count: 2, yell: "Morwen sings, and the briars answer: “Wake, my children!”" },
+    enrage: { after: 300000, yell: "Thorns burst from every wall around Morwen! (Enraged)" },
+  },
+  "sun-tomb": {
+    mechanics: [
+      { type: "nova", name: "Solar Flare", first: 7000, every: 12000, radius: 8, delay: 2400, times: 2.4 },
+      { type: "channel", name: "Judgement of the Sun", first: 11000, every: 17000, castTime: 3500, times: 3.2, heal: 0.04 },
+      { type: "circles", name: "Sandstorm", first: 4000, every: 10000, radius: 3.5, delay: 2200, times: 1.6, count: 2 },
+    ],
+    adds: { at: 0.5, kind: "sandreaver", name: "Tomb guardian", count: 2, yell: "Azhar raises his blade: “Guardians! Your king commands you!”" },
+    enrage: { after: 330000, yell: "The Sun-King blazes like noon! (Enraged)" },
+  },
+  observatory: {
+    mechanics: [
+      { type: "circles", name: "Starfall", first: 4000, every: 8500, radius: 4, delay: 2400, times: 2, count: 3 },
+      { type: "nova", name: "Gravity Well", first: 8000, every: 13000, radius: 7, delay: 2400, times: 2.6 },
+      { type: "channel", name: "Collapse", first: 12000, every: 18000, castTime: 3500, times: 3.4, heal: 0.06 },
+    ],
+    adds: { at: 0.5, kind: "voidmaw", name: "Void spawn", count: 2, yell: "Velia’s lenses shatter: “Come through, little hungers!”" },
+    enrage: { after: 360000, yell: "The dome splits and the sky pours in around Velia! (Enraged)" },
+  },
 };
 const swing = (level) => mobStats(level).damage;
 // Telegraph and channel damage: fixed points, or a multiple of the boss level's normal swing.

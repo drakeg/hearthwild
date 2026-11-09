@@ -1,8 +1,9 @@
-import { dryLand, stillwoodLand, STILLWOOD_LIMIT, zoneAt, TOWNS } from "../public/world-config.js";
+import { dryLand, stillwoodLand, STILLWOOD_LIMIT, zoneAt, TOWNS, ZONES } from "../public/world-config.js";
+import { lakeAt } from "../public/terrain.js";
 import { applyLevel } from "./combat.js";
 export const MONSTER_RESPAWN = { min: 45000, max: 180000, count: 32 };
 // Creatures of the wider world, per zone. Each keeps a home ("anchor") it respawns around.
-export const ZONE_POPULATION = { stillwood: 24, downs: 46, marsh: 46, frost: 42, crags: 42 };
+export const ZONE_POPULATION = { stillwood: 24, downs: 46, marsh: 46, frost: 42, crags: 42, ember: 110, gloam: 110, dunes: 110, reach: 110 };
 export const monsterDelay = (random) =>
   MONSTER_RESPAWN.min +
   Math.floor(random() * (MONSTER_RESPAWN.max - MONSTER_RESPAWN.min + 1));
@@ -38,12 +39,14 @@ export function monsterPosition(random, others = [], players = [], old = null, c
 function zoneAnchors(random, zone, count) {
   const out = [];
   for (let tries = 0; out.length < count && tries < count * 400; tries++) {
-    const r = zone === "stillwood" ? 108 + random() * 140 : 280 + random() * 560,
+    const ring = ZONES[zone].ring,
+      r = zone === "stillwood" ? 108 + random() * 140 : ring ? 1100 + random() * 1300 : 280 + random() * 560,
       a = random() * Math.PI * 2,
       x = Math.cos(a) * r,
       z = Math.sin(a) * r;
     if (zoneAt(x, z) !== zone || !dryLand(x, z) || nearTown(x, z)) continue;
-    if (out.some((o) => Math.hypot(o.x - x, o.z - z) < (zone === "stillwood" ? 16 : 26))) continue;
+    if (lakeAt(x, z, 10)) continue;
+    if (out.some((o) => Math.hypot(o.x - x, o.z - z) < (zone === "stillwood" ? 16 : ring ? 40 : 26))) continue;
     out.push({ x, z });
   }
   return out;

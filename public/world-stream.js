@@ -7,6 +7,7 @@ import { MeshoptDecoder } from "./vendor/addons/meshopt_decoder.module.js";
 import { mergeGeometries } from "./vendor/addons/BufferGeometryUtils.js";
 import {
   WORLD_HALF,
+  WORLD_LIMIT,
   terrainHeight,
   zoneWeights,
   roadDistance,
@@ -37,6 +38,10 @@ const TINT = {
   marsh: [0.72, 0.8, 0.58],
   frost: [0.78, 0.88, 0.96],
   crags: [0.86, 0.82, 0.66],
+  ember: [0.42, 0.36, 0.34],
+  gloam: [0.5, 0.72, 0.58],
+  dunes: [1.0, 0.84, 0.58],
+  reach: [0.82, 0.76, 1.0],
 };
 
 function seeded(cx, cz) {
@@ -78,6 +83,18 @@ export function groundColor(x, z, h, slope, w, out) {
   const rock = Math.min(1, slope * 1.3 + 0.45 + n * 0.3);
   add(w.crags * rock, 0.08, 0.06, 0.5 + n * 0.08);
   add(w.crags * (1 - rock), 0.22, 0.3, 0.38);
+  // The Emberwaste: grey ash on the flats, black rock on the ridges.
+  if (w.ember > 0) {
+    const black = Math.min(1, slope * 1.6 + n * 0.3);
+    add(w.ember * (1 - black), 0.07, 0.06, 0.27 + n * 0.05);
+    add(w.ember * black, 0.03, 0.08, 0.11);
+  }
+  // Gloamwood: deep moss and leaf-litter.
+  add(w.gloam, 0.3 + n * 0.04, 0.34, 0.16 + n * 0.03 + green * 0.02);
+  // The Sunscar Dunes: warm sand, shaded on the lee of each dune.
+  add(w.dunes, 0.1 + n * 0.012, 0.55, 0.66 + n * 0.04 - Math.min(0.12, slope * 0.25));
+  // Starfall Reach: meadows tinged violet by fallen starstone.
+  add(w.reach, 0.7 + n * 0.05 - green * 0.25, 0.22 + green * 0.05, 0.5 + n * 0.05);
   // Packed earth along the road shoulders.
   const road = roadDistance(x, z);
   if (road < 5) {
@@ -85,7 +102,7 @@ export function groundColor(x, z, h, slope, w, out) {
     out.lerp(mix, (1 - road / 5) * 0.55);
   }
   // Rocky, then snow-capped, rim mountains.
-  if (h > 24 && Math.max(Math.abs(x), Math.abs(z)) > 880) {
+  if (h > 24 && Math.max(Math.abs(x), Math.abs(z)) > WORLD_LIMIT) {
     mix.setHSL(0.6, 0.08, h > 48 ? 0.92 : 0.5);
     out.lerp(mix, Math.min(1, (h - 24) / 20));
   }
@@ -159,7 +176,7 @@ function openForNature(x, z, roadMargin) {
     !townAt(x, z, 10) &&
     !lakeAt(x, z, 2) &&
     !insideHouse(x, z, 3) &&
-    Math.max(Math.abs(x), Math.abs(z)) < 905
+    Math.max(Math.abs(x), Math.abs(z)) < WORLD_LIMIT + 25
   );
 }
 // Deterministic scenery for one chunk: [{ name, matrix, tint }].
@@ -177,7 +194,7 @@ function chunkNature(cx, cz, density) {
     dummy.rotation.set((random() - 0.5) * tilt, random() * Math.PI * 2, (random() - 0.5) * tilt);
     dummy.scale.setScalar(scale);
     dummy.updateMatrix();
-    out.push({ name, matrix: dummy.matrix.clone(), tint: TINT[zone] });
+    out.push({ name, matrix: dummy.matrix.clone(), tint: zone ? TINT[zone] : null });
   };
   const scatter = (count, margin, fn, cluster = 0) => {
     let cx2 = x0 + random() * CHUNK,
@@ -198,34 +215,39 @@ function chunkNature(cx, cz, density) {
     grass = ["grass_common_short", "grass_common_short", "grass_common_tall", "grass_wispy_tall"];
   const w = center;
   // Trees.
-  scatter(Math.round(26 * w.stillwood + 6 * w.downs + 12 * w.marsh + 30 * w.frost + 8 * w.crags), 2.5, (x, z, zone) => {
+  scatter(Math.round(26 * w.stillwood + 6 * w.downs + 12 * w.marsh + 30 * w.frost + 8 * w.crags + 8 * w.ember + 46 * w.gloam + 2 * w.dunes + 12 * w.reach), 2.5, (x, z, zone) => {
     if (zone === "stillwood") place(random() < 0.6 ? pick(broadleaf) : pick(conifers), x, z, 0.9 + random() * 0.6, zone);
+    else if (zone === "ember" || zone === "dunes") place(pick(["deadtree_1", "deadtree_3"]), x, z, 0.7 + random() * 0.5, zone);
+    else if (zone === "gloam") place(random() < 0.55 ? pick(["twistedtree_1", "twistedtree_3"]) : pick(broadleaf), x, z, 1.2 + random() * 0.8, zone);
+    else if (zone === "reach") place(pick(conifers), x, z, 0.8 + random() * 0.5, zone);
     else if (zone === "downs") place(pick(broadleaf), x, z, 0.8 + random() * 0.5, zone);
     else if (zone === "marsh") place(random() < 0.55 ? pick(["twistedtree_1", "twistedtree_3"]) : pick(["deadtree_1", "deadtree_3"]), x, z, zone === "marsh" && random() < 0.55 ? 0.45 + random() * 0.25 : 0.7 + random() * 0.4, zone);
     else if (zone === "frost") place(random() < 0.9 ? pick(conifers) : pick(["deadtree_1", "deadtree_3"]), x, z, 1 + random() * 0.7, zone);
     else place(random() < 0.6 ? pick(conifers) : pick(["deadtree_1", "deadtree_3"]), x, z, 0.8 + random() * 0.5, zone);
   }, w.downs > 0.5 ? 26 : 0);
   // Bushes and undergrowth.
-  scatter(Math.round(18 * w.stillwood + 14 * w.downs + 12 * w.marsh + 2 * w.frost + 4 * w.crags), 0.8, (x, z, zone) =>
+  scatter(Math.round(18 * w.stillwood + 14 * w.downs + 12 * w.marsh + 2 * w.frost + 4 * w.crags + 1 * w.ember + 22 * w.gloam + 1 * w.dunes + 8 * w.reach), 0.8, (x, z, zone) =>
     place(pick(["bush_common", "bush_common", "bush_common_flowers"]), x, z, 0.6 + random() * 0.6, zone),
   );
-  scatter(Math.round(26 * w.stillwood + 4 * w.downs + 50 * w.marsh + 2 * w.frost + 3 * w.crags), 0.4, (x, z, zone) =>
-    place(pick(zone === "marsh" ? ["fern_1", "plant_1", "plant_7", "fern_1"] : ["fern_1", "plant_1", "plant_7", "clover_1"]), x, z, 0.5 + random() * 0.7, zone),
+  scatter(Math.round(26 * w.stillwood + 4 * w.downs + 50 * w.marsh + 2 * w.frost + 3 * w.crags + 44 * w.gloam + 3 * w.dunes + 10 * w.reach), 0.4, (x, z, zone) =>
+    place(pick(zone === "marsh" || zone === "gloam" ? ["fern_1", "plant_1", "plant_7", "fern_1"] : zone === "dunes" ? ["plant_7"] : ["fern_1", "plant_1", "plant_7", "clover_1"]), x, z, 0.5 + random() * 0.7, zone),
   );
   // Grass and flowers.
-  scatter(Math.round(70 * w.stillwood + 120 * w.downs + 90 * w.marsh + 14 * w.frost + 30 * w.crags), 0, (x, z, zone) => {
-    const kind = zone === "downs" || zone === "marsh" ? pick(["grass_wispy_tall", "grass_common_tall", "grass_wispy_tall"]) : pick(grass);
+  scatter(Math.round(70 * w.stillwood + 120 * w.downs + 90 * w.marsh + 14 * w.frost + 30 * w.crags + 5 * w.ember + 50 * w.gloam + 8 * w.dunes + 100 * w.reach), 0, (x, z, zone) => {
+    const kind = zone === "downs" || zone === "marsh" || zone === "dunes" ? pick(["grass_wispy_tall", "grass_common_tall", "grass_wispy_tall"]) : zone === "reach" && random() < 0.3 ? "clover_1" : pick(grass);
     place(kind, x, z, kind === "grass_wispy_tall" ? 0.35 + random() * 0.35 : 0.7 + random() * 0.6, zone);
   });
-  scatter(Math.round(22 * w.stillwood + 40 * w.downs + 6 * w.marsh), 0, (x, z, zone) => place(pick(["flower_3_group", "flower_4_group"]), x, z, 0.6 + random() * 0.5, zone), 10);
-  scatter(Math.round(6 * w.stillwood + 22 * w.marsh), 0.5, (x, z, zone) => place("mushroom_common", x, z, 0.5 + random() * 0.6, zone));
+  scatter(Math.round(22 * w.stillwood + 40 * w.downs + 6 * w.marsh + 34 * w.reach), 0, (x, z, zone) => place(pick(["flower_3_group", "flower_4_group"]), x, z, 0.6 + random() * 0.5, zone), 10);
+  scatter(Math.round(6 * w.stillwood + 22 * w.marsh + 34 * w.gloam), 0.5, (x, z, zone) => place("mushroom_common", x, z, zone === "gloam" ? 0.8 + random() * 1.4 : 0.5 + random() * 0.6, zone));
   // Stone: a scattering in the lowlands, boulder fields in the crags.
-  scatter(Math.round(6 * w.stillwood + 4 * w.downs + 3 * w.marsh + 12 * w.frost + 34 * w.crags), 1, (x, z, zone) =>
-    place(pick(rocks), x, z, zone === "crags" ? 0.8 + random() * 2.2 : 0.35 + random() * 0.8, zone, 0.4),
+  scatter(Math.round(6 * w.stillwood + 4 * w.downs + 3 * w.marsh + 12 * w.frost + 34 * w.crags + 30 * w.ember + 8 * w.dunes + 12 * w.reach), 1, (x, z, zone) =>
+    place(pick(rocks), x, z, zone === "crags" || zone === "ember" ? 0.8 + random() * 2.2 : 0.35 + random() * 0.8, zone, 0.4),
   );
+  // Fallen starstone: glowing crystal clusters across the Reach.
+  scatter(Math.round(7 * w.reach), 1.5, (x, z, zone) => zone === "reach" && place("starstone", x, z, 0.7 + random() * 1.3, null, 0.5), 30);
   // Reeds crowd the shores of open water.
   for (const l of LAKES) {
-    if (l.frozen || l.x + l.r + 6 < x0 || l.x - l.r - 6 > x0 + CHUNK || l.z + l.r + 6 < z0 || l.z - l.r - 6 > z0 + CHUNK) continue;
+    if (l.frozen || l.lava || l.x + l.r + 6 < x0 || l.x - l.r - 6 > x0 + CHUNK || l.z + l.r + 6 < z0 || l.z - l.r - 6 > z0 + CHUNK) continue;
     for (let i = 0; i < l.r * 3 * density; i++) {
       const a = random() * Math.PI * 2,
         r = l.r * (0.95 + random() * 0.25),
@@ -346,7 +368,9 @@ export function createWorldStream(scene, { GRAPHICS, groundMap, rockMat, roadMap
   })();
   const waterMat = new THREE.MeshPhysicalMaterial({ color: "#5aa6c4", map: ripple, metalness: 0.1, roughness: 0.06, transparent: true, opacity: 0.78, clearcoat: 1 }),
     bogMat = new THREE.MeshPhysicalMaterial({ color: "#6f8f7a", map: ripple, metalness: 0.05, roughness: 0.1, transparent: true, opacity: 0.82, clearcoat: 0.8 }),
-    iceMat = new THREE.MeshStandardMaterial({ color: "#d8ecf7", roughness: 0.12, metalness: 0.05, transparent: true, opacity: 0.94 });
+    iceMat = new THREE.MeshStandardMaterial({ color: "#d8ecf7", roughness: 0.12, metalness: 0.05, transparent: true, opacity: 0.94 }),
+    lavaMat = new THREE.MeshStandardMaterial({ color: "#ff6a1f", map: ripple, emissive: "#ff3c00", emissiveIntensity: 1.6, roughness: 0.6 }),
+    starMat = new THREE.MeshPhysicalMaterial({ color: "#8f86e0", map: ripple, emissive: "#3a2f8a", emissiveIntensity: 0.5, roughness: 0.05, transparent: true, opacity: 0.8, clearcoat: 1 });
   for (const l of LAKES) {
     const g = new THREE.CircleGeometry(l.r * 1.12, 56);
     g.rotateX(-Math.PI / 2);
@@ -358,7 +382,7 @@ export function createWorldStream(scene, { GRAPHICS, groundMap, rockMat, roadMap
         k = 1 + fbm((l.x + x) * 0.03, (l.z + z) * 0.03, 81) * 0.25;
       p.setXYZ(i, x * k, 0, z * k);
     }
-    const m = new THREE.Mesh(g, l.frozen ? iceMat : l.name.startsWith("Blackwater") ? bogMat : waterMat);
+    const m = new THREE.Mesh(g, l.frozen ? iceMat : l.lava ? lavaMat : l.star ? starMat : l.bog || l.name.startsWith("Blackwater") ? bogMat : waterMat);
     m.position.set(l.x, l.frozen ? l.level + 0.32 : l.level, l.z);
     m.receiveShadow = true;
     root.add(m);
@@ -403,6 +427,17 @@ export function createWorldStream(scene, { GRAPHICS, groundMap, rockMat, roadMap
         });
         pools.set(name, parts);
       }
+      // Starstone is drawn here rather than loaded: a cluster of glowing crystal shards.
+      const shards = [];
+      for (const [x, z, h, lean] of [[0, 0, 2.4, 0], [0.5, 0.2, 1.5, 0.35], [-0.45, 0.3, 1.2, -0.4], [0.1, -0.5, 1.0, 0.3]]) {
+        const g = new THREE.OctahedronGeometry(0.42, 0);
+        g.scale(1, h / 0.84, 1);
+        g.rotateZ(lean);
+        g.rotateX(lean * 0.5);
+        g.translate(x, h * 0.42, z);
+        shards.push(g);
+      }
+      pools.set("starstone", [{ geo: mergeGeometries(shards), material: new THREE.MeshStandardMaterial({ color: "#c9b8ff", emissive: "#7a5cff", emissiveIntensity: 0.9, roughness: 0.25, metalness: 0.1, flatShading: true }), mesh: null, capacity: 0 }]);
       natureReady = true;
       natureDirty = true;
     })
@@ -561,7 +596,7 @@ export function createWorldStream(scene, { GRAPHICS, groundMap, rockMat, roadMap
       put("farmcrate_carrot", -10.5, 6.2, 0);
       put("bench", 6, 7, 0, 0.8);
       put("bench", -3, -7, Math.PI, 0.8);
-      put(town.zone === "downs" ? "prop_wagon" : "stall_cart_empty", 9, -2, -0.6);
+      put(town.zone === "downs" || town.zone === "dunes" ? "prop_wagon" : "stall_cart_empty", 9, -2, -0.6);
       put("bucket_wooden_1", 5.5, -6.5, 0);
       for (const [dx, dz] of [[-6, -6], [6, 3], [-3, 12], [9, -9]]) {
         const post = new THREE.Mesh(new THREE.CylinderGeometry(0.11, 0.15, 2.6, 8), new THREE.MeshStandardMaterial({ color: "#6a4a30", roughness: 1 }));
