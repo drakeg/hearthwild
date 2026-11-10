@@ -138,8 +138,13 @@ export class Crypts {
     fail(!d, "Move closer to the dungeon door.");
     fail((p.combatUntil ?? 0) > now, "You can’t enter while in combat.");
     fail(p.travel, "Wait until the caravan stops.");
+    return this.place(p, d, now);
+  }
+  // Puts a player inside their group's copy of a dungeon (a fresh one if none is running).
+  place(p, d, now) {
     p.mounted = false;
     p.recall = null;
+    p.travel = null;
     let inst = this.find(p, d);
     if (!inst) inst = this.create(d, this.key(p, d), this.world.parties.members(p).length, now);
     p.instance = inst.id;
@@ -161,12 +166,20 @@ export class Crypts {
     this.leave(p);
     return { message: "You climb back out into the daylight." };
   }
-  leave(p) {
+  // Out to the door — or, for someone the Dungeon Finder brought in, back where they queued
+  // (unless they're a released spirit running back in).
+  leave(p, { door = false } = {}) {
     const d = dungeonOf(p.instance) ?? CRYPT;
     p.instance = null;
     p.casting = null;
     p.autoAttack = null;
     p.input = { x: 0, z: 0 };
+    if (p.finderReturn && !door) {
+      p.x = p.finderReturn.x;
+      p.z = p.finderReturn.z;
+      p.finderReturn = null;
+      return;
+    }
     p.x = d.door.x + (Math.random() - 0.5) * 2;
     p.z = d.door.z - 2.5;
   }

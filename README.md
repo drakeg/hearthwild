@@ -51,6 +51,7 @@ The playable map is now 160×160, roughly seven times the previous area. Thirty-
 
 - **Group up:** click another adventurer of your faction and choose *Invite to group*, or type `/invite Name`. Other commands: `/leave`, `/kick Name`, `/promote Name`, and `/p message` for party chat. Groups hold up to five.
 - Group members near a kill share its experience (with a group bonus) and quest credit, and each gets their own loot.
+- **Dungeon Finder (O):** choose your role (warriors can tank, druids can heal, and everyone can deal damage) and the dungeons you're ready for, then join the queue alone or with your group. The Finder builds a group of one tank, one healer and three damage dealers from your faction. After 90 seconds in the queue, a tank, a healer and one more will do. Everyone gets a ready check; when all accept, the group is formed and carried straight into a fresh copy of the dungeon. Walk out through the portal (or leave the group) to return to where you queued. Killing the boss pays each member a bonus satchel of gold and experience.
 - **The Hollow Crypt:** talk to Scout Haldren at the sealed door in Amberwatch Ruins, then press **F** at the door. Your group gets its own copy of the dungeon. Walk back to the glowing portal by the entrance to leave.
 - Vorlath the Ashen Warden: step out of red circles, interrupt *Soul Drain*, and kill or control his acolytes.
 

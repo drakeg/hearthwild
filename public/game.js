@@ -9,6 +9,7 @@ import { BAR_KEYS, bagCells, bagItems, questMarker, stackConsumables, itemIconSt
 import { createHud, iconStyle, abilityIcon } from "./hud.js";
 import { createCombatUi } from "./combat-ui.js";
 import { createGuildUi } from "./guild-ui.js";
+import { createFinderUi } from "./finder-ui.js";
 import {
   preloadCharacters,
   createRig,
@@ -1403,6 +1404,7 @@ function updateModels() {
   $("xp-text").textContent = `${p.xp} / ${p.xpNeeded} XP`;
   combatUi.update(state);
   guildUi.update(state);
+  finderUi.update(state);
   if (state.self.dead) {
     queuedAbility = queuedAttack = interaction = null;
     autorun = false;
@@ -1691,6 +1693,7 @@ function closePanels() {
   if (services.isOpen()) services.close(), (closed = true);
   if ($("dialogue").open) $("dialogue").close(), (closed = true);
   if (typeof guildUi !== "undefined" && guildUi.isOpen()) guildUi.close(), (closed = true);
+  if (typeof finderUi !== "undefined" && finderUi.isOpen()) finderUi.close(), (closed = true);
   return closed;
 }
 function useAbility(key) {
@@ -1806,6 +1809,10 @@ addEventListener("keydown", (e) => {
   if (["KeyI", "KeyB"].includes(e.code) && !e.repeat) {
     e.preventDefault();
     toggleBag();
+  }
+  if (e.code === "KeyO" && !e.repeat) {
+    e.preventDefault();
+    finderUi.toggle();
   }
   if (e.code === "KeyJ" && !e.repeat) {
     e.preventDefault();
@@ -2049,6 +2056,14 @@ function render() {
     t = clock.elapsedTime;
   scenery.update(t, state && !state.self.instance ? state.self : null, camera);
   if (state && !state.self.instance && (frame++ & 15) === 0) outdoorAir(state.self.x, state.self.z);
+  // Names of adventurers right beside the camera would fill the screen; let them fade out.
+  for (const [id, g] of playerModels) {
+    const tag = g.userData.nameTag;
+    if (!tag || id === state?.self.id) continue;
+    const d = camera.position.distanceTo(g.position);
+    tag.material.opacity = Math.max(0, Math.min(1, (d - 2.5) / 2.5));
+    tag.visible = tag.material.opacity > 0.02;
+  }
   dungeon?.update(t, playing && state ? playerModels.get(state.self.id)?.position : null);
   const serverNowMs = combatUi.serverNow();
   for (const g of telegraphModels.values()) {
@@ -2309,6 +2324,20 @@ const guildUi = createGuildUi({
   },
 });
 $("guild-menu").onclick = () => guildUi.toggle();
+const finderUi = createFinderUi({
+  getState: () => state,
+  serverNow: () => combatUi.serverNow(),
+  act: (a) =>
+    api("/api/actions", a)
+      .then((r) => r?.message && combatUi.info(r.message))
+      .catch((e) => uiError(e.message)),
+  onOpen: () => closePanels(),
+  focusWorld: () => {
+    keys.clear();
+    canvas.focus();
+  },
+});
+$("finder-menu").onclick = () => finderUi.toggle();
 $("mount-menu").onclick = () => travelAction({ type: "mount" });
 $("waystone-menu").onclick = () => useWaystone();
 const hud = createHud({

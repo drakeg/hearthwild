@@ -1,3 +1,17 @@
+## 0.16.0 — The Dungeon Finder
+
+With nine dungeons across the world, there's now a Dungeon Finder to put groups together.
+
+- **Open it with O** (or the *Dungeon Finder* menu button). Pick your role — **Tank** (warriors), **Healer** (druids) or **Damage** (everyone) — and tick the dungeons you want. You can queue for any dungeon from one level below its first creatures.
+- **Queue alone or as a group.** A group leader queues the whole group, and each member keeps the role they picked. A group can't bring two tanks or two healers.
+- **Matching:** the Finder builds groups of one tank, one healer and three damage dealers from your faction, oldest in the queue first. After 90 seconds in the queue, a tank, a healer and one more is enough.
+- **Ready check:** when a group is found, everyone sees who's in it and has 40 seconds to accept. Anyone who declines or doesn't answer leaves the queue; everyone else keeps their place.
+- **Straight in:** when all accept, you're formed into a group led by the tank and carried into a fresh copy of the dungeon. Walking out through the portal, or leaving the group, takes you back to where you queued. Released spirits still return to the dungeon door so they can run back in.
+- **Finder satchel:** killing the boss with a Finder group pays each member a bonus of gold and experience that grows with the dungeon's level.
+- While you wait, a small banner under the minimap shows your time in the queue.
+- Names of adventurers standing right beside the camera now fade out instead of filling the screen.
+- A hundred and three checks, including new tests for matching, the ready check, declining and timing out, smaller groups after a long wait, group queues, role and level rules, the satchel, and returning home.
+
 ## 0.15.0 — Rank II
 
 New rewards for levels 21–30: each class sharpens five of its abilities to **Rank II**, one each at levels 22, 24, 26, 28 and 30.

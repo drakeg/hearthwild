@@ -34,6 +34,7 @@ const assets = new Map([
   ["/hud.js", ["hud.js", "text/javascript"]],
   ["/combat-ui.js", ["combat-ui.js", "text/javascript"]],
   ["/guild-ui.js", ["guild-ui.js", "text/javascript"]],
+  ["/finder-ui.js", ["finder-ui.js", "text/javascript"]],
   ["/terrain.js", ["terrain.js", "text/javascript"]],
   ["/world-stream.js", ["world-stream.js", "text/javascript"]],
   ["/characters.js", ["characters.js", "text/javascript"]],
