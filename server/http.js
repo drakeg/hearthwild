@@ -221,7 +221,8 @@ export function createGameServer({ dataDir = resolve("data"), tls } = {}) {
         const after = Number(url.searchParams.get("after") ?? 0);
         if (!Number.isSafeInteger(after) || after < 0)
           throw new GameError("Invalid message cursor.");
-        send(200, world.state(token, after));
+        const known = url.searchParams.get("content");
+        send(200, world.state(token, after, Date.now(), known && /^[0-9a-f]{12}:[a-z]+$/.test(known) ? known : null));
         return;
       }
       if (

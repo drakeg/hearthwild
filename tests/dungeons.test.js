@@ -16,7 +16,7 @@ const hero = (w, name = "Delver") => {
 const outer = DUNGEON_LIST.filter((d) => d.zone);
 
 test("every zone has a dungeon: a door in the open, a connected layout and its own boss", () => {
-  assert.equal(outer.length, 4);
+  assert.equal(outer.length, 8);
   for (const d of outer) {
     assert.equal(zoneAt(d.door.x, d.door.z), d.zone, `${d.name} door is in its zone`);
     assert.ok(!lakeAt(d.door.x, d.door.z, 8) && !townAt(d.door.x, d.door.z, 20));

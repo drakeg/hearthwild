@@ -23,6 +23,15 @@ export const THEMES = {
     indoor: { bg: "#060c14", fog: "#0e1a28", density: 0.035, hemi: ["#cfe8ff", "#1a2a3a", 1.3], sun: ["#d8f0ff", 0.9] } },
   peak: { tint: "#7d7670", floorTint: "#6a625c", floors: ["floor_tile_large_rocks", "floor_tile_large"], dirt: 0.15, torch: "#ff6a2a", props: "runes",
     indoor: { bg: "#0c0504", fog: "#1a0a06", density: 0.04, hemi: ["#c08a70", "#200a04", 1.0], sun: ["#ffb080", 0.7] } },
+  // The Outer Ring.
+  forge: { tint: "#5a4440", floorTint: "#4a3832", floors: ["floor_tile_large_rocks", "floor_tile_large"], dirt: 0.25, torch: "#ff5a1a", props: "runes", lava: true,
+    indoor: { bg: "#100402", fog: "#240a04", density: 0.038, hemi: ["#ff9a70", "#200602", 1.1], sun: ["#ffa060", 0.8] } },
+  grove: { tint: "#7d9a78", floorTint: "#5b7452", floors: ["floor_dirt_large", "floor_dirt_large", "floor_tile_large_rocks"], dirt: 0.6, torch: "#b8ff8a", props: "bandit",
+    indoor: { bg: "#040a05", fog: "#0b1a0d", density: 0.048, hemi: ["#a8e0a0", "#0a1408", 1.0], sun: ["#d0ffb8", 0.55] } },
+  tomb: { tint: "#e8cf98", floorTint: "#d8bc84", floors: ["floor_tile_large", "floor_tile_large"], dirt: 0.15, torch: "#ffd060", banners: true,
+    indoor: { bg: "#0e0a04", fog: "#1e160a", density: 0.034, hemi: ["#ffe2a8", "#2a1c08", 1.25], sun: ["#ffe0a0", 0.9] } },
+  astral: { tint: "#b0a8e0", floorTint: "#8a82c0", floors: ["floor_tile_large", "floor_tile_large_rocks"], dirt: 0, torch: "#b8a0ff", star: true,
+    indoor: { bg: "#06040e", fog: "#100c24", density: 0.032, hemi: ["#c8c0ff", "#100830", 1.25], sun: ["#d8d0ff", 0.85] } },
 };
 
 let loaded = null;
@@ -141,6 +150,29 @@ export function createDungeon(scene, d = CRYPT) {
       water.rotation.x = -Math.PI / 2;
       water.position.set(0, theme.water ? 0.18 : 0.03, -40);
       group.add(water);
+    }
+    // Channels of glowing slag in the forge; drifting motes of starlight in the observatory.
+    if (theme.lava)
+      for (const r of d.rooms.filter((r) => r.maxX - r.minX >= 20)) {
+        const slag = new THREE.Mesh(
+          new THREE.PlaneGeometry(1.4, r.maxZ - r.minZ - 4),
+          new THREE.MeshStandardMaterial({ color: "#ff6a1f", emissive: "#ff3a00", emissiveIntensity: 1.8 }),
+        );
+        slag.rotation.x = -Math.PI / 2;
+        slag.position.set(r.minX + 2, 0.04, (r.minZ + r.maxZ) / 2);
+        group.add(slag);
+      }
+    if (theme.star) {
+      const n = 260,
+        pos = new Float32Array(n * 3),
+        cells = cellsOf(d);
+      for (let i = 0; i < n; i++) {
+        const c = cells[Math.floor(random() * cells.length)];
+        pos.set([c.x + (random() - 0.5) * 4, 0.5 + random() * 3.5, c.z + (random() - 0.5) * 4], i * 3);
+      }
+      const g = new THREE.BufferGeometry();
+      g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+      group.add(new THREE.Points(g, new THREE.PointsMaterial({ color: "#d8ccff", size: 0.09, transparent: true, opacity: 0.85, depthWrite: false })));
     }
     // Glowing exit portal.
     const portal = new THREE.Mesh(

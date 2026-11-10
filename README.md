@@ -56,7 +56,7 @@ The playable map is now 160×160, roughly seven times the previous area. Thirty-
 
 ## The world
 
-The Stillwood (levels 1–6) is at the centre, with four zones around it, each with a town:
+The world is about 4 km across. The Stillwood (levels 1–6) is at the centre, with four zones around it, and the Outer Ring (levels 20–30) beyond them. Every zone has a town:
 
 | Zone | Direction | Levels | Town |
 |---|---|---|---|
@@ -64,8 +64,12 @@ The Stillwood (levels 1–6) is at the centre, with four zones around it, each w
 | Saltreed Marsh | South | 9–13 | Reedwatch |
 | Frostmere Vale | North | 12–16 | Hollowfrost Lodge |
 | Greyspire Crags | West | 15–20 | Cragmoor Hold |
+| The Emberwaste | North-west (Outer Ring) | 20–23 | Cinderhold |
+| Gloamwood | South-west (Outer Ring) | 22–25 | Duskhollow |
+| The Sunscar Dunes | South-east (Outer Ring) | 24–27 | Sunmere |
+| Starfall Reach | North-east (Outer Ring) | 27–30 | Starfall Rest |
 
-Roads lead from Wayfarer’s Camp to every town, and a ring road joins the towns. Towns are sanctuaries with a provisioner, a quest giver and a graveyard; when you release your spirit, you return to the nearest one. Press **M** for the world map.
+Roads lead from Wayfarer’s Camp to every town. An inner ring road joins the first four towns, roads run out from them to the Outer Ring, and an outer ring road joins the four Outer Ring towns. Characters grow to level 30. Lava in the Emberwaste’s Cinder Pools burns anyone who wades in. Towns are sanctuaries with a provisioner, a quest giver and a graveyard; when you release your spirit, you return to the nearest one. Press **M** for a map of your zone; switch to **World** for the whole world, and click a zone there to open its map.
 
 ## Dungeons
 
@@ -76,12 +80,16 @@ Roads lead from Wayfarer’s Camp to every town, and a ring road joins the towns
 | The Drowned Chapel | Saltreed Marsh | 12–14 | Mother Sallow |
 | Glassmere Depths | Frostmere Vale | 15–17 | Hrimgar the Frostbound |
 | The Hollow Peak | Greyspire Crags | 19–21 | Stonecaller Varkesh |
+| The Cinderforge | The Emberwaste | 22–24 | Forgelord Ashkar |
+| Thornheart Hollow | Gloamwood | 24–26 | Morwen the Briar Queen |
+| Tomb of the Sun-King | The Sunscar Dunes | 26–28 | Sun-King Azhar |
+| The Shattered Observatory | Starfall Reach | 29–31 | Astromancer Velia |
 
 Talk to the watcher at the door for the quest, then press **F** at the door to enter. Each group gets its own copy of the dungeon. Bosses drop Epic gear.
 
 ## Getting around
 
-- **Riding:** learn from a stablemaster (Wayfarer’s Camp or Harrowford) at level 10 for 50 gold, then press **U** to mount up. You ride 60% faster.
+- **Riding:** learn from a stablemaster (Wayfarer’s Camp, Harrowford or Cinderhold) at level 10 for 50 gold, then press **U** to mount up. You ride 60% faster.
 - **Caravans:** caravan masters in the camp and every town carry you along the roads to towns you’ve discovered.
 - **Waystone:** make any provisioner’s town your home, then press **H** to channel your way back there (10 seconds; recharges in 15 minutes).
 

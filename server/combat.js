@@ -54,6 +54,31 @@ export const ZONE_CREATURES = {
     { kind: "greyspire-brigand", name: "Greyspire brigand" },
     { kind: "stonecaller", name: "Stonecaller" },
   ],
+  // The Outer Ring.
+  ember: [
+    { kind: "cinder-hound", name: "Cinder hound" },
+    { kind: "cinder-reaver", name: "Cinderhold reaver" },
+    { kind: "emberback", name: "Emberback" },
+    { kind: "ashbound-zealot", name: "Ashbound zealot" },
+  ],
+  gloam: [
+    { kind: "gloam-stalker", name: "Gloam stalker" },
+    { kind: "thornweaver", name: "Thornweaver" },
+    { kind: "duskfang", name: "Duskfang" },
+    { kind: "gloam-warden", name: "Hollow warden" },
+  ],
+  dunes: [
+    { kind: "dune-jackal", name: "Dune jackal" },
+    { kind: "sandreaver", name: "Sandreaver" },
+    { kind: "sunscale", name: "Sunscale prowler" },
+    { kind: "dune-mystic", name: "Dune mystic" },
+  ],
+  reach: [
+    { kind: "star-lynx", name: "Star lynx" },
+    { kind: "astral-seeker", name: "Astral seeker" },
+    { kind: "voidmaw", name: "Voidmaw" },
+    { kind: "starfall-sentinel", name: "Starfall sentinel" },
+  ],
 };
 // Level, health and creature type follow where a creature (re)spawns.
 export function applyLevel(e) {

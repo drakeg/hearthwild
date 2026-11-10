@@ -1,3 +1,35 @@
+## 0.14.0 — The Outer Ring
+
+**The world doubles in size, to about 4 km across.** Beyond the first four zones lies the Outer Ring: four new zones for levels 20–30, each with its own town, people, quests, creatures, gear and dungeon.
+
+- **The Emberwaste** (north-west, levels 20–23): grey ash flats under black ridges, with glowing lava pools that burn anyone who wades in. The forge-town of **Cinderhold** stands at the end of the road from Cragmoor Hold. Cinder hounds, Emberbacks, Cinderhold reavers and Ashbound zealots roam the waste.
+- **Gloamwood** (south-west, levels 22–25): an old, dark forest of twisted trees, giant mushrooms and the bog of Murkmere, around the lantern-lit village of **Duskhollow**. Gloam stalkers, Duskfangs, Thornweavers and Hollow wardens hunt here.
+- **The Sunscar Dunes** (south-east, levels 24–27): wind-combed dunes, glaring light and the Oasis of Sunmere, beside the town of **Sunmere**. Watch for Dune jackals, Sunscale prowlers, Sandreavers and Dune mystics.
+- **Starfall Reach** (north-east, levels 27–30): high meadows tinged violet, strewn with glowing starstone crystals and the Starglass Tarn, around **Starfall Rest**. Star lynxes, Voidmaws, Astral seekers and Starfall sentinels roam the Reach.
+- **Each zone has its own light and air**: ash haze, forest gloom, desert glare or starlight, blending as you cross the borders.
+- **Four new dungeons**, each with its own look and a boss fight with two or three mechanics:
+  - **The Cinderforge** (levels 22–24): **Forgelord Ashkar** unleashes *Molten Burst* and *Slag Rain*, and calls forge hounds.
+  - **Thornheart Hollow** (levels 24–26): **Morwen the Briar Queen** grows *Grasping Roots* and channels *Sap the Living*.
+  - **Tomb of the Sun-King** (levels 26–28): **Sun-King Azhar** casts *Solar Flare*, *Sandstorm* and the long *Judgement of the Sun*.
+  - **The Shattered Observatory** (levels 29–31): **Astromancer Velia** calls *Starfall*, opens a *Gravity Well* and channels *Collapse*.
+- **Characters grow to level 30.**
+- **24 new gear items** (an Uncommon and a Rare weapon, chest piece and charm for each zone) and **12 new Epics** from the new bosses.
+- **21 new quests:** four quest givers in each new town (zone hunts, collection quests, chains), courier runs that carry you from Cragmoor Hold around the Outer Ring to Starfall Rest, and a boss quest at each dungeon door.
+- **New roads:** one from Cragmoor Hold to Cinderhold, another from Cragmoor Hold to Duskhollow, one from Reedwatch to Sunmere and one from Harrowford to Starfall Rest, plus an outer ring road joining the four new towns. Caravans run to every new town, and Cinderhold has a stablemaster.
+- About 440 new creatures. Thanks to 0.13's sleeping creatures, the server still spends under a millisecond per update with 670 creatures and 20 players.
+- The world map shows the whole Outer Ring, and each new zone has its own zone map.
+- Ninety-six checks, including new tests for the Outer Ring's zones, towns, dungeons, gear, creature levels, roads, quest chains, the level-30 cap and lava.
+
+## 0.13.0 — Room to Grow
+
+Groundwork so the world can keep getting bigger without slowing down.
+
+- **Zone maps.** **M** now opens a map of the zone you're in, with its town, houses, lakes, dungeon (and its levels) and quest givers. Switch to **World** for the whole world, and click any zone there to open its map. Zone maps are painted in finer detail than the world map, and the minimap uses the sharper painting too.
+- **Smoother maps.** Maps are painted a few milliseconds at a time in the background, so they never stall the game.
+- **Smaller, faster updates.** The server now sends each player only what's around them: creatures, herbs and loot within 200 m, and other adventurers within 160 m. Before, other adventurers vanished beyond 40 m. Content that never changes (shop, quests, classes, abilities, people) is sent once instead of several times a second, so updates are 50–85% smaller.
+- **Sleeping creatures.** Creatures with nobody within 230 m stop wandering until someone arrives. Fights, effects over time and respawns carry on as before. The server's work no longer grows with the size of the world, only with where players are.
+- Ninety checks, including new tests for nearby-only updates, content sent once, sleeping creatures and zone map views.
+
 ## 0.12.0 — Dungeons of the Wider World
 
 - **A dungeon in every zone**, each with its own layout, look and boss. A watcher stands at every door with a quest to bring the boss down, and each dungeon has its own creatures. Like the Hollow Crypt, every group (or solo adventurer) gets a private copy, and health scales with group size.

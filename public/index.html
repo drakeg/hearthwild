@@ -159,7 +159,7 @@
           </button>
         </header>
         <nav class="window-tabs">
-          <button id="map-tab">World map <kbd>M</kbd></button
+          <button id="map-tab">Map <kbd>M</kbd></button
           ><button id="journal-tab">Quest log <kbd>L</kbd></button>
         </nav>
         <div class="atlas-body">
@@ -171,6 +171,9 @@
               aria-label="Map of the Stillwood"
             ></canvas>
             <div id="map-pins"></div>
+            <div class="map-scope" role="group" aria-label="Map view">
+              <button id="map-zone">Zone</button><button id="map-world">World</button>
+            </div>
             <div class="map-legend">
               ▲ You · ! Quest · ? Turn-in · ◆ Starleaf · ● Creatures · ¤ Merchant
             </div>

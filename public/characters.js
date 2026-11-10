@@ -48,6 +48,11 @@ const CLOTH = {
   frost: { hue: 0.57, sat: 0.35, val: 0.95 },
   slate: { hue: 0.6, sat: 0.12, val: 0.6 },
   bog: { hue: 0.2, sat: 0.45, val: 0.45 },
+  sand: { hue: 0.11, sat: 0.4, val: 0.9 },
+  gold: { hue: 0.13, sat: 0.85, val: 0.95 },
+  starlight: { hue: 0.7, sat: 0.45, val: 0.95 },
+  night: { hue: 0.68, sat: 0.6, val: 0.35 },
+  cinder: { hue: 0.02, sat: 0.75, val: 0.3 },
 };
 const HAIR = { black: "#1b1512", brown: "#4a2e1b", auburn: "#7a3418", blond: "#b98b4f", grey: "#8b8780", copper: "#a5552a" };
 // Held props: which bone, and an offset (position, Euler rotation, scale) in that bone's space.
@@ -91,7 +96,20 @@ export const LOOKS = {
   "frost-reaver": { g: "male", outfit: "ranger", hair: "hair_long", beard: true, hairColor: "blond", cloth: "frost", pauldron: true, held: ["axe"], attack: "attack1h" },
   "greyspire-brigand": { g: "male", outfit: "ranger", hair: "hair_buzzed", beard: true, hairColor: "black", cloth: "slate", pauldron: true, held: ["sword", "shield"], attack: "attack1h" },
   "stonecaller": { g: "female", outfit: "ranger", hood: true, cloth: "slate", held: ["staff"], attack: "castInstant", caster: true },
+  // The Outer Ring's people.
+  "cinder-reaver": { g: "male", outfit: "ranger", hair: "hair_buzzed", beard: true, hairColor: "black", cloth: "cinder", pauldron: true, held: ["axe"], attack: "attack1h" },
+  "ashbound-zealot": { g: "female", outfit: "ranger", hood: true, cloth: "ember", held: ["staff"], attack: "castInstant", caster: true },
+  thornweaver: { g: "female", outfit: "ranger", hair: "hair_long", hairColor: "copper", cloth: "moss", held: ["staff"], attack: "castInstant", caster: true },
+  "gloam-warden": { g: "male", outfit: "ranger", hood: true, cloth: "shadow", pauldron: true, held: ["sword", "shield"], attack: "attack1h" },
+  sandreaver: { g: "male", outfit: "ranger", hood: true, cloth: "sand", held: ["dagger", "daggerOff"], attack: "attackDual" },
+  "dune-mystic": { g: "female", outfit: "ranger", hood: true, cloth: "gold", held: ["wand", "book"], attack: "castInstant", caster: true },
+  "astral-seeker": { g: "male", outfit: "ranger", hood: true, cloth: "starlight", held: ["wand", "book"], attack: "castInstant", caster: true },
+  "starfall-sentinel": { g: "female", outfit: "ranger", hair: "hair_buns", hairColor: "grey", cloth: "night", pauldron: true, held: ["sword", "shield"], attack: "attack1h" },
   // Dungeon bosses: larger than life.
+  forgelord: { g: "male", outfit: "ranger", hair: "hair_buzzed", beard: true, hairColor: "black", cloth: "cinder", pauldron: true, held: ["axe", "shield"], attack: "attack1h", scale: 1.6 },
+  "briar-queen": { g: "female", outfit: "ranger", hair: "hair_long", hairColor: "auburn", cloth: "moss", pauldron: true, held: ["staff"], attack: "castInstant", caster: true, scale: 1.5 },
+  "sun-king": { g: "male", outfit: "ranger", hair: "hair_long", beard: true, hairColor: "black", cloth: "gold", pauldron: true, held: ["sword", "shield"], attack: "attack1h", scale: 1.6 },
+  astromancer: { g: "female", outfit: "ranger", hood: true, cloth: "starlight", pauldron: true, held: ["wand", "book"], attack: "castInstant", caster: true, scale: 1.5 },
   "bandit-king": { g: "male", outfit: "ranger", hair: "hair_long", beard: true, hairColor: "black", cloth: "tan", pauldron: true, held: ["axe", "shield"], attack: "attack1h", scale: 1.4 },
   "mire-matron": { g: "female", outfit: "ranger", hood: true, cloth: "bog", held: ["staff"], attack: "castInstant", caster: true, scale: 1.45 },
   frostbound: { g: "male", outfit: "ranger", hair: "hair_long", beard: true, hairColor: "blond", cloth: "frost", pauldron: true, held: ["axe"], attack: "attack1h", scale: 1.65 },
@@ -135,6 +153,18 @@ export const CREATURES = {
   "frost-reaver": { model: "frost-reaver" },
   "greyspire-brigand": { model: "greyspire-brigand" },
   stonecaller: { model: "stonecaller" },
+  // The Outer Ring.
+  "cinder-hound": { model: "fox", size: 1.45, tint: "#3a2622" },
+  emberback: { model: "fox", size: 2.2, tint: "#7a3420" },
+  "gloam-stalker": { model: "fox", size: 1.8, tint: "#24382c" },
+  duskfang: { model: "fox", size: 1.3, tint: "#3e3656" },
+  "dune-jackal": { model: "fox", size: 1.15, tint: "#d8b276" },
+  sunscale: { model: "fox", size: 2.0, tint: "#b8763c" },
+  "star-lynx": { model: "fox", size: 1.45, tint: "#cdc4f6" },
+  voidmaw: { model: "fox", size: 2.2, tint: "#2a2242" },
+  ...Object.fromEntries(
+    ["cinder-reaver", "ashbound-zealot", "thornweaver", "gloam-warden", "sandreaver", "dune-mystic", "astral-seeker", "starfall-sentinel", "forgelord", "briar-queen", "sun-king", "astromancer"].map((k) => [k, { model: k }]),
+  ),
 };
 const BEASTS = {
   fox: { file: "/models/fox.glb", scale: 0.0105, yaw: -Math.PI / 2, clips: { idle: "Survey", run: "Run", back: "Walk" } },

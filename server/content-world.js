@@ -1,4 +1,4 @@
-// Content for the wider world: zone gear tiers, abilities to level 20, and each town's
+// Content for the wider world: zone gear tiers, abilities to level 20, the Outer Ring (levels 20–30), and each town's
 // quest givers and quest chains. All names and text are original to Hearthwild.
 import { TOWNS } from "../public/terrain.js";
 import { DUNGEONS } from "../public/dungeon-layout.js";
@@ -37,6 +37,39 @@ const TIERS = [
     names: {
       Uncommon: ["Greyspire sabre", "Cragplate cuirass", "Stonecaller’s sigil"],
       Rare: ["Ridgebreaker maul", "Greyspire warplate", "Eye of the Tarn"],
+    },
+  },
+  // The Outer Ring.
+  {
+    zone: "ember",
+    levels: [21, 23],
+    names: {
+      Uncommon: ["Cinderhold war-axe", "Ashwalker’s mail", "Coal-ember token"],
+      Rare: ["Emberback splitter", "Slagforged plate", "Heart of the Cinder Pools"],
+    },
+  },
+  {
+    zone: "gloam",
+    levels: [23, 25],
+    names: {
+      Uncommon: ["Duskhollow longknife", "Mossweave jerkin", "Gloamcap charm"],
+      Rare: ["Thornweaver’s crook", "Barkhide hauberk", "Lantern of the Deep Wood"],
+    },
+  },
+  {
+    zone: "dunes",
+    levels: [25, 27],
+    names: {
+      Uncommon: ["Sunmere scimitar", "Dunewalker’s robes", "Scarab of the Sands"],
+      Rare: ["Sunscale khopesh", "Mirage-silk raiment", "Eye of the Oasis"],
+    },
+  },
+  {
+    zone: "reach",
+    levels: [28, 30],
+    names: {
+      Uncommon: ["Starfall sabre", "Skywatch coat", "Shard of fallen star"],
+      Rare: ["Voidmaw fang", "Starwoven mantle", "Lens of the Long Night"],
     },
   },
 ];
@@ -134,6 +167,44 @@ const FOLK = [
     "The Stonecallers carve runestones to wake the mountain. Bring me six before they finish whatever they’ve started.", "runestones"],
   ["cragmoor", "cragmoor-sergeant", "Sergeant Dunmore", "Hold sergeant", "npc-captain", -5.5, 12.5,
     "Crag stalkers have been taking our sentries. Hunt eight of them down.", "stalker-hunt"],
+  ["cragmoor", "cragmoor-courier", "Ada Wren", "Hold courier", "npc-town-f", 12, -6,
+    "Past the black ridges to the north-west is Cinderhold, the last forge before the waste. Its marshal needs our dispatch. Will you carry it?", "dispatch-cinderhold"],
+  // Cinderhold — the Emberwaste (levels 20–23).
+  ["cinderhold", "cinderhold-quest", "Marshal Varra Kell", "Marshal of Cinderhold", "npc-captain", 4, -4,
+    "The waste breeds hounds of living coal, and the Ashbound preach fire to anyone who’ll listen. Put down eight of them.", "ashen-waste"],
+  ["cinderhold", "cinderhold-smith", "Smith Torvald", "Forge-master", "npc-town", -10, -4,
+    "The Emberbacks carry slag cores hot enough to work the old steel. Bring me six and I’ll forge you something worth carrying.", "slag-cores"],
+  ["cinderhold", "cinderhold-preacher", "Sister Calla", "Keeper of the cold flame", "npc-town-f", 10, 6,
+    "The Ashbound zealots lead the young ones into the pools. Stop six of them before they lead more.", "zealot-hunt"],
+  ["cinderhold", "cinderhold-courier", "Bryn Coalfoot", "Courier", "npc-town", -5.5, 12.5,
+    "Warden Ysolde at Duskhollow is waiting on news from the waste. The south road through the Crags will get you there.", "news-duskhollow"],
+  // Duskhollow — Gloamwood (levels 22–25).
+  ["duskhollow", "duskhollow-quest", "Warden Ysolde Thorn", "Warden of the Gloamwood", "npc-captain", 4, -4,
+    "The wood has woken, and none of it is friendly. Thin the stalkers and the wardens of the hollow — eight of them.", "gloam-wake"],
+  ["duskhollow", "duskhollow-herbalist", "Old Mother Fen", "Herbalist", "npc-town-f", -10, -4,
+    "Thornweavers carry seeds of the heartbriar. Bring me six before they plant them, and I’ll brew you something for the road.", "heartbriar-seeds"],
+  ["duskhollow", "duskhollow-hunter", "Rook Halloran", "Hunter", "npc-town", 10, 6,
+    "Duskfangs hunt in packs at the edge of the lanterns. Bring down eight, and the paths will be safe again.", "duskfang-hunt"],
+  ["duskhollow", "duskhollow-courier", "Pip Larkin", "Courier", "npc-town", -5.5, 12.5,
+    "There’s a caravan stuck in Sunmere waiting on our letters. Take them east along the south road?", "letters-sunmere"],
+  // Sunmere — the Sunscar Dunes (levels 24–27).
+  ["sunmere", "sunmere-quest", "Emir Kasim al-Raad", "Lord of the oasis", "npc-captain", 4, -4,
+    "Sandreavers raid our wells and jackals pick off the stragglers. Clear eight from the dunes and Sunmere will drink in peace.", "dune-raiders"],
+  ["sunmere", "sunmere-scholar", "Scholar Imra", "Tomb scholar", "npc-town-f", -10, -4,
+    "The Dune mystics carry tablets from the old sun-temples. I must read them. Bring me six.", "sun-tablets"],
+  ["sunmere", "sunmere-warden", "Captain Halim", "Captain of the wells", "npc-captain", 10, 6,
+    "The Sunscale prowlers nest near the oasis. Hunt eight before they take another caravan.", "sunscale-hunt"],
+  ["sunmere", "sunmere-courier", "Nadia Sand", "Caravan scout", "npc-town-f", -5.5, 12.5,
+    "Starfall Rest sits high in the north-east, where the stars came down. Take them this map of the wells?", "map-starfall"],
+  // Starfall Rest — Starfall Reach (levels 27–30).
+  ["starfall", "starfall-quest", "Seer Aldric Vane", "Keeper of the Rest", "npc-captain", 4, -4,
+    "Since the stars fell, the Reach has filled with hungry things. Drive back eight of them.", "starfall-hunger"],
+  ["starfall", "starfall-collector", "Tamsin Glass", "Starstone cutter", "npc-town-f", -10, -4,
+    "Star lynxes swallow shards of starstone — it’s what makes them glow. Bring me six shards.", "starstone-shards"],
+  ["starfall", "starfall-sentinel", "Commander Eira Holt", "Commander of the Rest", "npc-captain", 10, 6,
+    "The Voidmaws come through the cracks in the sky. Close them for good — eight should do.", "voidmaw-hunt"],
+  ["starfall", "starfall-archivist", "Archivist Wend", "Keeper of the lens-glass", "npc-town", -5.5, 12.5,
+    "The Astral seekers carry fragments of the great lens they broke. Bring me six, and perhaps one day we can mend it.", "lens-fragments"],
 ];
 export const WORLD_FOLK = FOLK.map(([townId, id, name, role, look, dx, dz, text, quest]) => {
   const t = town(townId);
@@ -162,6 +233,27 @@ export const WORLD_QUESTS = {
   "stolen-supplies": { name: "Stolen Supplies", npc: "cragmoor-quartermaster", required: 6, reward: 250, xp: 1650, objective: "Recover supply crates from Greyspire brigands", area: "Greyspire Crags · pass roads", collect: { kinds: ["greyspire-brigand"], chance: 0.6, item: "Cragmoor supply crate" } },
   runestones: { name: "Waking the Mountain", npc: "cragmoor-sage", required: 6, reward: 280, xp: 1800, objective: "Take runestones from Stonecallers", area: "Greyspire Crags · high ridges", requires: "stolen-supplies", collect: { kinds: ["stonecaller"], chance: 0.6, item: "Carved runestone" } },
   "stalker-hunt": { name: "Sentries Lost", npc: "cragmoor-sergeant", required: 8, reward: 270, xp: 1750, objective: "Defeat Crag stalkers", area: "Greyspire Crags", kill: { kind: "crag-stalker" } },
+  "dispatch-cinderhold": { name: "Beyond the Ridges", npc: "cragmoor-courier", required: 1, reward: 140, xp: 1500, objective: "Carry Ada’s dispatch to Marshal Varra Kell in Cinderhold", area: "Cinderhold · north-west, past the Crags", deliver: { to: "cinderhold-quest" }, minLevel: 19 },
+  // The Emberwaste.
+  "ashen-waste": { name: "The Burning Waste", npc: "cinderhold-quest", required: 8, reward: 330, xp: 2300, objective: "Defeat creatures of the Emberwaste", area: "The Emberwaste · north-west · levels 20–23", kill: { zone: "ember" } },
+  "slag-cores": { name: "Steel from Slag", npc: "cinderhold-smith", required: 6, reward: 320, xp: 2300, objective: "Collect slag cores from Emberbacks", area: "The Emberwaste · ash flats", collect: { kinds: ["emberback"], chance: 0.65, item: "Slag core" } },
+  "zealot-hunt": { name: "The Cold Flame", npc: "cinderhold-preacher", required: 6, reward: 350, xp: 2450, objective: "Defeat Ashbound zealots", area: "The Emberwaste · near the Cinder Pools", requires: "ashen-waste", kill: { kind: "ashbound-zealot" } },
+  "news-duskhollow": { name: "Word for the Wood", npc: "cinderhold-courier", required: 1, reward: 160, xp: 2000, objective: "Take Bryn’s news to Warden Ysolde Thorn in Duskhollow", area: "Duskhollow · south along the outer road", deliver: { to: "duskhollow-quest" }, minLevel: 21 },
+  // Gloamwood.
+  "gloam-wake": { name: "The Wood Awakes", npc: "duskhollow-quest", required: 8, reward: 380, xp: 2800, objective: "Defeat creatures of Gloamwood", area: "Gloamwood · south-west · levels 22–25", kill: { zone: "gloam" } },
+  "heartbriar-seeds": { name: "Seeds of the Heartbriar", npc: "duskhollow-herbalist", required: 6, reward: 370, xp: 2800, objective: "Take heartbriar seeds from Thornweavers", area: "Gloamwood · deep hollows", collect: { kinds: ["thornweaver"], chance: 0.6, item: "Heartbriar seed" } },
+  "duskfang-hunt": { name: "Beyond the Lanterns", npc: "duskhollow-hunter", required: 8, reward: 390, xp: 2900, objective: "Defeat Duskfangs", area: "Gloamwood", requires: "heartbriar-seeds", kill: { kind: "duskfang" } },
+  "letters-sunmere": { name: "Letters for the Oasis", npc: "duskhollow-courier", required: 1, reward: 180, xp: 2400, objective: "Deliver Pip’s letters to Emir Kasim al-Raad in Sunmere", area: "Sunmere · east along the outer road", deliver: { to: "sunmere-quest" }, minLevel: 23 },
+  // The Sunscar Dunes.
+  "dune-raiders": { name: "Raiders of the Wells", npc: "sunmere-quest", required: 8, reward: 430, xp: 3300, objective: "Defeat creatures of the Sunscar Dunes", area: "The Sunscar Dunes · south-east · levels 24–27", kill: { zone: "dunes" } },
+  "sun-tablets": { name: "Tablets of the Sun", npc: "sunmere-scholar", required: 6, reward: 420, xp: 3300, objective: "Recover sun-temple tablets from Dune mystics", area: "The Sunscar Dunes · ruined temples", collect: { kinds: ["dune-mystic"], chance: 0.6, item: "Sun-temple tablet" } },
+  "sunscale-hunt": { name: "Nests by the Water", npc: "sunmere-warden", required: 8, reward: 440, xp: 3400, objective: "Defeat Sunscale prowlers", area: "The Sunscar Dunes · near the oasis", requires: "dune-raiders", kill: { kind: "sunscale" } },
+  "map-starfall": { name: "A Map of the Wells", npc: "sunmere-courier", required: 1, reward: 200, xp: 2800, objective: "Take Nadia’s map to Seer Aldric Vane at Starfall Rest", area: "Starfall Rest · north along the outer road", deliver: { to: "starfall-quest" }, minLevel: 26 },
+  // Starfall Reach.
+  "starfall-hunger": { name: "Hungers from the Sky", npc: "starfall-quest", required: 8, reward: 480, xp: 3800, objective: "Defeat creatures of Starfall Reach", area: "Starfall Reach · north-east · levels 27–30", kill: { zone: "reach" } },
+  "starstone-shards": { name: "Starstone", npc: "starfall-collector", required: 6, reward: 470, xp: 3800, objective: "Collect starstone shards from Star lynxes", area: "Starfall Reach · high meadows", collect: { kinds: ["star-lynx"], chance: 0.65, item: "Starstone shard" } },
+  "lens-fragments": { name: "Fragments of the Lens", npc: "starfall-archivist", required: 6, reward: 490, xp: 3900, objective: "Recover lens fragments from Astral seekers", area: "Starfall Reach · around the observatory", collect: { kinds: ["astral-seeker"], chance: 0.6, item: "Lens fragment" } },
+  "voidmaw-hunt": { name: "Cracks in the Sky", npc: "starfall-sentinel", required: 8, reward: 500, xp: 4000, objective: "Defeat Voidmaws", area: "Starfall Reach", requires: "starstone-shards", kill: { kind: "voidmaw" } },
 };
 
 // ---------- Travel folk ----------
@@ -175,9 +267,11 @@ export const TRAVEL_FOLK = [
     text: "Fine riding country, the Downs. I can teach you, if you’re ready." },
   { id: "camp-caravan", name: "Odo Barrow", role: "Caravan master", place: "camp", dx: 6.5, dz: 15, look: "npc-town", caravan: "camp",
     text: "The caravan runs the roads to every town you’ve visited. Pay the fare and sit back." },
-  ...["harrowford", "reedwatch", "hollowfrost", "cragmoor"].map((id, i) => ({
+  { id: "cinderhold-stable", name: "Hessa Grael", role: "Stablemaster", place: "cinderhold", dx: 8, dz: -12, look: "npc-town-f", stable: true,
+    text: "Our foxes are bred for hot ground. I’ll teach you to ride, if you haven’t learned yet." },
+  ...["harrowford", "reedwatch", "hollowfrost", "cragmoor", "cinderhold", "duskhollow", "sunmere", "starfall"].map((id, i) => ({
     id: `${id}-caravan`,
-    name: ["Mabel Thorne", "Gil Pike", "Runa Ashby", "Corin Vale"][i],
+    name: ["Mabel Thorne", "Gil Pike", "Runa Ashby", "Corin Vale", "Dag Emberly", "Wyn Mallow", "Farah Dunes", "Orrin Skye"][i],
     role: "Caravan master",
     place: id,
     dx: 1,
@@ -194,6 +288,10 @@ const EPIC_NAMES = {
   "drowned-chapel": ["Mirewood greatstaff", "Vestments of the Drowned", "Mother Sallow’s rosary"],
   "glassmere-depths": ["Frostbound warhammer", "Glassmere icemail", "Shard of the Frozen Heart"],
   "hollow-peak": ["Varkesh’s runeblade", "Mountain-heart plate", "Summit runestone"],
+  cinderforge: ["Ashkar’s forge-hammer", "Molten-heart breastplate", "Ember of the First Forge"],
+  thornheart: ["Briar Queen’s scythe", "Crown-of-thorns mantle", "Heartbriar bloom"],
+  "sun-tomb": ["Azhar’s sunblade", "Gilded raiment of the Sun-King", "Scarab of the Eternal Noon"],
+  observatory: ["Velia’s starcaller", "Robes of the Shattered Sky", "Eye of the Orrery"],
 };
 // Each boss drops one of its dungeon's three Epics (the Hollow Crypt's are defined in content.js).
 export const DUNGEON_LOOT = { "hollow-crypt": ["ashbound-greatblade", "ashen-mantle", "ember-of-vorlath"] };
@@ -219,6 +317,10 @@ const SCOUTS = {
   "drowned-chapel": ["chapel", "Brother Ennis", "My chapel sank into the mire a generation ago. Now something sings beneath the water. Silence Mother Sallow, I beg you."],
   "glassmere-depths": ["depths", "Huntress Sigrun", "Beneath the frozen lake sleeps Hrimgar the Frostbound, and the pale wolves gather to him. Go down into the Depths and end his long winter."],
   "hollow-peak": ["peak", "Warden Kael Thorne", "Varkesh and her Stonecallers have hollowed out the mountain to wake whatever lies at its heart. Climb to the summit chamber and stop her."],
+  cinderforge: ["forge", "Smith’s-mate Ilse", "Forgelord Ashkar has relit the First Forge beneath the waste, and every hound of coal answers its bellows. Bank its fires for good."],
+  thornheart: ["hollow", "Ranger Aedan Moss", "At the heart of the wood sleeps the Briar Queen, and she is waking. Go down through the roots and put her back to sleep — forever."],
+  "sun-tomb": ["tomb", "Scholar Rashid", "The tomb of Sun-King Azhar has opened, and he walks again among his treasures. A king long dead should stay that way."],
+  observatory: ["observatory", "Starwatcher Lune", "Astromancer Velia broke the great lens to call the stars down, and she isn’t finished. Climb to the shattered dome and stop her before the sky comes with them."],
 };
 for (const [id, [short, name, text]] of Object.entries(SCOUTS)) {
   const d = DUNGEONS[id];

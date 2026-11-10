@@ -1,6 +1,7 @@
 import { gameMenu } from "./game-menu.js";
 import { servicesUi } from "./services-ui.js";
 import { WORLD_HALF, WORLD_SIZE } from "./world-config.js";
+import { zoneWeights } from "./terrain.js";
 import { characterUi } from "./character-ui.js";
 import { accountUi } from "./accounts-ui.js";
 import { BAR_KEYS, bagCells, bagItems, questMarker, stackConsumables, itemIconStyle } from "./ui-model.js";
@@ -103,6 +104,34 @@ function dungeonFor(instance) {
 let currentZone = null;
 const OUTDOOR = { bg: "#a9c8de", fog: "#c3d6dc", density: 0.0065, hemi: ["#cfe4ff", "#4b4126", 1.6], sun: ["#ffe2a8", 3.4] },
   INDOOR = { bg: "#07060a", fog: "#0b0910", density: 0.04, hemi: ["#8f98c4", "#2a1d10", 1.05], sun: ["#b4c0ff", 0.7] };
+let frame = 0;
+// Each Outer Ring zone tints the open-air light: ash haze, forest gloom, desert glare, starlight.
+const AIR = {
+  ember: { bg: "#8c7468", fog: "#8a6e62", density: 0.009, sun: "#ffb48a" },
+  gloam: { bg: "#5c7268", fog: "#4a5e52", density: 0.011, sun: "#b8c8a0" },
+  dunes: { bg: "#d8c8a4", fog: "#e2d2ae", density: 0.0055, sun: "#fff0c8" },
+  reach: { bg: "#a49ed2", fog: "#b4aedc", density: 0.006, sun: "#e8e0ff" },
+};
+const airA = new THREE.Color(),
+  airB = new THREE.Color();
+function outdoorAir(x, z) {
+  const w = zoneWeights(x, z);
+  const blend = (base, key) => {
+    airA.set(base);
+    let total = 0;
+    for (const [id, a] of Object.entries(AIR)) if (w[id] > 0) total += w[id];
+    if (!total) return airA;
+    airB.setRGB(0, 0, 0);
+    for (const [id, a] of Object.entries(AIR)) if (w[id] > 0) airB.add(new THREE.Color(a[key]).multiplyScalar(w[id] / total));
+    return airA.lerp(airB, total);
+  };
+  scene.background.copy(blend(OUTDOOR.bg, "bg"));
+  scene.fog.color.copy(blend(OUTDOOR.fog, "fog"));
+  sun.color.copy(blend(OUTDOOR.sun[0], "sun"));
+  let density = OUTDOOR.density;
+  for (const [id, a] of Object.entries(AIR)) density += (a.density - OUTDOOR.density) * w[id];
+  scene.fog.density = density;
+}
 function switchZone(instance) {
   if (instance === currentZone) return;
   currentZone = instance;
@@ -341,6 +370,16 @@ function animateCorpses(t) {
   }
 }
 const keys = new Set();
+// Content that never changes (shop, quests, classes, people) arrives once and is kept here;
+// later updates carry only what is happening near the player.
+let content = null;
+async function fetchState(after = 0) {
+  const known = content && content.token === token ? `&content=${content.key}` : "";
+  const incoming = await api(`/api/state?after=${after}${known}`);
+  if (incoming.shop) content = { token, key: incoming.content, shop: incoming.shop, recipes: incoming.recipes, classes: incoming.classes, abilities: incoming.abilities, questDefinitions: incoming.questDefinitions, npcs: incoming.npcs };
+  const { token: _, key, ...rest } = content;
+  return { ...rest, ...incoming, npcs: incoming.self.instance ? [] : rest.npcs };
+}
 async function api(path, data) {
   const response = await fetch(path, {
     method: data ? "POST" : "GET",
@@ -1398,7 +1437,7 @@ async function poll() {
   if (!playing) return;
   const epoch = playEpoch;
   try {
-    const incoming = await api(`/api/state?after=${after}`);
+    const incoming = await fetchState(after);
     if (epoch !== playEpoch || !playing) return;
     state = incoming;
     if (chatEpoch && chatEpoch !== state.chatEpoch) after = 0;
@@ -1426,7 +1465,7 @@ async function begin(key) {
   clearTimeout(pollTimer);
   clearInterval(inputTimer);
   try {
-    const incoming = await api("/api/state");
+    const incoming = await fetchState();
     await charactersReady;
     if (epoch !== playEpoch) return;
     state = incoming;
@@ -2007,6 +2046,7 @@ function render() {
   const dt = Math.min(clock.getDelta(), 0.1),
     t = clock.elapsedTime;
   scenery.update(t, state && !state.self.instance ? state.self : null, camera);
+  if (state && !state.self.instance && (frame++ & 15) === 0) outdoorAir(state.self.x, state.self.z);
   dungeon?.update(t, playing && state ? playerModels.get(state.self.id)?.position : null);
   const serverNowMs = combatUi.serverNow();
   for (const g of telegraphModels.values()) {
@@ -2294,7 +2334,7 @@ const services = servicesUi({
     const epoch = playEpoch,
       r = await api("/api/actions", a);
     if (epoch === playEpoch) {
-      state = await api("/api/state");
+      state = await fetchState();
       updateModels();
     }
     return r;
