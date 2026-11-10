@@ -3,6 +3,7 @@
 import * as THREE from "./vendor/three.module.js";
 import { levelColor } from "./world-config.js";
 import { MAX_LEVEL } from "./terrain.js";
+import { RANK_NAMES } from "./ui-model.js";
 
 const $ = (id) => document.getElementById(id);
 const el = (tag, className, text) => {
@@ -380,10 +381,14 @@ export function createCombatUi({ camera, height, onRelease, onTargetChange, act 
       else if (newZone) showZone(zone, "");
     }
     if (lastLevel !== null && p.level > lastLevel) {
+      // Abilities unlocked or ranked up between the old level and the new one.
+      const learned = state.abilities.filter((a) => a.level > lastLevel && a.level <= p.level).map((a) => `${a.name}`),
+        ranked = state.abilities.flatMap((a) => (a.ranks ?? []).filter((r) => r.level > lastLevel && r.level <= p.level).map((r) => ({ a, r })));
       levelUp.replaceChildren(
         el("strong", "", `Level ${p.level}`),
-        el("span", "", "You feel stronger."),
+        el("span", "", learned.length ? `New ability: ${learned.join(", ")}` : ranked.length ? `${ranked.map(({ a }) => `${a.name} Rank ${RANK_NAMES[a.rank ?? 2]}`).join(", ")}` : "You feel stronger."),
       );
+      for (const { a, r } of ranked) systemChat(`${a.name} is now Rank ${RANK_NAMES[a.rank ?? 2]}: ${r.text}`, "levelup");
       levelUp.classList.remove("show");
       void levelUp.offsetWidth;
       levelUp.classList.add("show");

@@ -2,6 +2,7 @@ import { gameMenu } from "./game-menu.js";
 import { servicesUi } from "./services-ui.js";
 import { WORLD_HALF, WORLD_SIZE } from "./world-config.js";
 import { zoneWeights } from "./terrain.js";
+import { ranked, RANK_NAMES } from "./ui-model.js";
 import { characterUi } from "./character-ui.js";
 import { accountUi } from "./accounts-ui.js";
 import { BAR_KEYS, bagCells, bagItems, questMarker, stackConsumables, itemIconStyle } from "./ui-model.js";
@@ -378,7 +379,8 @@ async function fetchState(after = 0) {
   const incoming = await api(`/api/state?after=${after}${known}`);
   if (incoming.shop) content = { token, key: incoming.content, shop: incoming.shop, recipes: incoming.recipes, classes: incoming.classes, abilities: incoming.abilities, questDefinitions: incoming.questDefinitions, npcs: incoming.npcs };
   const { token: _, key, ...rest } = content;
-  return { ...rest, ...incoming, npcs: incoming.self.instance ? [] : rest.npcs };
+  // Abilities as this character uses them, with the ranks they have reached.
+  return { ...rest, ...incoming, abilities: rest.abilities.map((a) => ranked(a, incoming.self.level)), npcs: incoming.self.instance ? [] : rest.npcs };
 }
 async function api(path, data) {
   const response = await fetch(path, {
@@ -635,7 +637,7 @@ function updateHotbar() {
       b.append(element("kbd", BAR_KEYS[slot]));
       if (a) {
         b.dataset.ability = a.id;
-        b.title = `${a.name} · ${a.description} · ${a.cost} ${state.classes[state.self.classId].resource} · ${a.cooldown / 1000}s cooldown · Level ${a.level}`;
+        b.title = `${a.name}${a.rank ? ` (Rank ${RANK_NAMES[a.rank]})` : ""} · ${a.description} · ${a.cost} ${state.classes[state.self.classId].resource} · ${a.cooldown / 1000}s cooldown · Level ${a.level}`;
         b.setAttribute("aria-label", `${a.key}: ${a.name}`);
         const art = element("span", undefined, "ability-art");
         Object.assign(

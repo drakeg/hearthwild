@@ -110,7 +110,8 @@ export const ITEMS = {
   },
 };
 import { TOWNS, MAX_LEVEL } from "../public/terrain.js";
-import { GEAR, LATE_ABILITIES, WORLD_FOLK, WORLD_QUESTS, TRAVEL_FOLK } from "./content-world.js";
+import { GEAR, LATE_ABILITIES, ABILITY_RANKS, WORLD_FOLK, WORLD_QUESTS, TRAVEL_FOLK } from "./content-world.js";
+import { ranked } from "../public/ui-model.js";
 const town = (id) => TOWNS.find((t) => t.id === id);
 // Each town has a quest giver near its square and a provisioner beside the road.
 const TOWN_FOLK = [
@@ -466,6 +467,13 @@ export const ABILITIES = {
   ],
 };
 for (const [classId, list] of Object.entries(LATE_ABILITIES)) ABILITIES[classId].push(...list);
+for (const [classId, list] of Object.entries(ABILITY_RANKS))
+  for (const { ability, level, set, text } of list) {
+    const a = ABILITIES[classId].find((b) => b.id === ability);
+    (a.ranks ??= []).push({ level, set, text });
+  }
+// An ability as this character uses it, with every rank they have reached.
+export const abilityFor = (p, ability) => ranked(ability, p.level ?? 1);
 // Starter gear is wearable from level 1 (Uncommon) and 3 (Rare); the Hollow Crypt's Epics from 6.
 for (const item of Object.values(ITEMS))
   if (item.slot && item.slot !== "consumable" && item.level === undefined)

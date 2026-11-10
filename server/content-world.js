@@ -337,3 +337,37 @@ for (const [id, [short, name, text]] of Object.entries(SCOUTS)) {
     minLevel: d.levels[0] - 2,
   };
 }
+
+// Ability ranks for the Outer Ring: at levels 22, 24, 26, 28 and 30 each class sharpens one of its
+// abilities to Rank II. `set` replaces the ability's numbers once the character reaches the level.
+const rank = (ability, level, set, text) => ({ ability, level, set, text });
+export const ABILITY_RANKS = {
+  warrior: [
+    rank("crushing-blow", 22, { multiplier: 2.5 }, "Hits for 2.5× weapon damage (was 1.9×)."),
+    rank("earthbreaker", 24, { multiplier: 2.1, range: 6, description: "Strike enemies within 6 paces." }, "Hits for 2.1× and reaches 6 m (was 1.6×, 5 m)."),
+    rank("rally", 26, { heal: 90, cooldown: 10000, description: "Restore 90 health." }, "Heals for 90 and recharges in 10 s (was 45, 14 s)."),
+    rank("thunder-slam", 28, { multiplier: 2, stun: 4000, description: "Slam your target, stunning it for 4 seconds. Interrupts spellcasting." }, "Hits for 2× and stuns for 4 s (was 1.4×, 3 s)."),
+    rank("titans-strike", 30, { multiplier: 4.8, cooldown: 12000 }, "Hits for 4.8× and recharges in 12 s (was 3.6×, 15 s)."),
+  ],
+  warlock: [
+    rank("cinder-bolt", 22, { multiplier: 1.7, castTime: 900 }, "Hits for 1.7× with a 0.9 s cast (was 1.3×, 1.1 s)."),
+    rank("wither", 24, { dot: { multiplier: 0.7 } }, "Each tick deals 0.7× weapon damage (was 0.45×)."),
+    rank("siphon", 26, { multiplier: 1.4, heal: 40 }, "Hits for 1.4× and heals you for 40 (was 1×, 18)."),
+    rank("dread-wave", 28, { multiplier: 2.7, range: 10 }, "Hits for 2.7× out to 10 m (was 2×, 8 m)."),
+    rank("cataclysm", 30, { multiplier: 5.6 }, "Hits for 5.6× weapon damage (was 4.2×)."),
+  ],
+  druid: [
+    rank("mending", 22, { heal: 80 }, "Heals for 80 (was 40)."),
+    rank("thorn-bolt", 24, { multiplier: 1.6 }, "Hits for 1.6× weapon damage (was 1.2×)."),
+    rank("wild-bloom", 26, { heal: 140, cooldown: 11000 }, "Heals for 140 and recharges in 11 s (was 75, 14 s)."),
+    rank("sunlance", 28, { multiplier: 3.4, castTime: 1200, description: "A searing lance of sunlight after a 1.2-second cast." }, "Hits for 3.4× with a 1.2 s cast (was 2.6×, 1.5 s)."),
+    rank("verdant-tide", 30, { heal: 380, description: "A great surge of grove magic restores 380 health." }, "Heals for 380 (was 220)."),
+  ],
+  rogue: [
+    rank("venom-edge", 22, { multiplier: 2.4 }, "Hits for 2.4× weapon damage (was 1.8×)."),
+    rank("bleeding-gash", 24, { dot: { multiplier: 0.8 } }, "Each tick deals 0.8× weapon damage (was 0.5×)."),
+    rank("recuperate", 26, { heal: 80 }, "Heals for 80 (was 35)."),
+    rank("shadow-flurry", 28, { multiplier: 3.3, cost: 35 }, "Hits for 3.3× and costs 35 Energy (was 2.5×, 40)."),
+    rank("heartseeker", 30, { multiplier: 5.4 }, "Hits for 5.4× weapon damage (was 4×)."),
+  ],
+};

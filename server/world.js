@@ -11,6 +11,7 @@ import {
   initAdventure,
   CLASSES,
   ABILITIES,
+  abilityFor,
   addExperience,
 } from "./content.js";
 import { commerce, PRICES, RECIPES } from "./commerce.js";
@@ -598,10 +599,11 @@ export class World {
       this.breakRecall(p, now);
     }
     if (a.type === "ability" || a.type === "attack") {
-      const ability = ABILITIES[p.classId].find(
+      const base = ABILITIES[p.classId].find(
         (b) => b.id === (a.ability ?? ABILITIES[p.classId][0].id),
       );
-      reject(!ability, "That ability does not belong to your class.");
+      reject(!base, "That ability does not belong to your class.");
+      const ability = abilityFor(p, base);
       reject(p.level < ability.level, `Unlocks at level ${ability.level}.`);
       reject(p.casting, "You are already casting.");
       reject(
@@ -854,7 +856,8 @@ export class World {
     for (const e of this.enemiesFor(p))
       if (e.hp > 0 && e.threat.has(p.id)) this.addThreat(e, p, amount * 0.5, now);
   }
-  resolveAbility(p, ability, target, now) {
+  resolveAbility(p, base, target, now) {
+    const ability = abilityFor(p, base);
     const targeted = ability.multiplier || ability.dot || ability.stun;
     if (
       targeted &&

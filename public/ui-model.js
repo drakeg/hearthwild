@@ -133,3 +133,17 @@ export function itemIconStyle(template) {
   const url = ITEM_ICONS[template];
   return url ? { backgroundImage: url, backgroundSize: "cover", backgroundPosition: "center" } : null;
 }
+
+// Applies the ranks an ability has reached at this level (shared by server and client).
+export function ranked(ability, level) {
+  const reached = (ability.ranks ?? []).filter((r) => level >= r.level);
+  if (!reached.length) return ability;
+  const out = { ...ability, rank: 1 + reached.length };
+  for (const { set } of reached) {
+    const { dot, ...rest } = set;
+    Object.assign(out, rest);
+    if (dot) out.dot = { ...out.dot, ...dot };
+  }
+  return out;
+}
+export const RANK_NAMES = ["", "I", "II", "III", "IV", "V"];
