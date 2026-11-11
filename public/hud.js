@@ -1,7 +1,7 @@
 import { CRYPT, DUNGEON_LIST, dungeonOf } from "./dungeon-layout.js";
 import { WORLD_HALF, WORLD_SIZE, WORLD_LIMIT, ZONES, TOWNS } from "./world-config.js";
 import { zoneWeights, zoneAt, terrainHeight, lakeAt, ROADS, HOUSES, LAKES } from "./terrain.js";
-import { mapPoint, filterQuests, questMarker, zoneBounds } from "./ui-model.js";
+import { mapPoint, filterQuests, questMarker, zoneBounds, RANK_NAMES } from "./ui-model.js";
 const $ = (id) => document.getElementById(id);
 // Ability icons: keys 1–4 come from the first sheet, keys 9–12 from the second (one row per class).
 export function abilityIcon(classId, key) {
@@ -558,8 +558,15 @@ export function createHud({
           abilityIcon(s.self.classId, a.key),
         );
         const text = document.createElement("span");
-        text.textContent = `${a.name} · ${a.description} · ${a.cooldown / 1000}s cooldown · ${a.cost} ${s.classes[s.self.classId].resource}${s.self.level < a.level ? ` · Unlocks at level ${a.level}` : ` · Key ${a.key}`}`;
+        text.textContent = `${a.name}${a.rank ? ` · Rank ${RANK_NAMES[a.rank]}` : ""} · ${a.description} · ${a.cooldown / 1000}s cooldown · ${a.cost} ${s.classes[s.self.classId].resource}${s.self.level < a.level ? ` · Unlocks at level ${a.level}` : ` · Key ${a.key}`}`;
         b.append(i, text);
+        // Ranks: reached ones in gold, the next ones still to come.
+        for (const r of a.ranks ?? []) {
+          const line = document.createElement("small");
+          line.className = `spell-rank${s.self.level >= r.level ? " reached" : ""}`;
+          line.textContent = `Rank II at level ${r.level}: ${r.text}`;
+          text.append(line);
+        }
         b.disabled = s.self.level < a.level;
         b.onclick = () => {
           close();

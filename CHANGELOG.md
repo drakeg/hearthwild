@@ -1,3 +1,20 @@
+## 0.15.0 — Rank II
+
+New rewards for levels 21–30: each class sharpens five of its abilities to **Rank II**, one each at levels 22, 24, 26, 28 and 30.
+
+| Class | 22 | 24 | 26 | 28 | 30 |
+|---|---|---|---|---|---|
+| Warrior | Crushing blow | Earthbreaker | Rally | Thunder slam | Titan’s strike |
+| Warlock | Cinder bolt | Wither | Siphon | Dread wave | Cataclysm |
+| Druid | Mending | Thorn bolt | Wild bloom | Sunlance | Verdant tide |
+| Rogue | Venom edge | Bleeding gash | Recuperate | Shadow flurry | Heartseeker |
+
+- Each rank makes the ability stronger: more damage or healing, a longer stun, or a shorter cooldown, cast or cost.
+- The spellbook (**P**) lists every ability's rank and when it arrives, with the new numbers. Reached ranks show in gold.
+- Levelling up names the ability that ranked up, and chat shows exactly what changed.
+- Hotbar tooltips and cooldowns use the ranked numbers.
+- Ninety-eight checks, including new tests that every class gets five ranks, every rank is an improvement, and a ranked ability hits harder in play.
+
 ## 0.14.0 — The Outer Ring
 
 **The world doubles in size, to about 4 km across.** Beyond the first four zones lies the Outer Ring: four new zones for levels 20–30, each with its own town, people, quests, creatures, gear and dungeon.

@@ -947,3 +947,13 @@ dialog {
 .unit-frame[hidden] {
   display: none !important;
 }
+
+.spell-rank {
+  display: block;
+  margin-top: 3px;
+  font-size: 11px;
+  color: #a99c7e;
+}
+.spell-rank.reached {
+  color: #f0c95a;
+}
