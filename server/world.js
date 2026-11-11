@@ -23,6 +23,7 @@ import { Crypts, walkableAt } from "./crypt.js";
 import { CRYPT, DUNGEON_LIST, dungeonOf } from "../public/dungeon-layout.js";
 import { DUNGEON_LOOT } from "./content-world.js";
 import { Grid, VIEW, AWAKE_RADIUS, contentKey } from "./interest.js";
+import { Finder, FINDER } from "./finder.js";
 import {
   MELEE_RANGE,
   LEASH_RANGE,
@@ -108,6 +109,7 @@ export class World {
     this.shop = Object.entries(PRICES).filter(([, [buy]]) => buy !== null).map(([template, [buy, sell]]) => ({ ...ITEMS[template], template, buy, sell }));
     this.contentBase = contentKey({ shop: this.shop, recipes: RECIPES, classes: CLASSES, quests: QUESTS, npcs: NPCS, abilities: ABILITIES });
     this.parties = new Parties(this);
+    this.finder = new Finder(this);
     this.crypts = new Crypts(this);
     this.guilds = new Guilds(this, saved.guilds, {
       signatures: charterSignatures ?? (Number(process.env.HEARTHWILD_CHARTER_SIGNATURES) || 2),
@@ -313,6 +315,7 @@ export class World {
         mounted: !!p.mounted,
         home: p.home ?? "camp",
         homeName: stopById(p.home ?? "camp").name,
+        finder: this.finder.view(p, now),
         waystoneReadyAt: p.waystoneReadyAt ?? 0,
         recall: p.recall,
         travel: p.travel ? { to: p.travel.to, name: p.travel.name, startedAt: p.travel.startedAt, eta: p.travel.eta } : null,
@@ -379,6 +382,7 @@ export class World {
       return { message: "Left the world." };
     }
     if (a.type === "party") return this.parties.act(p, a, now, reject);
+    if (a.type === "finder") return this.finder.act(p, a, now, reject);
     if (a.type === "guild") return this.guilds.act(p, a, now, reject);
     if (a.type === "release") {
       reject(!p.dead, "You are not dead.");
@@ -816,6 +820,19 @@ export class World {
     }
     if (e.boss) {
       const inst = this.crypts.instances.get(e.instance);
+      // A group the Dungeon Finder put together earns a satchel of coin and experience.
+      const finderParty = inst && [...this.parties.byId.values()].find((g) => g.finder === inst.dungeon.id && inst.key.endsWith(`party:${g.id}`));
+      if (finderParty && !inst.finderPaid) {
+        inst.finderPaid = true;
+        for (const id of finderParty.members) {
+          const q = this.players.get(id);
+          if (!q || q.instance !== inst.id) continue;
+          const bonus = FINDER.bonus(inst.dungeon.bossLevel);
+          q.coins = (q.coins ?? 0) + bonus.coins;
+          addExperience(q, bonus.xp);
+          this.system(q, `Dungeon Finder satchel: ${bonus.coins} gold and ${bonus.xp} experience.`, now);
+        }
+      }
       if (inst) {
         inst.cleared = true;
         inst.telegraphs = [];
@@ -930,7 +947,7 @@ export class World {
     p.combatUntil = 0;
     if (p.instance) {
       // Spirits released inside the crypt return to its door, ready to run back in.
-      this.crypts.leave(p);
+      this.crypts.leave(p, { door: true });
       return;
     }
     // Spirits return to the nearest graveyard: camp or a town.
@@ -1110,6 +1127,10 @@ export class World {
       this.hurtPlayer(p, this.maxHp(p) * 0.08 + stats(p).armor * 0.5, now, null, "Lava");
     }
     this.crypts.tick(now, dt);
+    if (now - (this.finderAt ?? 0) >= 1000) {
+      this.finderAt = now;
+      this.finder.tick(now);
+    }
     this.playerGrid.build(online.filter((p) => !p.instance && !p.dead));
     this.tickEnemies(this.enemies, online.filter((p) => !p.instance), dt, now, null);
     this.enemyGrid.build(this.enemies);
