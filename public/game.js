@@ -1539,6 +1539,7 @@ async function slashCommand(text) {
   if (["invite", "inv"].includes(c)) return partyAction({ op: "invite", name: arg });
   if (["leave", "leaveparty", "leavegroup"].includes(c)) return partyAction({ op: "leave" });
   if (["kick", "uninvite"].includes(c)) return partyAction({ op: "kick", name: arg });
+  if (["raid", "convertraid", "makeraid"].includes(c)) return partyAction({ op: "raid" });
   if (["promote", "pl"].includes(c)) return partyAction({ op: "promote", name: arg });
   const send = (channel, body, to) =>
     api("/api/actions", { type: "chat", channel, text: body, to }).catch((e) => uiError(e.message));

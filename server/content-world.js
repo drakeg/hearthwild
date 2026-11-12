@@ -295,6 +295,12 @@ const EPIC_NAMES = {
 };
 // Each boss drops one of its dungeon's three Epics (the Hollow Crypt's are defined in content.js).
 export const DUNGEON_LOOT = { "hollow-crypt": ["ashbound-greatblade", "ashen-mantle", "ember-of-vorlath"] };
+// The Sundered Spire: each of its three bosses has three Epics of its own, stronger than any dungeon's.
+const RAID_NAMES = {
+  "sundered-spire:0": ["Gatekeeper’s warhammer", "Spireguard aegis-plate", "Keystone of the Gate"],
+  "sundered-spire:1": ["Lightbinder’s prism-staff", "Raiment of Binding Light", "Seraphel’s halo-shard"],
+  "sundered-spire:2": ["Voidheart, the Unmaker", "Mantle of the Swallowed Stars", "Heart of Nythera"],
+};
 for (const [id, names] of Object.entries(EPIC_NAMES)) {
   const level = DUNGEONS[id].levels[1],
     boost = 1.6;
@@ -312,6 +318,24 @@ for (const [id, names] of Object.entries(EPIC_NAMES)) {
     DUNGEON_LOOT[id].push(key);
   });
 }
+for (const [spec, names] of Object.entries(RAID_NAMES)) {
+  const id = spec.split(":")[0],
+    level = 30,
+    boost = 1.95;
+  DUNGEON_LOOT[spec] = names.map((name, i) => {
+    const key = slug(name),
+      slot = ["weapon", "chest", "charm"][i];
+    GEAR[key] =
+      slot === "weapon"
+        ? { name, slot, rarity: "Epic", level, dungeon: id, raid: true, damage: Math.round((8 + level * 2.1) * boost), armor: 0, maxHp: 0 }
+        : slot === "chest"
+          ? { name, slot, rarity: "Epic", level, dungeon: id, raid: true, damage: 0, armor: Math.round((3 + level * 0.7) * boost), maxHp: Math.round((30 + level * 11) * boost) }
+          : { name, slot, rarity: "Epic", level, dungeon: id, raid: true, damage: Math.round((2 + level * 0.7) * boost), armor: Math.round((1 + level * 0.25) * boost), maxHp: Math.round((14 + level * 5) * boost) };
+    GEAR_PRICES[key] = [null, 1400];
+    return key;
+  });
+}
+DUNGEON_LOOT["sundered-spire"] = DUNGEON_LOOT["sundered-spire:2"];
 const SCOUTS = {
   "harrow-barrow": ["barrow", "Ranger Tess Mallory", "The Harrow bandits have dug into the old barrow on the hill, and their king holds court in the deepest hall. Bring down Gorran Blackhook and the Downs will breathe again."],
   "drowned-chapel": ["chapel", "Brother Ennis", "My chapel sank into the mire a generation ago. Now something sings beneath the water. Silence Mother Sallow, I beg you."],
@@ -320,6 +344,7 @@ const SCOUTS = {
   cinderforge: ["forge", "Smith’s-mate Ilse", "Forgelord Ashkar has relit the First Forge beneath the waste, and every hound of coal answers its bellows. Bank its fires for good."],
   thornheart: ["hollow", "Ranger Aedan Moss", "At the heart of the wood sleeps the Briar Queen, and she is waking. Go down through the roots and put her back to sleep — forever."],
   "sun-tomb": ["tomb", "Scholar Rashid", "The tomb of Sun-King Azhar has opened, and he walks again among his treasures. A king long dead should stay that way."],
+  "sundered-spire": ["spire", "Archon Maelis", "The Spire was built to hold the void shut, and now it has cracked. Gather ten of the bravest you know, climb past the Gatekeeper and the Lightbinder, and close the Heart of the Void before it swallows the Reach."],
   observatory: ["observatory", "Starwatcher Lune", "Astromancer Velia broke the great lens to call the stars down, and she isn’t finished. Climb to the shattered dome and stop her before the sky comes with them."],
 };
 for (const [id, [short, name, text]] of Object.entries(SCOUTS)) {

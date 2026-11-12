@@ -4,12 +4,16 @@
 // the dungeon returns each of them to where they queued. Live-session state, like groups.
 import { randomUUID } from "node:crypto";
 import { DUNGEON_LIST, DUNGEONS } from "../public/dungeon-layout.js";
-import { PARTY_SIZE } from "./party.js";
+import { PARTY_SIZE, RAID_SIZE } from "./party.js";
 
 // Which roles each class can fill.
 export const ROLES = { warrior: ["tank", "damage"], druid: ["healer", "damage"], warlock: ["damage"], rogue: ["damage"] };
 export const FINDER = {
   slots: { tank: 1, healer: 1, damage: 3 },
+  // Raids take ten: two tanks, two healers and six damage; after a longer wait, five will do.
+  raidSlots: { tank: 2, healer: 2, damage: 6 },
+  raidRelaxAfter: 180000,
+  raidMinGroup: 5,
   readyTime: 40000,
   // After this long in the queue, a smaller group (tank, healer and at least one more) will do.
   relaxAfter: 90000,
@@ -18,7 +22,11 @@ export const FINDER = {
   bonus: (level) => ({ coins: 6 * level, xp: 60 * level }),
 };
 // Dungeons a character may queue for: from one level below the dungeon's first creatures.
-export const eligible = (level) => DUNGEON_LIST.filter((d) => level >= (d.levels?.[0] ?? 1) - 1).map((d) => d.id);
+export const eligible = (level) => DUNGEON_LIST.filter((d) => level >= (d.minLevel ?? (d.levels?.[0] ?? 1) - 1)).map((d) => d.id);
+const shape = (d) =>
+  d.raid
+    ? { slots: FINDER.raidSlots, size: RAID_SIZE, relax: FINDER.raidRelaxAfter, min: FINDER.raidMinGroup }
+    : { slots: FINDER.slots, size: PARTY_SIZE, relax: FINDER.relaxAfter, min: FINDER.minGroup };
 
 export class Finder {
   constructor(world) {
@@ -47,7 +55,7 @@ export class Finder {
     if (a.op === "queue") {
       fail(this.entryOf(p) || this.proposalOf(p), "You’re already in the Dungeon Finder.");
       fail(party && party.leader !== p.id, "Only your group’s leader can queue the group.");
-      fail(members.length >= PARTY_SIZE, "Your group is already full — walk in through the door.");
+      fail(members.length >= RAID_SIZE, "Your raid is already full — walk in through the door.");
       fail(!Array.isArray(a.dungeons) || !a.dungeons.length || a.dungeons.length > DUNGEON_LIST.length, "Choose at least one dungeon.");
       const online = (q) => q && now - q.seen < 15000;
       for (const q of members) {
@@ -66,9 +74,13 @@ export class Finder {
       }
       const role = (q) => (ROLES[q.classId].includes(q.finderRole) ? q.finderRole : ROLES[q.classId][0]);
       const entry = { id: randomUUID(), faction: p.faction, members: members.map((q) => ({ id: q.id, role: role(q) })), dungeons: [...new Set(a.dungeons)], since: now };
-      // A group can't bring two tanks or two healers.
+      // The group must fit every dungeon it queues for.
       const counts = this.counts(entry.members);
-      fail(Object.entries(counts).some(([r, n]) => n > FINDER.slots[r]), "Your group has too many of one role for a dungeon group.");
+      for (const id of entry.dungeons) {
+        const sh = shape(DUNGEONS[id]);
+        fail(members.length >= sh.size, `Your group is too large for ${DUNGEONS[id].name}.`);
+        fail(Object.entries(counts).some(([r, n]) => n > sh.slots[r]), `Your group has too many of one role for ${DUNGEONS[id].name}.`);
+      }
       this.queue.set(entry.id, entry);
       for (const q of members)
         this.world.system(q, `You join the Dungeon Finder as ${role(q) === "damage" ? "damage" : `a ${role(q)}`} for ${entry.dungeons.length === 1 ? DUNGEONS[entry.dungeons[0]].name : `${entry.dungeons.length} dungeons`}.`, now);
@@ -112,18 +124,19 @@ export class Finder {
       for (const faction of new Set([...this.queue.values()].map((e) => e.faction))) {
         const waiting = [...this.queue.values()].filter((e) => e.faction === faction && e.dungeons.includes(d.id)).sort((a, b) => a.since - b.since);
         if (!waiting.length) continue;
-        const picked = [],
+        const sh = shape(d),
+          picked = [],
           have = { tank: 0, healer: 0, damage: 0 };
         for (const e of waiting) {
           const c = this.counts(e.members);
-          if (Object.keys(c).some((r) => have[r] + c[r] > FINDER.slots[r])) continue;
+          if (Object.keys(c).some((r) => have[r] + c[r] > sh.slots[r])) continue;
           picked.push(e);
           for (const r of Object.keys(c)) have[r] += c[r];
-          if (have.tank + have.healer + have.damage === PARTY_SIZE) break;
+          if (have.tank + have.healer + have.damage === sh.size) break;
         }
         const size = have.tank + have.healer + have.damage,
-          relaxed = now - waiting[0].since >= FINDER.relaxAfter && picked.includes(waiting[0]) && size >= FINDER.minGroup && have.tank && have.healer;
-        if (size === PARTY_SIZE || relaxed) this.propose(d, picked, now);
+          relaxed = now - waiting[0].since >= sh.relax && picked.includes(waiting[0]) && size >= sh.min && have.tank && have.healer;
+        if (size === sh.size || relaxed) this.propose(d, picked, now);
       }
   }
   propose(d, entries, now) {
@@ -159,7 +172,7 @@ export class Finder {
     // Everyone joins one fresh group, led by the tank (or whoever queued first).
     for (const { q } of players) if (w.parties.of(q)) w.parties.remove(q, now, `${q.name} leaves for the Dungeon Finder.`);
     const leader = (players.find((x) => x.role === "tank") ?? players[0]).q,
-      party = { id: randomUUID(), leader: leader.id, members: new Set(players.map((x) => x.q.id)), finder: d.id };
+      party = { id: randomUUID(), leader: leader.id, members: new Set(players.map((x) => x.q.id)), finder: d.id, raid: !!d.raid };
     w.parties.byId.set(party.id, party);
     for (const { q, role } of players) {
       q.partyId = party.id;

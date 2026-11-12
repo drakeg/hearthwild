@@ -1,3 +1,18 @@
+## 0.18.0 — Raids: The Sundered Spire
+
+**The first raid, for ten adventurers at level 30.** The Sundered Spire stands in the far north-east of Starfall Reach. Inside, three bosses wait in turn, each with its own fight and its own Epics.
+
+- **Grimward the Gatekeeper** stomps the ground around him (*Warden’s Stomp*), brings down *Falling Masonry* on four of you at once, and calls Spire wardens to hold the gate.
+- **Seraphel the Lightbinder** rains *Lightfall* on five of you, channels *Binding Light* (interrupt it!), and erupts in a *Prism Burst*. At 40% her light-bound acolytes join the fight.
+- **Nythera, Heart of the Void** opens *Void Rifts* under the raid, pulls everything in with *Collapse Inward*, and channels *Unmaking*. She calls void spawn at half health, and she enrages after seven minutes.
+- **Raid groups:** a group leader can type **/raid** to turn a group into a raid of up to ten. Raids need a group, and level 28 or higher to enter. Boss health and damage scale with the number of raiders.
+- **Raid loot:** each boss drops one of its own three Epics for every raider, and they're stronger than any dungeon's. Bosses also drop 150 gold each.
+- **Quest:** Archon Maelis at the Spire's door gives a quest to close the Heart of the Void.
+- **The Dungeon Finder fills raids:** queue for the Spire, and the Finder builds a raid of two tanks, two healers and six damage dealers. After three minutes in the queue, five with a tank and a healer is enough. Finder raids get the Finder satchel too.
+- **Under the hood:** dungeons can now hold several bosses, each fighting, resetting and dropping loot on its own. Only the final boss clears the instance and completes its quest.
+- The death message now says "the entrance" instead of "the crypt entrance" in every dungeon.
+- A hundred and ten checks, including new tests for the raid's bosses and loot, raid groups, entry rules, separate boss fights, clearing, and Finder raids.
+
 ## 0.17.0 — Herbs of the Wide World
 
 - **Nine herbs, one native to every zone:** Starleaf (Stillwood), Amberroot (Amber Downs), Bog myrtle (Saltreed Marsh), Frostbloom (Frostmere Vale), Stonemoss (Greyspire Crags), Emberthorn (Emberwaste), Gloamcap (Gloamwood), Sunpetal (Sunscar Dunes) and Starglass lily (Starfall Reach). Each has its own colours and glow.

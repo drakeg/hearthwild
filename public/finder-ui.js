@@ -116,8 +116,8 @@ export function createFinderUi({ getState, act, serverNow, onOpen, focusWorld })
         render();
       };
       const [lo] = d.levels ?? [1];
-      row.append(box, el("span", "finder-name", d.name), el("span", "finder-meta", `${ZONES[d.zone ?? "stillwood"].name} · levels ${lo}–${d.bossLevel}`));
-      if (!ok) row.title = `Opens at level ${lo - 1}`;
+      row.append(box, el("span", "finder-name", d.raid ? `${d.name} · Raid` : d.name), el("span", "finder-meta", d.raid ? `${ZONES[d.zone].name} · 10 players · level ${d.minLevel}+` : `${ZONES[d.zone ?? "stillwood"].name} · levels ${lo}–${d.bossLevel}`));
+      if (!ok) row.title = `Opens at level ${d.minLevel ?? lo - 1}`;
       list.append(row);
     }
     body.append(list);

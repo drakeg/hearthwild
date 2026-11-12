@@ -1,7 +1,10 @@
 // Groups of up to five adventurers of the same faction. Parties are live-session state
 // (not saved): they dissolve on server restart, like an ad-hoc group.
 import { randomUUID } from "node:crypto";
-export const PARTY_SIZE = 5;
+export const PARTY_SIZE = 5,
+  RAID_SIZE = 10;
+// How many a group can hold: five, or ten once it has become a raid.
+export const sizeOf = (party) => (party?.raid ? RAID_SIZE : PARTY_SIZE);
 const INVITE_TTL = 60000;
 
 export class Parties {
@@ -40,7 +43,7 @@ export class Parties {
       fail(q.partyId, `${q.name} is already in a group.`);
       let party = this.of(p);
       if (party) fail(party.leader !== p.id, "Only the group leader can invite.");
-      if (party) fail(party.members.size >= PARTY_SIZE, "Your group is full.");
+      if (party) fail(party.members.size >= sizeOf(party), "Your group is full.");
       if (!party) {
         party = { id: randomUUID(), leader: p.id, members: new Set([p.id]) };
         this.byId.set(party.id, party);
@@ -55,7 +58,7 @@ export class Parties {
       p.partyInvite = null;
       fail(!party, "That invitation has expired.");
       fail(p.partyId, "Leave your current group first.");
-      fail(party.members.size >= PARTY_SIZE, "That group is full.");
+      fail(party.members.size >= sizeOf(party), "That group is full.");
       party.members.add(p.id);
       p.partyId = party.id;
       this.notify(party, `${p.name} joins the group.`, now);
@@ -93,7 +96,15 @@ export class Parties {
       this.notify(party, `${q.name} is now the group leader.`, now);
       return { message: `${q.name} leads the group.` };
     }
-    fail(true, "Choose invite, accept, decline, leave, kick or promote.");
+    if (a.op === "raid") {
+      const party = this.of(p);
+      fail(!party || party.leader !== p.id, "Only a group leader can make the group a raid.");
+      fail(party.raid, "Your group is already a raid.");
+      party.raid = true;
+      this.notify(party, `${p.name} has made the group a raid: up to ${RAID_SIZE} can join.`, now);
+      return { message: "Your group is now a raid." };
+    }
+    fail(true, "Choose invite, accept, decline, leave, kick, promote or raid.");
   }
   remove(p, now, message) {
     const party = this.of(p);
@@ -128,6 +139,8 @@ export class Parties {
     return {
       id: party.id,
       leader: party.leader,
+      raid: !!party.raid,
+      size: sizeOf(party),
       members: [...party.members]
         .map((id) => this.world.players.get(id))
         .filter(Boolean)

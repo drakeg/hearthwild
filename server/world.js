@@ -329,7 +329,7 @@ export class World {
       portals: p.instance
         ? [(({ origin, exit, id }) => ({ id: `${id}-exit`, type: "exit", name: "Exit", x: origin.x + exit.x, z: origin.z + exit.z }))(dungeonOf(p.instance) ?? CRYPT)]
         : DUNGEON_LIST.map((d) => ({ id: `${d.id}-door`, type: "enter", name: d.name, x: d.door.x, z: d.door.z })),
-      telegraphs: p.instance ? (this.crypts.instances.get(p.instance)?.telegraphs ?? []) : [],
+      telegraphs: p.instance ? (this.crypts.instances.get(p.instance)?.telegraphs ?? []).map(({ boss, ...t }) => t) : [],
       // The herb finder: every patch ready to pick in the zone the map shows (or the whole world).
       ...(herbs && { herbMap: this.resources.filter((r) => !r.depleted && (herbs === "world" || r.zone === herbs)).map((r) => [Math.round(r.x), Math.round(r.z), r.kind]) }),
       resources: (p.instance ? [] : near(this.resources, VIEW.resources)).map((r) => ({
@@ -783,7 +783,7 @@ export class World {
       addExperience(q, xp);
       if (xp) this.event("xp", { to: q.id, amount: xp, name: e.name, x: e.x, z: e.z, zone: zoneOf(e) }, now);
       const items = e.boss
-        ? [{ id: randomUUID(), template: ((list) => list[Math.floor(this.random() * list.length)])(DUNGEON_LOOT[dungeonOf(e.instance)?.id] ?? DUNGEON_LOOT["hollow-crypt"]) }]
+        ? [{ id: randomUUID(), template: ((list) => list[Math.floor(this.random() * list.length)])(DUNGEON_LOOT[e.spec] ?? DUNGEON_LOOT[dungeonOf(e.instance)?.id] ?? DUNGEON_LOOT["hollow-crypt"]) }]
         : e.summoned
           ? []
           : template
@@ -794,7 +794,7 @@ export class World {
         ownerId: q.id,
         x: e.x,
         z: e.z,
-        coins: e.boss ? 60 : this.rollCoins(e),
+        coins: e.boss ? (dungeonOf(e.instance)?.raid ? 150 : 60) : this.rollCoins(e),
         items,
         expiresAt: now + 300000,
         zone: zoneOf(e),
@@ -816,8 +816,8 @@ export class World {
         if (def.collect) this.system(q, `${def.collect.item}: ${qp.progress}/${def.required}`, now);
         if (qp.progress >= def.required) qp.status = "ready";
       }
-      // Dungeon quests complete when that dungeon's boss falls.
-      if (e.boss)
+      // Dungeon quests complete when that dungeon's (final) boss falls.
+      if (e.boss && this.crypts.instances.get(e.instance)?.boss === e)
         for (const [id, def] of Object.entries(QUESTS)) {
           const qp = q.quests[id];
           if (def.boss && def.boss === dungeonOf(e.instance)?.id && qp?.status === "active") {
@@ -826,7 +826,7 @@ export class World {
           }
         }
     }
-    if (e.boss) {
+    if (e.boss && this.crypts.instances.get(e.instance)?.boss === e) {
       const inst = this.crypts.instances.get(e.instance);
       // A group the Dungeon Finder put together earns a satchel of coin and experience.
       const finderParty = inst && [...this.parties.byId.values()].find((g) => g.finder === inst.dungeon.id && inst.key.endsWith(`party:${g.id}`));
@@ -1011,7 +1011,7 @@ export class World {
       if (p.autoAttack === e.id) p.autoAttack = null;
     if (e.boss) {
       const inst = this.crypts.instances.get(e.instance);
-      if (inst) this.crypts.reset(inst);
+      if (inst) this.crypts.reset(inst, e);
     }
   }
   tick(dt, now = Date.now()) {

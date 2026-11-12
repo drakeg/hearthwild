@@ -394,7 +394,8 @@ export function createHud({
         if (zoneMap) {
           label(d.name, x, y + 18, "bold 12px Georgia", "#e6d8ff");
           const [lo, hi] = d.levels ?? [];
-          if (lo) label(`Dungeon · Levels ${lo}–${d.bossLevel ?? hi}`, x, y + 32, "11px Georgia", "#d8ccef");
+          if (d.raid) label(`Raid · 10 players · level ${d.minLevel}+`, x, y + 32, "11px Georgia", "#ffd0a0");
+          else if (lo) label(`Dungeon · Levels ${lo}–${d.bossLevel ?? hi}`, x, y + 32, "11px Georgia", "#d8ccef");
         }
       }
       // Zone names: placed in each zone's heartland on the world map, as a title on a zone map.

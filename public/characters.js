@@ -110,6 +110,10 @@ export const LOOKS = {
   "briar-queen": { g: "female", outfit: "ranger", hair: "hair_long", hairColor: "auburn", cloth: "moss", pauldron: true, held: ["staff"], attack: "castInstant", caster: true, scale: 1.5 },
   "sun-king": { g: "male", outfit: "ranger", hair: "hair_long", beard: true, hairColor: "black", cloth: "gold", pauldron: true, held: ["sword", "shield"], attack: "attack1h", scale: 1.6 },
   astromancer: { g: "female", outfit: "ranger", hood: true, cloth: "starlight", pauldron: true, held: ["wand", "book"], attack: "castInstant", caster: true, scale: 1.5 },
+  // The Sundered Spire (raid).
+  gatekeeper: { g: "male", outfit: "ranger", hair: "hair_buzzed", beard: true, hairColor: "grey", cloth: "night", pauldron: true, held: ["axe", "shield"], attack: "attack1h", scale: 2 },
+  lightbinder: { g: "female", outfit: "ranger", hair: "hair_long", hairColor: "blond", cloth: "gold", pauldron: true, held: ["staff"], attack: "castInstant", caster: true, scale: 1.7 },
+  "void-heart": { g: "female", outfit: "ranger", hood: true, cloth: "night", pauldron: true, held: ["wand", "book"], attack: "castInstant", caster: true, scale: 2.1 },
   "bandit-king": { g: "male", outfit: "ranger", hair: "hair_long", beard: true, hairColor: "black", cloth: "tan", pauldron: true, held: ["axe", "shield"], attack: "attack1h", scale: 1.4 },
   "mire-matron": { g: "female", outfit: "ranger", hood: true, cloth: "bog", held: ["staff"], attack: "castInstant", caster: true, scale: 1.45 },
   frostbound: { g: "male", outfit: "ranger", hair: "hair_long", beard: true, hairColor: "blond", cloth: "frost", pauldron: true, held: ["axe"], attack: "attack1h", scale: 1.65 },
@@ -163,7 +167,7 @@ export const CREATURES = {
   "star-lynx": { model: "fox", size: 1.45, tint: "#cdc4f6" },
   voidmaw: { model: "fox", size: 2.2, tint: "#2a2242" },
   ...Object.fromEntries(
-    ["cinder-reaver", "ashbound-zealot", "thornweaver", "gloam-warden", "sandreaver", "dune-mystic", "astral-seeker", "starfall-sentinel", "forgelord", "briar-queen", "sun-king", "astromancer"].map((k) => [k, { model: k }]),
+    ["gatekeeper", "lightbinder", "void-heart", "cinder-reaver", "ashbound-zealot", "thornweaver", "gloam-warden", "sandreaver", "dune-mystic", "astral-seeker", "starfall-sentinel", "forgelord", "briar-queen", "sun-king", "astromancer"].map((k) => [k, { model: k }]),
   ),
 };
 const BEASTS = {
