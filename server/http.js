@@ -35,6 +35,7 @@ const assets = new Map([
   ["/combat-ui.js", ["combat-ui.js", "text/javascript"]],
   ["/guild-ui.js", ["guild-ui.js", "text/javascript"]],
   ["/finder-ui.js", ["finder-ui.js", "text/javascript"]],
+  ["/reagents.js", ["reagents.js", "text/javascript"]],
   ["/terrain.js", ["terrain.js", "text/javascript"]],
   ["/world-stream.js", ["world-stream.js", "text/javascript"]],
   ["/characters.js", ["characters.js", "text/javascript"]],
@@ -223,7 +224,8 @@ export function createGameServer({ dataDir = resolve("data"), tls } = {}) {
         if (!Number.isSafeInteger(after) || after < 0)
           throw new GameError("Invalid message cursor.");
         const known = url.searchParams.get("content");
-        send(200, world.state(token, after, Date.now(), known && /^[0-9a-f]{12}:[a-z]+$/.test(known) ? known : null));
+        const herbs = url.searchParams.get("herbs");
+        send(200, world.state(token, after, Date.now(), known && /^[0-9a-f]{12}:[a-z]+$/.test(known) ? known : null, herbs && /^[a-z]{3,12}$/.test(herbs) ? herbs : null));
         return;
       }
       if (

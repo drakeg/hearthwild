@@ -24,6 +24,7 @@ import { CRYPT, DUNGEON_LIST, dungeonOf } from "../public/dungeon-layout.js";
 import { DUNGEON_LOOT } from "./content-world.js";
 import { Grid, VIEW, AWAKE_RADIUS, contentKey } from "./interest.js";
 import { Finder, FINDER } from "./finder.js";
+import { REAGENTS, POUCH_LIMIT } from "../public/reagents.js";
 import {
   MELEE_RANGE,
   LEASH_RANGE,
@@ -262,7 +263,7 @@ export class World {
     reject(!p, "Your return key is missing or invalid.", 401);
     return p;
   }
-  state(token, after = 0, now = Date.now(), known = null) {
+  state(token, after = 0, now = Date.now(), known = null, herbs = null) {
     const p = this.authenticate(token);
     const returning = now - p.seen >= 15000;
     p.seen = now;
@@ -329,6 +330,8 @@ export class World {
         ? [(({ origin, exit, id }) => ({ id: `${id}-exit`, type: "exit", name: "Exit", x: origin.x + exit.x, z: origin.z + exit.z }))(dungeonOf(p.instance) ?? CRYPT)]
         : DUNGEON_LIST.map((d) => ({ id: `${d.id}-door`, type: "enter", name: d.name, x: d.door.x, z: d.door.z })),
       telegraphs: p.instance ? (this.crypts.instances.get(p.instance)?.telegraphs ?? []) : [],
+      // The herb finder: every patch ready to pick in the zone the map shows (or the whole world).
+      ...(herbs && { herbMap: this.resources.filter((r) => !r.depleted && (herbs === "world" || r.zone === herbs)).map((r) => [Math.round(r.x), Math.round(r.z), r.kind]) }),
       resources: (p.instance ? [] : near(this.resources, VIEW.resources)).map((r) => ({
         ...r,
         available: !r.depleted,
@@ -545,28 +548,33 @@ export class World {
     }
     if (a.type === "gather") {
       const r = this.resources.find((r) => r.id === a.target);
-      reject(!r, "Choose a starleaf plant.");
+      reject(!r, "Choose a herb to gather.");
       reject(distance(p, r) > 3.2, "Move closer to gather.");
-      reject(
-        r.depleted,
-        "This plant is regrowing. Look for another Starleaf patch.",
-      );
-      reject(p.materials.starleaf >= 99, "Your herb pouch is full.");
-      if (p.professions.herbalism)
+      const kind = r.kind ?? "starleaf",
+        herb = REAGENTS[kind];
+      reject(r.depleted, `This plant is regrowing. Look for another ${herb.name} patch.`);
+      reject(p.materials[kind] >= POUCH_LIMIT, `Your pouch can’t hold more ${herb.name}.`);
+      // Herbalists improve as they gather, and a skilled one often finds a second sprig.
+      let count = 1;
+      if (p.professions.herbalism) {
+        if (this.random() < p.professions.herbalism / 250) count = 2;
         p.professions.herbalism = Math.min(100, p.professions.herbalism + 1);
+      }
+      count = Math.min(count, POUCH_LIMIT - p.materials[kind]);
       r.depleted = true;
       r.readyAt =
         now +
         HERB_RESPAWN.min +
         Math.floor(this.random() * (HERB_RESPAWN.max - HERB_RESPAWN.min + 1));
-      p.materials.starleaf++;
+      p.materials[kind] += count;
       const q = p.quests.starleaf;
-      if (["active", "ready"].includes(q.status)) {
+      if (kind === "starleaf" && ["active", "ready"].includes(q.status)) {
         q.progress = Math.min(4, p.materials.starleaf);
         if (q.progress === 4) q.status = "ready";
       }
+      const questNote = kind !== "starleaf" ? "" : q.status === "ready" ? " · Quest ready — return to Herbalist Mira!" : q.status === "active" ? ` · Quest ${q.progress}/4` : "";
       return {
-        message: `Gathered Starleaf ×1 · ${p.materials.starleaf} in Bags${q.status === "ready" ? " · Quest ready — return to Herbalist Mira!" : q.status === "active" ? ` · Quest ${q.progress}/4` : ""}`,
+        message: `Gathered ${herb.name} ×${count} · ${p.materials[kind]} in your pouch${p.professions.herbalism ? ` · Herbalism ${p.professions.herbalism}` : ""}${questNote}`,
       };
     }
     if (a.type === "loot") {

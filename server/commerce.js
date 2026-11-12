@@ -1,6 +1,7 @@
 import { ITEMS, stats } from "./content.js";
 import { randomUUID } from "node:crypto";
 import { GEAR_PRICES } from "./content-world.js";
+import { REAGENTS, POUCH_LIMIT } from "../public/reagents.js";
 export const PRICES = {
   // Zone gear: sold to merchants, never stocked (buy price null).
   ...GEAR_PRICES,
@@ -14,29 +15,36 @@ export const PRICES = {
   "travelers-bread": [3, 1],
   "spring-water": [3, 1],
   "greater-draught": [18, 5],
+  "amber-tonic": [null, 8],
+  "mire-salve": [null, 10],
+  "frostbloom-elixir": [null, 12],
+  "stoneheart-draught": [null, 14],
+  "ember-draught": [null, 16],
+  "gloamcap-brew": [null, 18],
+  "sunpetal-cordial": [null, 20],
+  "starlight-elixir": [null, 24],
 };
 export const RECIPES = {
-  "healing-draught": {
-    name: "Starleaf healing draught",
-    herbs: 2,
-    skill: 1,
-    heal: 60,
-  },
-  "greater-draught": {
-    name: "Greater Starleaf draught",
-    herbs: 4,
-    skill: 5,
-    heal: 110,
-  },
+  "healing-draught": { name: "Starleaf healing draught", herbs: { starleaf: 2 }, skill: 1, heal: 60 },
+  "greater-draught": { name: "Greater Starleaf draught", herbs: { starleaf: 4 }, skill: 5, heal: 110 },
+  "amber-tonic": { name: "Amberroot tonic", herbs: { amberroot: 2, starleaf: 1 }, skill: 12, heal: 150 },
+  "mire-salve": { name: "Bog myrtle salve", herbs: { bogmyrtle: 3 }, skill: 20, heal: 190 },
+  "frostbloom-elixir": { name: "Frostbloom elixir", herbs: { frostbloom: 2, bogmyrtle: 1 }, skill: 30, heal: 230 },
+  "stoneheart-draught": { name: "Stoneheart draught", herbs: { stonemoss: 3 }, skill: 40, heal: 280 },
+  "ember-draught": { name: "Emberthorn draught", herbs: { emberthorn: 2, stonemoss: 1 }, skill: 50, heal: 320 },
+  "gloamcap-brew": { name: "Gloamcap brew", herbs: { gloamcap: 3 }, skill: 60, heal: 370 },
+  "sunpetal-cordial": { name: "Sunpetal cordial", herbs: { sunpetal: 2, gloamcap: 1 }, skill: 70, heal: 420 },
+  "starlight-elixir": { name: "Starlight elixir", herbs: { starlily: 2, sunpetal: 1 }, skill: 80, heal: 480 },
 };
 const requireThat = (ok, message) => {
   if (!ok) throw Object.assign(new Error(message), { status: 400 });
 };
-function surplus(p) {
+// Herbs free to sell or brew: four Starleaf stay reserved while the gathering quest is active.
+export function surplus(p, kind = "starleaf") {
   return Math.max(
     0,
-    p.materials.starleaf -
-      (["active", "ready"].includes(p.quests.starleaf.status) ? 4 : 0),
+    (p.materials[kind] ?? 0) -
+      (kind === "starleaf" && ["active", "ready"].includes(p.quests.starleaf.status) ? 4 : 0),
   );
 }
 export function commerce(p, a, npcs, now) {
@@ -82,19 +90,22 @@ export function commerce(p, a, npcs, now) {
     return { message: `Bought ${ITEMS[a.template].name} for ${price} gold.` };
   }
   if (a.type === "sell") {
-    if (a.item === "reagent-starleaf") {
-      const quantity = a.quantity ?? 1;
+    const kind = typeof a.item === "string" && a.item.startsWith("reagent-") ? a.item.slice(8) : null;
+    if (kind) {
+      requireThat(Object.hasOwn(REAGENTS, kind), "Choose a herb from your pouch.");
+      const quantity = a.quantity ?? 1,
+        herb = REAGENTS[kind];
       requireThat(
-        Number.isInteger(quantity) && quantity > 0 && quantity <= 99,
+        Number.isInteger(quantity) && quantity > 0 && quantity <= POUCH_LIMIT,
         "Choose a quantity from 1 to 99.",
       );
       requireThat(
-        surplus(p) >= quantity,
-        "Keep four Starleaf for your active quest; gather extra or turn it in first.",
+        surplus(p, kind) >= quantity,
+        kind === "starleaf" ? "Keep four Starleaf for your active quest; gather extra or turn it in first." : `You don’t have that much ${herb.name}.`,
       );
-      p.materials.starleaf -= quantity;
-      p.coins += quantity;
-      return { message: `Sold Starleaf ×${quantity} for ${quantity} gold.` };
+      p.materials[kind] -= quantity;
+      p.coins += quantity * herb.value;
+      return { message: `Sold ${herb.name} ×${quantity} for ${quantity * herb.value} gold.` };
     }
     const item = p.inventory.find((i) => i.id === a.item);
     requireThat(
@@ -154,12 +165,13 @@ export function commerce(p, a, npcs, now) {
       p.professions.alchemy >= recipe.skill,
       `Requires Alchemy ${recipe.skill}.`,
     );
-    requireThat(
-      surplus(p) >= recipe.herbs,
-      "Not enough surplus Starleaf. Keep four for your active quest.",
-    );
+    for (const [kind, n] of Object.entries(recipe.herbs))
+      requireThat(
+        surplus(p, kind) >= n,
+        kind === "starleaf" ? "Not enough surplus Starleaf. Keep four for your active quest." : `You need ${n} ${REAGENTS[kind].name}.`,
+      );
     room(a.recipe);
-    p.materials.starleaf -= recipe.herbs;
+    for (const [kind, n] of Object.entries(recipe.herbs)) p.materials[kind] -= n;
     p.inventory.push({ id: randomUUID(), template: a.recipe });
     p.professions.alchemy = Math.min(100, p.professions.alchemy + 1);
     return {

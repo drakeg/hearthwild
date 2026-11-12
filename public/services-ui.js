@@ -1,3 +1,4 @@
+import { REAGENTS, REAGENT_IDS } from "./reagents.js";
 const $ = (id) => document.getElementById(id),
   el = (tag, text, cls) => {
     const e = document.createElement(tag);
@@ -121,7 +122,7 @@ export function servicesUi({ getState, act, stop, focusWorld }) {
             ),
           ],
         );
-      row("Starleaf", "2 gold per sprig · reagent pouch", [
+      row("Starleaf", "2 gold per sprig · herb pouch", [
         button(
           "Buy Starleaf · 2g",
           { type: "buy", vendor, template: "starleaf" },
@@ -130,28 +131,23 @@ export function servicesUi({ getState, act, stop, focusWorld }) {
       ]);
     }
     if (mode === "sell") {
-      const reserve = ["active", "ready"].includes(p.quests.starleaf.status)
-          ? 4
-          : 0,
-        surplus = Math.max(0, p.materials.starleaf - reserve);
-      row(
-        `Starleaf ×${p.materials.starleaf}`,
-        reserve
-          ? "Four sprigs reserved for your active quest. Selling grants 1 gold per sprig."
-          : "1 gold per sprig.",
-        [
-          button(
-            "Sell Starleaf ×1 · 1g",
-            { type: "sell", vendor, item: "reagent-starleaf", quantity: 1 },
-            surplus < 1,
-          ),
-          button(
-            "Sell Starleaf ×5 · 5g",
-            { type: "sell", vendor, item: "reagent-starleaf", quantity: 5 },
-            surplus < 5,
-          ),
-        ],
-      );
+      // Herbs: four Starleaf stay reserved while the gathering quest is active.
+      const reserve = ["active", "ready"].includes(p.quests.starleaf.status) ? 4 : 0;
+      for (const id of REAGENT_IDS) {
+        const have = p.materials[id] ?? 0;
+        if (!have) continue;
+        const herb = REAGENTS[id],
+          spare = Math.max(0, have - (id === "starleaf" ? reserve : 0));
+        row(
+          `${herb.name} ×${have}`,
+          `${herb.value} gold each${id === "starleaf" && reserve ? " · Four reserved for your active quest" : ""}`,
+          [
+            button(`Sell ×1 · ${herb.value}g`, { type: "sell", vendor, item: `reagent-${id}`, quantity: 1 }, spare < 1),
+            button(`Sell ×5 · ${herb.value * 5}g`, { type: "sell", vendor, item: `reagent-${id}`, quantity: 5 }, spare < 5),
+            button(`Sell all · ${herb.value * spare}g`, { type: "sell", vendor, item: `reagent-${id}`, quantity: Math.max(1, spare) }, spare < 1),
+          ],
+        );
+      }
       for (const item of p.inventory) {
         const price = s.shop.find((i) => i.template === item.template)?.sell,
           worn = Object.values(p.equipment).includes(item.id);
@@ -193,7 +189,7 @@ export function servicesUi({ getState, act, stop, focusWorld }) {
       body.append(
         el(
           "p",
-          "Learn both professions free from Mira. Gather Starleaf to improve Herbalism; craft draughts to improve Alchemy. Four herbs stay reserved while your gathering quest is active.",
+          "Learn both professions free from Mira. Anyone can gather herbs; herbalists improve with every pick and often find a second sprig. Every zone has its own herb, so open the map (M) and turn on Herbs to find them. Craft draughts to improve Alchemy. Four Starleaf stay reserved while your gathering quest is active.",
         ),
       );
       for (const id of ["herbalism", "alchemy"])
@@ -210,20 +206,17 @@ export function servicesUi({ getState, act, stop, focusWorld }) {
             ),
           ],
         );
+      const reserve = ["active", "ready"].includes(p.quests.starleaf.status) ? 4 : 0,
+        spare = (id) => (p.materials[id] ?? 0) - (id === "starleaf" ? reserve : 0);
       for (const [id, r] of Object.entries(s.recipes))
         row(
           r.name,
-          `${r.herbs} Starleaf → 1 draught · restores ${r.heal} health · Requires Alchemy ${r.skill}`,
+          `${Object.entries(r.herbs).map(([h, n]) => `${n} ${REAGENTS[h].name} (${p.materials[h] ?? 0})`).join(" + ")} → restores ${r.heal} health · Requires Alchemy ${r.skill}`,
           [
             button(
               `Craft ${r.name}`,
               { type: "craft", recipe: id },
-              p.professions.alchemy < r.skill ||
-                p.materials.starleaf -
-                  (["active", "ready"].includes(p.quests.starleaf.status)
-                    ? 4
-                    : 0) <
-                  r.herbs,
+              p.professions.alchemy < r.skill || Object.entries(r.herbs).some(([h, n]) => spare(h) < n),
             ),
           ],
         );

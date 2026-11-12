@@ -35,6 +35,8 @@ test("starleaf has broad random placement, staggered respawn deadlines, relocati
   const w = new World({}, { random: seeded() }),
     a = w.join({ name: "Gatherer", faction: "dawnward" }),
     p = w.players.get(a.id);
+  // The Stillwood's own Starleaf (herbs of the wider world are tested in herbs.test.js).
+  w.resources = w.resources.filter((r) => r.zone === "stillwood");
   assert.equal(w.resources.length, 32);
   assert.ok(
     Math.max(...w.resources.map((r) => r.x)) -

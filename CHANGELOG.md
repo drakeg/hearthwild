@@ -1,3 +1,17 @@
+## 0.17.0 — Herbs of the Wide World
+
+- **Nine herbs, one native to every zone:** Starleaf (Stillwood), Amberroot (Amber Downs), Bog myrtle (Saltreed Marsh), Frostbloom (Frostmere Vale), Stonemoss (Greyspire Crags), Emberthorn (Emberwaste), Gloamcap (Gloamwood), Sunpetal (Sunscar Dunes) and Starglass lily (Starfall Reach). Each has its own colours and glow.
+- **464 herb patches across the whole world**, up from 32. Starleaf also grows throughout the Downs and the Marsh. Wild patches regrow near where they were picked.
+- **Anyone can gather any herb.** Herbalists improve with every pick and, as their skill rises, often find a second sprig.
+- **The herb finder:**
+  - Open the map (**M**) and press **Herbs** to see every patch ready to pick in the zone, or across the whole world.
+  - The legend lists each herb with a count; click one to show only that herb.
+  - On a zone map, click a patch to mark it as a waypoint.
+  - Nearby herbs always show on the minimap in their own colours.
+- **Eight new alchemy recipes** use the new herbs, from Amberroot tonic (Alchemy 12, restores 150) to Starlight elixir (Alchemy 80, restores 480).
+- **Herbs sell at merchants**, from 1 gold (Starleaf) to 9 gold (Starglass lily) each. The herb pouch holds up to 99 of each herb.
+- A hundred and six checks, including new tests for herb placement in every zone, gathering, the herbalist's bonus, selling, brewing and the herb finder.
+
 ## 0.16.0 — The Dungeon Finder
 
 With nine dungeons across the world, there's now a Dungeon Finder to put groups together.

@@ -1,4 +1,5 @@
 import { WORLD_HALF, WORLD_SIZE, WORLD_LIMIT, ZONES, zoneAt } from "./world-config.js";
+import { REAGENTS, REAGENT_IDS } from "./reagents.js";
 // The square each zone's map shows, and the middle of its land for its name on the world map.
 let bounds = null;
 export function zoneBounds() {
@@ -75,17 +76,13 @@ export function bagCells(items, query = "", capacity = 60) {
 export function bagItems(inventory, materials) {
   return [
     ...inventory,
-    ...(materials?.starleaf > 0
-      ? [
-          {
-            id: "reagent-starleaf",
-            name: "Starleaf",
-            slot: "reagent",
-            rarity: "Reagent",
-            count: materials.starleaf,
-          },
-        ]
-      : []),
+    ...REAGENT_IDS.filter((id) => materials?.[id] > 0).map((id) => ({
+      id: `reagent-${id}`,
+      name: REAGENTS[id].name,
+      slot: "reagent",
+      rarity: "Reagent",
+      count: materials[id],
+    })),
   ];
 }
 export function questMarker(status, locked = false) {
