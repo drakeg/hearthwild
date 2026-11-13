@@ -1,0 +1,251 @@
+:root {
+  color-scheme: dark;
+  --bg: #16120c;
+  --card: #221b11;
+  --line: #4d3d22;
+  --text: #f1e3bf;
+  --muted: #b3a483;
+  --gold: #f0c860;
+  --green: #7fd68f;
+  --red: #e5735a;
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  padding: 20px 24px 32px;
+  background: var(--bg);
+  color: var(--text);
+  font: 14px/1.45 -apple-system, "Segoe UI", system-ui, sans-serif;
+}
+h1,
+h2 {
+  font-family: Georgia, serif;
+  margin: 0;
+  color: var(--gold);
+  font-weight: 600;
+}
+h1 {
+  font-size: 24px;
+}
+h2 {
+  font-size: 17px;
+  margin-bottom: 10px;
+}
+.sub,
+.muted {
+  color: var(--muted);
+  margin: 2px 0 0;
+}
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+.state {
+  text-align: right;
+  display: grid;
+  gap: 4px;
+}
+.pill {
+  padding: 4px 12px;
+  border-radius: 999px;
+  font-weight: 600;
+  font-size: 13px;
+  border: 1px solid var(--line);
+}
+.pill.on {
+  background: #1f3a24;
+  color: var(--green);
+  border-color: #3f7a4a;
+}
+.pill.off {
+  background: #3a1f1a;
+  color: var(--red);
+  border-color: #7a3f32;
+}
+.pill.dev {
+  background: #2c2a1a;
+  color: var(--gold);
+}
+.notice,
+.warning {
+  background: #3a2c14;
+  border: 1px solid #8a6a2a;
+  color: #ffd98a;
+  padding: 8px 12px;
+  border-radius: 6px;
+}
+.controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin: 14px 0 4px;
+}
+button {
+  font: inherit;
+  padding: 7px 14px;
+  border-radius: 6px;
+  border: 1px solid var(--line);
+  background: #2e2416;
+  color: var(--text);
+  cursor: pointer;
+}
+button:hover:not(:disabled) {
+  border-color: var(--gold);
+}
+button:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+button.primary {
+  background: #6b5022;
+  border-color: #b08a3c;
+  color: #fff3d0;
+  font-weight: 600;
+}
+button.danger {
+  color: #ffb3a3;
+}
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.card {
+  background: var(--card);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 16px;
+  margin-top: 16px;
+}
+.badge {
+  background: #3a2e18;
+  border-radius: 999px;
+  padding: 1px 9px;
+  font-size: 13px;
+  margin-left: 6px;
+  color: var(--text);
+}
+.address {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin: 6px 0;
+}
+code,
+.mono {
+  font-family: ui-monospace, Menlo, Consolas, monospace;
+  font-size: 13px;
+  word-break: break-all;
+}
+.address code {
+  background: #120e08;
+  padding: 6px 10px;
+  border-radius: 5px;
+  flex: 1;
+}
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+th,
+td {
+  text-align: left;
+  padding: 6px 8px;
+  border-bottom: 1px solid #33291a;
+}
+th {
+  color: var(--muted);
+  font-weight: 500;
+  font-size: 12px;
+}
+form {
+  display: grid;
+  gap: 12px;
+}
+.switch {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  cursor: pointer;
+}
+.switch input {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  accent-color: var(--gold);
+}
+.switch small,
+.row small {
+  display: block;
+  color: var(--muted);
+}
+.row {
+  display: grid;
+  grid-template-columns: 170px 1fr;
+  gap: 4px 12px;
+  align-items: center;
+}
+.row small {
+  grid-column: 2;
+}
+input[type="number"],
+.file input {
+  font: inherit;
+  background: #120e08;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 6px 8px;
+}
+input[type="number"] {
+  width: 120px;
+}
+.file {
+  display: flex;
+  gap: 6px;
+}
+.file input {
+  flex: 1;
+  min-width: 0;
+}
+.hint {
+  color: var(--muted);
+  margin: 0;
+  font-size: 13px;
+}
+.errors {
+  color: #ffb3a3;
+  margin: 0;
+  padding-left: 18px;
+}
+.activity {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 220px;
+  overflow: auto;
+}
+.activity li {
+  display: flex;
+  gap: 12px;
+  padding: 3px 0;
+  border-bottom: 1px solid #2a2114;
+}
+.activity time {
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  min-width: 52px;
+}
+@media (max-width: 600px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+  .row small {
+    grid-column: 1;
+  }
+}

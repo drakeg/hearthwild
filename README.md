@@ -125,6 +125,23 @@ Mira teaches **Herbalism** and **Alchemy** free. Gathering increases learned Her
 
 The server derives sender identity/faction and filters recipients; opposing clients never receive restricted text. Messages allow 1–280 characters without control characters and an 0.8-second send interval. A character retains the last 80 received messages in memory. Server history resets on restart; already-rendered browser text can remain until reload. Presence expires after 15 seconds without requests. Voice, party/guild chat and moderation are not implemented. These are character-language rules, not prevention of out-of-game communication or a human creating both factions.
 
+## Server Manager
+
+The desktop app runs its own Hearthwild server. Open **Server → Server Manager…** (⇧⌘M on a Mac, Ctrl+Shift+M elsewhere) to run and set it up without a terminal:
+
+- **Status:** see whether the server is running, how long it's been up, and who is online (level, class and where they are).
+- **Controls:** **Start**, **Stop** and **Restart** it. The game window reconnects by itself.
+- **Invite friends:** turn on **Share with my network**, pick a port and an HTTPS certificate and key, then **Save and restart**. The window shows the address to give friends, with a Copy button; they open it in a web browser. Friends can only sign in over HTTPS, which keeps passwords private on the network.
+- **Guild charters:** set how many signatures a new guild needs.
+- **Your world save:** open the save folder, or **Back up now** to put a timestamped copy in `backups/`.
+- **Activity:** the server starting and stopping, players joining and leaving, and any errors.
+
+Settings are kept in `server-config.json` in the app's data folder. If a development server from `~/Sources` is already running, the Server Manager says so and leaves it alone.
+
+## Development process
+
+Hearthwild is built in one-week sprints, with a prioritized backlog. The process, the backlog and every sprint's plan, progress, review and retrospective are documented in [`docs/agile/`](docs/agile/README.md).
+
 ## Friends hosting
 
 Default binding is local to this Mac. To opt into a trusted LAN, stop the server with Ctrl-C, then:

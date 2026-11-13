@@ -350,12 +350,17 @@ export function createGameServer({ dataDir = resolve("data"), tls } = {}) {
     server,
     world,
     accounts,
+    tls: !!tls,
+    save: () => persist(),
     close: async () => {
       clearInterval(tick);
       clearInterval(saves);
       clearInterval(cleanup);
       persist();
-      await new Promise((r, j) => server.close((e) => (e ? j(e) : r())));
+      // Close open connections too, so a restart doesn't wait on idle browser connections.
+      const closing = new Promise((r, j) => server.close((e) => (e ? j(e) : r())));
+      server.closeAllConnections?.();
+      await closing;
       if (
         existsSync(lock) &&
         JSON.parse(readFileSync(lock, "utf8")).pid === process.pid

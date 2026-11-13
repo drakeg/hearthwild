@@ -1,0 +1,91 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; style-src 'self'; script-src 'self'" />
+    <title>Hearthwild Server Manager</title>
+    <link rel="stylesheet" href="manager.css" />
+  </head>
+  <body>
+    <header class="top">
+      <div>
+        <h1>Server Manager</h1>
+        <p class="sub">Run and set up the Hearthwild world on this computer.</p>
+      </div>
+      <div class="state">
+        <span id="pill" class="pill">…</span>
+        <span id="uptime" class="muted"></span>
+      </div>
+    </header>
+    <p id="notice" class="notice" hidden></p>
+    <div class="controls">
+      <button id="start" class="primary">Start server</button>
+      <button id="restart">Restart</button>
+      <button id="stop" class="danger">Stop</button>
+    </div>
+
+    <section class="card">
+      <h2>Invite friends</h2>
+      <div id="invite"></div>
+    </section>
+
+    <section class="card">
+      <h2>Players online <span id="count" class="badge">0</span></h2>
+      <table id="players">
+        <thead><tr><th>Name</th><th>Level</th><th>Class</th><th>Where</th></tr></thead>
+        <tbody></tbody>
+      </table>
+      <p id="nobody" class="muted">Nobody is online right now.</p>
+    </section>
+
+    <section class="card">
+      <h2>Settings</h2>
+      <form id="settings">
+        <label class="switch">
+          <input type="checkbox" id="share" />
+          <span><strong>Share with my network</strong><small>Let friends on your Wi-Fi or local network join this world.</small></span>
+        </label>
+        <div class="row">
+          <label for="port">Port</label>
+          <input id="port" type="number" min="1024" max="65535" />
+          <small>4180 unless another program uses it.</small>
+        </div>
+        <div class="row">
+          <label for="cert">HTTPS certificate</label>
+          <div class="file"><input id="cert" readonly placeholder="None" /><button type="button" data-pick="cert">Choose…</button><button type="button" data-clear="cert">Clear</button></div>
+        </div>
+        <div class="row">
+          <label for="key">HTTPS key</label>
+          <div class="file"><input id="key" readonly placeholder="None" /><button type="button" data-pick="key">Choose…</button><button type="button" data-clear="key">Clear</button></div>
+        </div>
+        <p class="hint">Friends can only sign in to a shared server over HTTPS. That keeps their passwords private on the network. Choose a certificate and its key (for example from mkcert, or your router or domain provider). Without them, only this computer can sign in.</p>
+        <div class="row">
+          <label for="signatures">Guild charter signatures</label>
+          <input id="signatures" type="number" min="1" max="10" />
+          <small>Signatures a new guild needs.</small>
+        </div>
+        <ul id="errors" class="errors" hidden></ul>
+        <div class="controls">
+          <button type="submit" class="primary">Save settings</button>
+          <button type="button" id="save-restart">Save and restart</button>
+          <span id="saved" class="muted"></span>
+        </div>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>World save</h2>
+      <p id="folder" class="mono"></p>
+      <div class="controls">
+        <button id="open-folder">Open save folder</button>
+        <button id="backup">Back up now</button>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Activity</h2>
+      <ol id="activity" class="activity"></ol>
+    </section>
+    <script src="manager.js"></script>
+  </body>
+</html>
