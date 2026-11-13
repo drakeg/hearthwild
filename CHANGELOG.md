@@ -1,3 +1,21 @@
+## 0.19.0 — Server Manager (Sprint 9)
+
+- **Server Manager** (HW-090): a friendly window in the desktop app for running the server. Open **Server → Server Manager…** (⇧⌘M or Ctrl+Shift+M). It shows:
+  - whether the server is running, and for how long;
+  - the players online, with level, class and where they are;
+  - Start, Stop and Restart buttons (the game window reconnects by itself);
+  - an activity log of starts and stops, players joining and leaving, and errors.
+- **Easy sharing setup** (HW-091): turn on **Share with my network**, choose the port and an HTTPS certificate and key with file pickers, and set guild charter signatures.
+  - Settings are checked before saving and take effect on restart.
+  - The window shows the address to give friends, with a Copy button, and explains why sign-in needs HTTPS.
+  - If the port is taken, the game keeps running privately and the window says why.
+- **Save tools:** open the save folder, or back up the world now to a timestamped file.
+- **Agile process** (HW-092, HW-093):
+  - [`docs/agile/`](docs/agile/README.md) documents the process: roles, one-week sprints, ceremonies, the Definition of Ready and the Definition of Done.
+  - The prioritized [backlog](docs/agile/BACKLOG.md) lives there, with one file per sprint (Sprints 1–8 reconstructed from 0.11–0.18).
+  - A pull request template asks for story IDs and the Definition of Done.
+- A hundred and thirteen checks, including new tests for the server settings and for the Server Manager refusing requests from anywhere but its own window.
+
 ## 0.18.0 — Raids: The Sundered Spire
 
 **The first raid, for ten adventurers at level 30.** The Sundered Spire stands in the far north-east of Starfall Reach. Inside, three bosses wait in turn, each with its own fight and its own Epics.

@@ -48,13 +48,16 @@ test("desktop quit bridge exposes only quit and accepts requests only from the g
       dialog: {},
       ipcMain: {
         handle: (name, fn) => {
-          assert.equal(name, channel);
-          handler = fn;
+          handlers.set(name, fn);
+          if (name === channel) handler = fn;
         },
       },
     };
+  const handlers = new Map();
   const context = vm.createContext({
-    require: (name) => (name === "electron" ? electron : localRequire(name)),
+    require: (name) =>
+      name === "electron" ? electron : name === "./server-config.cjs" ? localRequire("../desktop/server-config.cjs") : localRequire(name),
+    setInterval: () => ({ unref() {} }),
     __dirname: "/test/desktop",
     process,
     console,
@@ -71,4 +74,8 @@ test("desktop quit bridge exposes only quit and accepts requests only from the g
   assert.equal(quits, before);
   assert.equal(handler({ sender }), true);
   assert.equal(quits, before + 1);
+  // The Server Manager's calls answer only the Server Manager window, never the game page.
+  const managerCalls = [...handlers.keys()].filter((n) => n.startsWith("server:"));
+  assert.ok(managerCalls.length >= 8);
+  for (const name of managerCalls) assert.equal((await handlers.get(name)({ sender }, {})).error, "Not allowed.", name);
 });
