@@ -2,7 +2,7 @@
 
 - **Dates:** 2026-11-13 → 2026-11-20
 - **Goal:** Others can contribute, every version gets a release, and hosts can manage players from the Server Manager.
-- **Planned release:** v0.20.0
+- **Planned release:** v0.20.0 · [PR #16](https://github.com/drakeg/hearthwild/pull/16)
 
 | ID | Story | Points | Status |
 |---|---|---|---|
