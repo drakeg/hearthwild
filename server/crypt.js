@@ -98,7 +98,39 @@ export const BOSSES = {
     adds: { at: 0.5, kind: "voidmaw", name: "Void spawn", count: 2, yell: "Velia’s lenses shatter: “Come through, little hungers!”" },
     enrage: { after: 360000, yell: "The dome splits and the sky pours in around Velia! (Enraged)" },
   },
+  // The Sundered Spire (raid).
+  "sundered-spire:0": {
+    hpScale: 16,
+    mechanics: [
+      { type: "nova", name: "Warden’s Stomp", first: 6000, every: 10000, radius: 8, delay: 2300, times: 2.2 },
+      { type: "circles", name: "Falling Masonry", first: 4000, every: 8000, radius: 4, delay: 2300, times: 1.8, count: 4 },
+    ],
+    adds: { at: 0.5, kind: "starfall-sentinel", name: "Spire warden", count: 2, yell: "Grimward bellows: “Wardens! Hold the gate!”" },
+    enrage: { after: 360000, yell: "Grimward tears the gate from its hinges! (Enraged)" },
+  },
+  "sundered-spire:1": {
+    hpScale: 16,
+    mechanics: [
+      { type: "circles", name: "Lightfall", first: 4000, every: 7500, radius: 4, delay: 2200, times: 2, count: 5 },
+      { type: "channel", name: "Binding Light", first: 9000, every: 14000, castTime: 3200, times: 3.2, heal: 0.04 },
+      { type: "nova", name: "Prism Burst", first: 12000, every: 15000, radius: 9, delay: 2600, times: 2.4 },
+    ],
+    adds: { at: 0.4, kind: "astral-seeker", name: "Light-bound acolyte", count: 2, yell: "Seraphel lifts her hands: “Kneel, and be made bright!”" },
+    enrage: { after: 360000, yell: "The gallery blazes white around Seraphel! (Enraged)" },
+  },
+  "sundered-spire:2": {
+    hpScale: 20,
+    mechanics: [
+      { type: "circles", name: "Void Rift", first: 4000, every: 7000, radius: 4.5, delay: 2400, times: 2.2, count: 5 },
+      { type: "nova", name: "Collapse Inward", first: 8000, every: 12000, radius: 10, delay: 2800, times: 2.8 },
+      { type: "channel", name: "Unmaking", first: 12000, every: 16000, castTime: 3500, times: 3.8, heal: 0.05 },
+    ],
+    adds: { at: 0.5, kind: "voidmaw", name: "Void spawn", count: 2, yell: "Nythera’s voice is everywhere: “Little lights. I will swallow every one.”" },
+    enrage: { after: 420000, yell: "The Heart of the Void opens wide! (Enraged)" },
+  },
 };
+// Each boss's fight: its dungeon's id, or "<raid id>:<n>" for a raid's bosses.
+export const specOf = (b) => BOSSES[b.spec];
 const swing = (level) => mobStats(level).damage;
 // Telegraph and channel damage: fixed points, or a multiple of the boss level's normal swing.
 const hitOf = (m, level) => m.damage ?? Math.round(swing(level) * m.times);
@@ -138,6 +170,11 @@ export class Crypts {
     fail(!d, "Move closer to the dungeon door.");
     fail((p.combatUntil ?? 0) > now, "You can’t enter while in combat.");
     fail(p.travel, "Wait until the caravan stops.");
+    // Raids are for groups of seasoned adventurers.
+    if (d.raid) {
+      fail(!this.world.parties.of(p), `${d.name} is a raid: form a group (up to ten — convert it with /raid) before you go in.`);
+      fail(p.level < d.minLevel, `You must be level ${d.minLevel} to enter ${d.name}.`);
+    }
     return this.place(p, d, now);
   }
   // Puts a player inside their group's copy of a dungeon (a fresh one if none is running).
@@ -185,23 +222,31 @@ export class Crypts {
   }
   create(d, key, size, now) {
     // Health scales with group size so a solo adventurer can still explore.
-    const factor = Math.max(0.45, Math.min(1.6, size / 3)),
+    const factor = d.raid ? Math.max(0.5, Math.min(2.2, size / 5)) : Math.max(0.45, Math.min(1.6, size / 3)),
       spec = BOSSES[d.id],
       inst = { id: `${d.id}:${randomUUID()}`, dungeon: d, key, factor, created: now, enemies: [], telegraphs: [], emptySince: null, cleared: false, boss: null };
     d.packs.forEach((pack, i) => {
       for (const [kind, x, z] of pack) this.spawn(inst, kind, x, z, { level: i === d.packs.length - 1 ? d.levels[1] : d.levels[0], pack: `pack-${i}` });
     });
-    inst.boss = this.spawn(inst, d.boss.kind, d.boss.x, d.boss.z, {
-      level: d.bossLevel,
-      boss: true,
-      name: d.boss.name,
-      maxHp: Math.round((spec.hp ?? mobStats(d.bossLevel).maxHp * 7.5) * factor),
-      damage: spec.damage ?? Math.round(swing(d.bossLevel) * 0.85),
+    // A dungeon has one boss; a raid has several, fought in turn, the last being its final boss.
+    const list = d.bosses ?? [{ ...d.boss, level: d.bossLevel }];
+    inst.bosses = list.map((bd, i) => {
+      const key = d.bosses ? `${d.id}:${i}` : d.id,
+        sp = BOSSES[key];
+      return this.spawn(inst, bd.kind, bd.x, bd.z, {
+        level: bd.level,
+        boss: true,
+        name: bd.name,
+        spec: key,
+        maxHp: Math.round((sp.hp ?? mobStats(bd.level).maxHp * (sp.hpScale ?? 7.5)) * factor),
+        damage: sp.damage ?? Math.round(swing(bd.level) * (d.raid ? 1 : 0.85)),
+      });
     });
+    inst.boss = inst.bosses.at(-1);
     this.instances.set(inst.id, inst);
     return inst;
   }
-  spawn(inst, kind, x, z, { level = 4, pack = null, boss = false, name, maxHp, damage, summoned = false } = {}) {
+  spawn(inst, kind, x, z, { level = 4, pack = null, boss = false, name, maxHp, damage, summoned = false, spec = null } = {}) {
     const w = toWorld(x, z, inst.dungeon),
       hp = maxHp ?? Math.round(mobStats(level).maxHp * inst.factor * 1.15),
       e = {
@@ -223,16 +268,16 @@ export class Crypts {
         instance: inst.id,
         pack,
         boss,
+        spec,
         summoned,
       };
     inst.enemies.push(e);
     return e;
   }
   // Called when the boss evades: wipe or abandoned fight.
-  reset(inst) {
+  reset(inst, b = inst.boss) {
     inst.enemies = inst.enemies.filter((e) => !e.summoned);
     inst.telegraphs = [];
-    const b = inst.boss;
     Object.assign(b, { casting: null, enraged: false, summonedAdds: false, fightStart: null, timers: {}, damageScale: 1 });
   }
   tick(now, dt) {
@@ -244,26 +289,28 @@ export class Crypts {
         continue;
       }
       inst.emptySince = null;
-      this.tickBoss(inst, inside, now);
+      this.resolveTelegraphs(inst, inside, now);
+      for (const b of inst.bosses ?? [inst.boss]) this.tickBoss(inst, b, inside, now);
     }
   }
   telegraph(inst, b, m, x, z, now) {
-    const t = { id: randomUUID().slice(0, 8), x, z, radius: m.radius, explodeAt: now + m.delay, name: m.name, damage: hitOf(m, b.level) };
+    const t = { id: randomUUID().slice(0, 8), x, z, radius: m.radius, explodeAt: now + m.delay, name: m.name, damage: hitOf(m, b.level), boss: b };
     inst.telegraphs.push(t);
     this.world.event("telegraph", { ...t, zone: inst.id }, now);
   }
-  tickBoss(inst, inside, now) {
-    const b = inst.boss,
-      spec = BOSSES[inst.dungeon.id],
-      yell = (text) => this.world.event("emote", { text, x: b.x, z: b.z, zone: inst.id }, now);
-    // Resolve telegraphed circles.
+  // Telegraphed circles land, whichever boss cast them.
+  resolveTelegraphs(inst, inside, now) {
     for (const t of inst.telegraphs.filter((t) => now >= t.explodeAt)) {
       for (const p of inside)
         if (!p.dead && Math.hypot(p.x - t.x, p.z - t.z) <= t.radius)
-          this.world.hurtPlayer(p, Math.round(t.damage * (b.damageScale ?? 1)), now, b, t.name);
+          this.world.hurtPlayer(p, Math.round(t.damage * (t.boss.damageScale ?? 1)), now, t.boss, t.name);
       this.world.event("ashfall", { x: t.x, z: t.z, radius: t.radius, name: t.name, zone: inst.id }, now);
     }
     inst.telegraphs = inst.telegraphs.filter((t) => now < t.explodeAt);
+  }
+  tickBoss(inst, b, inside, now) {
+    const spec = BOSSES[b.spec ?? inst.dungeon.id],
+      yell = (text) => this.world.event("emote", { text, x: b.x, z: b.z, zone: inst.id }, now);
     if (!b || b.hp <= 0 || b.evading || b.threat.size === 0) return;
     b.fightStart ??= now;
     b.timers ??= {};

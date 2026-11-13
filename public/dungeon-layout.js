@@ -257,6 +257,42 @@ export const DUNGEONS = {
     bossLevel: 31,
     theme: "astral",
   },
+  // ---------- Raids: ten adventurers, three bosses ----------
+  "sundered-spire": {
+    id: "sundered-spire",
+    name: "The Sundered Spire",
+    raid: true,
+    zone: "reach",
+    origin: { x: 14000, z: 0 },
+    door: { x: 1480, z: -1560 },
+    entry: { x: 0, z: 2 },
+    exit: { x: 0, z: 4.5 },
+    rooms: [
+      { name: "Spire gate", minX: -10, maxX: 10, minZ: -6, maxZ: 6 },
+      { name: "Hall of Wardens", minX: -18, maxX: 18, minZ: -38, maxZ: -6 },
+      { name: "Starward passage", minX: -2, maxX: 2, minZ: -54, maxZ: -38 },
+      { name: "Lightbinder’s Gallery", minX: -22, maxX: 22, minZ: -86, maxZ: -54 },
+      { name: "Void stair", minX: -2, maxX: 2, minZ: -102, maxZ: -86 },
+      { name: "The Heart of the Void", minX: -26, maxX: 26, minZ: -142, maxZ: -102 },
+    ],
+    packs: [
+      [["starfall-sentinel", -8, -12], ["astral-seeker", 8, -12], ["star-lynx", 0, -14]],
+      [["voidmaw", -12, -60], ["star-lynx", 12, -60], ["astral-seeker", 0, -62]],
+      [["voidmaw", -14, -108], ["starfall-sentinel", 14, -108], ["astral-seeker", 0, -110]],
+    ],
+    // Fought in order; the last is the raid's final boss.
+    bosses: [
+      { kind: "gatekeeper", name: "Grimward the Gatekeeper", x: 0, z: -28, level: 31 },
+      { kind: "lightbinder", name: "Seraphel the Lightbinder", x: 0, z: -76, level: 31 },
+      { kind: "void-heart", name: "Nythera, Heart of the Void", x: 0, z: -128, level: 32 },
+    ],
+    boss: { kind: "void-heart", name: "Nythera, Heart of the Void", x: 0, z: -128 },
+    sanctum: { minX: -26, maxX: 26, minZ: -142, maxZ: -102 },
+    levels: [30, 30],
+    bossLevel: 32,
+    minLevel: 28,
+    theme: "astral",
+  },
 };
 export const DUNGEON_LIST = Object.values(DUNGEONS);
 // The dungeon whose instance space contains a world position (instances sit far outside the map).

@@ -177,6 +177,8 @@ test("caravans run along the roads to towns you have found; the waystone brings 
   h.act({ type: "home" }, 60000);
   h.p.x = 0;
   h.p.z = 300;
+  // Nothing nearby to interrupt the channel.
+  for (const e of w.enemies) if (Math.hypot(e.x - h.p.x, e.z - h.p.z) < 80) Object.assign(e, { hp: 0, respawnAt: 999999 });
   h.act({ type: "waystone" }, 61000);
   h.act({ type: "input", x: 1, z: 0 }, 62000);
   assert.equal(h.p.recall, null, "moving breaks the waystone");

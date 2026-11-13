@@ -13,7 +13,7 @@ const hero = (w, name = "Delver") => {
   p.seen = 1000;
   return { a, p };
 };
-const outer = DUNGEON_LIST.filter((d) => d.zone);
+const outer = DUNGEON_LIST.filter((d) => d.zone && !d.raid);
 
 test("every zone has a dungeon: a door in the open, a connected layout and its own boss", () => {
   assert.equal(outer.length, 8);

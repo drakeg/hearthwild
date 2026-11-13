@@ -399,7 +399,7 @@ export function createCombatUi({ camera, height, onRelease, onTargetChange, act 
       lastDead = p.dead;
       death.hidden = !p.dead;
       deathWhere.textContent = p.instance
-        ? "Your spirit will return to the crypt entrance."
+        ? "Your spirit will return to the entrance."
         : "Your spirit will return to the nearest graveyard.";
       document.body.classList.toggle("is-dead", p.dead);
       if (p.dead) systemChat("You have died.", "system");

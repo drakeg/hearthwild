@@ -60,6 +60,15 @@ export const ITEMS = {
     maxHp: 0,
     heal: 110,
   },
+  // Alchemy from the herbs of the wider world.
+  "amber-tonic": { name: "Amberroot tonic", slot: "consumable", rarity: "Uncommon", damage: 0, armor: 0, maxHp: 0, heal: 150 },
+  "mire-salve": { name: "Bog myrtle salve", slot: "consumable", rarity: "Uncommon", damage: 0, armor: 0, maxHp: 0, heal: 190 },
+  "frostbloom-elixir": { name: "Frostbloom elixir", slot: "consumable", rarity: "Uncommon", damage: 0, armor: 0, maxHp: 0, heal: 230 },
+  "stoneheart-draught": { name: "Stoneheart draught", slot: "consumable", rarity: "Rare", damage: 0, armor: 0, maxHp: 0, heal: 280 },
+  "ember-draught": { name: "Emberthorn draught", slot: "consumable", rarity: "Rare", damage: 0, armor: 0, maxHp: 0, heal: 320 },
+  "gloamcap-brew": { name: "Gloamcap brew", slot: "consumable", rarity: "Rare", damage: 0, armor: 0, maxHp: 0, heal: 370 },
+  "sunpetal-cordial": { name: "Sunpetal cordial", slot: "consumable", rarity: "Rare", damage: 0, armor: 0, maxHp: 0, heal: 420 },
+  "starlight-elixir": { name: "Starlight elixir", slot: "consumable", rarity: "Epic", damage: 0, armor: 0, maxHp: 0, heal: 480 },
   "warden-blade": {
     name: "Warden’s iron blade",
     slot: "weapon",
@@ -110,6 +119,7 @@ export const ITEMS = {
   },
 };
 import { TOWNS, MAX_LEVEL } from "../public/terrain.js";
+import { REAGENT_IDS } from "../public/reagents.js";
 import { GEAR, LATE_ABILITIES, ABILITY_RANKS, WORLD_FOLK, WORLD_QUESTS, TRAVEL_FOLK } from "./content-world.js";
 import { ranked } from "../public/ui-model.js";
 const town = (id) => TOWNS.find((t) => t.id === id);
@@ -250,7 +260,8 @@ export function initAdventure(p) {
   p.professions ??= { herbalism: 0, alchemy: 0 };
   p.buyback ??= [];
   p.potionReadyAt ??= 0;
-  p.materials ??= { starleaf: 0 };
+  p.materials ??= {};
+  for (const id of REAGENT_IDS) p.materials[id] ??= 0;
   p.quests ??= {
     wildgrowth: { status: "offered", progress: 0 },
     starleaf: { status: "offered", progress: 0 },

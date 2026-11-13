@@ -2,6 +2,7 @@ import { CRYPT, DUNGEON_LIST, dungeonOf } from "./dungeon-layout.js";
 import { WORLD_HALF, WORLD_SIZE, WORLD_LIMIT, ZONES, TOWNS } from "./world-config.js";
 import { zoneWeights, zoneAt, terrainHeight, lakeAt, ROADS, HOUSES, LAKES } from "./terrain.js";
 import { mapPoint, filterQuests, questMarker, zoneBounds, RANK_NAMES } from "./ui-model.js";
+import { REAGENTS, REAGENT_IDS } from "./reagents.js";
 const $ = (id) => document.getElementById(id);
 // Ability icons: keys 1–4 come from the first sheet, keys 9–12 from the second (one row per class).
 export function abilityIcon(classId, key) {
@@ -28,6 +29,9 @@ export function createHud({
     spellKey = "",
     pinKey = "",
     lastView = null,
+    // The herb finder: off, or showing patches (optionally of one herb) on the open map.
+    herbsOn = false,
+    herbOnly = null,
     waypoint = null;
   function stop() {
     clearMovement();
@@ -194,6 +198,11 @@ export function createHud({
     pinKey = "";
     update();
   };
+  $("map-herbs").onclick = () => {
+    herbsOn = !herbsOn;
+    herbOnly = null;
+    update();
+  };
   $("map-world").onclick = () => {
     scope = "world";
     pinKey = "";
@@ -201,15 +210,62 @@ export function createHud({
   };
   // Clicking a zone on the world map opens that zone's map.
   $("world-map").onclick = (ev) => {
+    const r = ev.currentTarget.getBoundingClientRect();
+    // On a zone map with herbs showing, clicking near a patch marks it as a waypoint.
+    if (scope !== "world" && herbsOn && lastView) {
+      const x = lastView.originX + ((ev.clientX - r.left) / r.width) * lastView.span,
+        z = lastView.originZ + ((ev.clientY - r.top) / r.height) * lastView.span,
+        reach = lastView.span * 0.025,
+        best = (getState()?.herbMap ?? [])
+          .filter(([, , k]) => !herbOnly || k === herbOnly)
+          .map(([hx, hz, k]) => ({ x: hx, z: hz, k, d: Math.hypot(hx - x, hz - z) }))
+          .sort((a, b) => a.d - b.d)[0];
+      if (best && best.d < reach) {
+        waypoint = { x: best.x, z: best.z };
+        update();
+      }
+      return;
+    }
     if (scope !== "world") return;
-    const r = ev.currentTarget.getBoundingClientRect(),
-      x = -WORLD_HALF + ((ev.clientX - r.left) / r.width) * WORLD_SIZE,
+    const x = -WORLD_HALF + ((ev.clientX - r.left) / r.width) * WORLD_SIZE,
       z = -WORLD_HALF + ((ev.clientY - r.top) / r.height) * WORLD_SIZE;
     if (Math.max(Math.abs(x), Math.abs(z)) > WORLD_LIMIT) return;
     scope = zoneAt(x, z);
     pinKey = "";
     update();
   };
+  // Lists the herbs on the open map with counts; click one to show only that herb.
+  let legendKey = "";
+  function herbLegend(herbMap, view) {
+    const counts = {};
+    for (const [hx, hz, k] of herbMap) counts[k] = (counts[k] ?? 0) + 1;
+    const key = JSON.stringify([counts, herbOnly]);
+    if (key === legendKey) return;
+    legendKey = key;
+    const box = $("herb-legend");
+    box.replaceChildren();
+    const kinds = REAGENT_IDS.filter((k) => counts[k]);
+    if (!kinds.length) {
+      box.textContent = "No herbs ready here right now — they regrow in a minute or so.";
+      return;
+    }
+    for (const k of kinds) {
+      const b = document.createElement("button");
+      b.className = `herb-key${herbOnly === k ? " active" : ""}`;
+      b.setAttribute("aria-pressed", herbOnly === k);
+      const dot = document.createElement("span");
+      dot.style.background = REAGENTS[k].bud;
+      b.append(dot, `${REAGENTS[k].name} · ${counts[k]}`);
+      b.onclick = () => {
+        herbOnly = herbOnly === k ? null : k;
+        update();
+      };
+      box.append(b);
+    }
+    const tip = document.createElement("small");
+    tip.textContent = view === "world" ? "Open a zone to mark a patch." : "Click a patch to mark it.";
+    box.append(tip);
+  }
   function drawMap(canvas, s, mini = false) {
     if (s.self.instance) return drawCrypt(canvas, s, mini);
     const here = zoneAt(s.self.x, s.self.z),
@@ -230,6 +286,9 @@ export function createHud({
       inView = (x, z, pad = 0) => x > originX - pad && z > originZ - pad && x < originX + span + pad && z < originZ + span + pad;
     if (!mini) lastView = { originX, originZ, span, key: view };
     if (!mini) {
+      $("map-herbs").classList.toggle("active", herbsOn);
+      $("map-herbs").setAttribute("aria-pressed", herbsOn);
+      $("herb-legend").hidden = !herbsOn;
       $("map-pins").classList.toggle("world", view === "world");
       $("map-zone").classList.toggle("active", view !== "world");
       $("map-world").classList.toggle("active", view === "world");
@@ -335,7 +394,8 @@ export function createHud({
         if (zoneMap) {
           label(d.name, x, y + 18, "bold 12px Georgia", "#e6d8ff");
           const [lo, hi] = d.levels ?? [];
-          if (lo) label(`Dungeon · Levels ${lo}–${d.bossLevel ?? hi}`, x, y + 32, "11px Georgia", "#d8ccef");
+          if (d.raid) label(`Raid · 10 players · level ${d.minLevel}+`, x, y + 32, "11px Georgia", "#ffd0a0");
+          else if (lo) label(`Dungeon · Levels ${lo}–${d.bossLevel ?? hi}`, x, y + 32, "11px Georgia", "#d8ccef");
         }
       }
       // Zone names: placed in each zone's heartland on the world map, as a title on a zone map.
@@ -373,8 +433,27 @@ export function createHud({
       c.stroke();
     };
     if (mini) for (const e of s.enemies) if (e.hp > 0) marker(e, "#c66d4e", 2.5);
-    if (mini && s.self.quests.starleaf.status === "active")
-      for (const r of s.resources) if (r.available) marker(r, "#75ddbc", 2.5);
+    // Herbs nearby always show on the minimap, in their own colours; Starleaf stands out
+    // while the gathering quest is active.
+    if (mini) {
+      const hunting = s.self.quests.starleaf.status === "active";
+      for (const r of s.resources)
+        if (r.available) {
+          const kind = r.kind ?? "starleaf";
+          marker(r, REAGENTS[kind].bud, hunting && kind === "starleaf" ? 3 : 2);
+        }
+    }
+    // The herb finder on the big map.
+    if (!mini && herbsOn && s.herbMap) {
+      const shown = {};
+      for (const [hx, hz, k] of s.herbMap) {
+        if (herbOnly && k !== herbOnly) continue;
+        if (!inView(hx, hz)) continue;
+        shown[k] = (shown[k] ?? 0) + 1;
+        marker({ x: hx, z: hz }, REAGENTS[k].bud, view === "world" ? 2 : 3.2);
+      }
+      herbLegend(s.herbMap, view);
+    }
     for (const n of s.npcs) {
       const q = s.self.quests[n.quest] ?? { status: "merchant" };
       const info = q.status === "merchant" ? { symbol: mini && n.merchant ? "¤" : "", color: "#d9b465" } : questMarker(q.status, q.locked);
@@ -576,7 +655,10 @@ export function createHud({
       }
     }
   }
+  // Which herbs the map wants from the server: the zone it shows, the whole world, or none.
+  const herbScope = () => (herbsOn && !$("atlas").hidden && lastView ? lastView.key : null);
   return {
+    herbScope,
     update,
     openMap,
     close,

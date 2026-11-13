@@ -3,6 +3,7 @@ import { servicesUi } from "./services-ui.js";
 import { WORLD_HALF, WORLD_SIZE } from "./world-config.js";
 import { zoneWeights } from "./terrain.js";
 import { ranked, RANK_NAMES } from "./ui-model.js";
+import { REAGENTS, REAGENT_IDS } from "./reagents.js";
 import { characterUi } from "./character-ui.js";
 import { accountUi } from "./accounts-ui.js";
 import { BAR_KEYS, bagCells, bagItems, questMarker, stackConsumables, itemIconStyle } from "./ui-model.js";
@@ -376,8 +377,9 @@ const keys = new Set();
 // later updates carry only what is happening near the player.
 let content = null;
 async function fetchState(after = 0) {
-  const known = content && content.token === token ? `&content=${content.key}` : "";
-  const incoming = await api(`/api/state?after=${after}${known}`);
+  const known = content && content.token === token ? `&content=${content.key}` : "",
+    herbs = typeof hud !== "undefined" && hud.herbScope?.() ? `&herbs=${hud.herbScope()}` : "";
+  const incoming = await api(`/api/state?after=${after}${known}${herbs}`);
   if (incoming.shop) content = { token, key: incoming.content, shop: incoming.shop, recipes: incoming.recipes, classes: incoming.classes, abilities: incoming.abilities, questDefinitions: incoming.questDefinitions, npcs: incoming.npcs };
   const { token: _, key, ...rest } = content;
   // Abilities as this character uses them, with the ranks they have reached.
@@ -424,11 +426,13 @@ function npcModel(n) {
   g.userData.interaction = { type: "talk", target: n.id };
   return g;
 }
+// Each herb is the same little plant in its own colours, with a glowing bud.
 function resourceModel(r) {
-  const g = new THREE.Group();
+  const herb = REAGENTS[r.kind ?? "starleaf"],
+    g = new THREE.Group();
   mesh(
     new THREE.CylinderGeometry(0.045, 0.07, 0.65, 8),
-    "#78996c",
+    herb.leaf,
     0,
     0.3,
     0,
@@ -438,7 +442,7 @@ function resourceModel(r) {
     const a = (i / 5) * Math.PI * 2;
     const leaf = mesh(
       new THREE.SphereGeometry(0.16, 10, 6),
-      "#8ab2aa",
+      herb.leaf,
       Math.cos(a) * 0.2,
       0.45,
       Math.sin(a) * 0.2,
@@ -448,18 +452,18 @@ function resourceModel(r) {
   }
   const bud = mesh(
     new THREE.SphereGeometry(0.13, 12, 8),
-    "#bce8ca",
+    herb.bud,
     0,
     0.7,
     0,
     g,
   );
   bud.material = new THREE.MeshStandardMaterial({
-    color: "#bce8ca",
-    emissive: "#71a990",
+    color: herb.bud,
+    emissive: herb.glow,
     emissiveIntensity: 0.7,
   });
-  const tag = label("Starleaf · F", "#cef2d6");
+  const tag = label(`${herb.name} · F`, herb.bud);
   tag.position.y = 1.2;
   tag.scale.set(2.7, 0.45, 1);
   g.add(tag);
@@ -609,7 +613,7 @@ function updateQuests() {
         else queueInteraction({ type: "enter", target: "crypt-door" });
       } else if (id === "starleaf") {
         const r = [...state.resources]
-          .filter((r) => r.available)
+          .filter((r) => r.available && (r.kind ?? "starleaf") === "starleaf")
           .sort(
             (a, b) =>
               Math.hypot(a.x - state.self.x, a.z - state.self.z) -
@@ -753,9 +757,10 @@ function updateBag() {
   bagFingerprint = fingerprint;
   $("stats").textContent =
     `Damage ${p.stats.damage} · Armor ${p.stats.armor} · Health ${p.stats.maxHp}`;
-  $("herbs").textContent = `Reagents · ${p.materials.starleaf} Starleaf`;
+  const pouch = REAGENT_IDS.filter((id) => p.materials[id] > 0);
+  $("herbs").textContent = pouch.length ? `Herbs · ${pouch.map((id) => `${p.materials[id]} ${REAGENTS[id].name}`).join(" · ")}` : "Herbs · none yet";
   $("bag-capacity").textContent =
-    `${stackConsumables(p.inventory).length} / 60 bag slots · Reagent pouch ${p.materials.starleaf}/99 · ${p.coins} gold`;
+    `${stackConsumables(p.inventory).length} / 60 bag slots · Herb pouch holds 99 of each · ${p.coins} gold`;
   $("equipment-slots").replaceChildren();
   for (const slot of ["weapon", "chest", "charm"]) {
     const item = p.inventory.find((i) => i.id === p.equipment[slot]),
@@ -1175,7 +1180,7 @@ async function automaticIntent() {
       ).find((x) => x.id === command.target);
     if (!target || (command.type === "gather" && !target.available)) {
       if (command.type === "gather")
-        notice("That patch was gathered. Look for another Starleaf plant.");
+        notice("That patch was gathered. Look for another one nearby.");
       interaction = null;
       return zero;
     }
@@ -1534,6 +1539,7 @@ async function slashCommand(text) {
   if (["invite", "inv"].includes(c)) return partyAction({ op: "invite", name: arg });
   if (["leave", "leaveparty", "leavegroup"].includes(c)) return partyAction({ op: "leave" });
   if (["kick", "uninvite"].includes(c)) return partyAction({ op: "kick", name: arg });
+  if (["raid", "convertraid", "makeraid"].includes(c)) return partyAction({ op: "raid" });
   if (["promote", "pl"].includes(c)) return partyAction({ op: "promote", name: arg });
   const send = (channel, body, to) =>
     api("/api/actions", { type: "chat", channel, text: body, to }).catch((e) => uiError(e.message));
