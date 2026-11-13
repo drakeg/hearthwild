@@ -2,7 +2,7 @@
 
 - **Dates:** 2026-11-13 → 2026-11-19
 - **Goal:** Hosts can run and configure the server from a friendly window, and development follows a documented Agile process in Git.
-- **Planned release:** v0.19.0
+- **Planned release:** v0.19.0 · [PR #15](https://github.com/drakeg/hearthwild/pull/15)
 
 | ID | Story | Points | Status |
 |---|---|---|---|
