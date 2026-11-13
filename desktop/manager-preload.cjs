@@ -10,5 +10,10 @@ contextBridge.exposeInMainWorld("serverManager", {
   openFolder: () => ipcRenderer.invoke("server:open-folder"),
   backup: () => ipcRenderer.invoke("server:backup"),
   copy: (text) => ipcRenderer.invoke("server:copy", text),
+  announce: (text) => ipcRenderer.invoke("server:announce", text),
+  kick: (name) => ipcRenderer.invoke("server:kick", name),
+  ban: (username, reason) => ipcRenderer.invoke("server:ban", username, reason),
+  unban: (username) => ipcRenderer.invoke("server:unban", username),
+  resetPassword: (username, password) => ipcRenderer.invoke("server:reset-password", username, password),
   onChange: (fn) => ipcRenderer.on("server:changed", () => fn()),
 });

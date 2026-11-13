@@ -144,6 +144,30 @@ export class World {
   maxHp(p) {
     return stats(p).maxHp;
   }
+  // ---------- Host tools (used by the Server Manager) ----------
+  online(now = Date.now()) {
+    return [...this.players.values()].filter((q) => now - q.seen < 15000);
+  }
+  // Ends a player's session: their next request returns them to the character list with a reason.
+  kick(p, reason = "The host removed you from the world. You can come back in from your characters.") {
+    this.removed ??= new Map();
+    if (this.removed.size > 200) this.removed.clear();
+    this.removed.set(p.keyHash, reason);
+    this.keys.delete(p.keyHash);
+    p.accessToken = null;
+    p.keyHash = hash(randomBytes(32).toString("hex"));
+    this.keys.set(p.keyHash, p.id);
+    p.seen = -Infinity;
+    p.input = { x: 0, z: 0 };
+    p.casting = null;
+    p.autoAttack = null;
+  }
+  announce(text, now = Date.now()) {
+    const message = String(text ?? "").trim().slice(0, 300);
+    reject(!message, "Write an announcement first.");
+    for (const p of this.online(now)) this.system(p, `[Server] ${message}`, now);
+    return message;
+  }
   system(p, text, now = Date.now()) {
     p.messages.push({ id: ++this.sequence, from: "", channel: "system", text, time: now });
     if (p.messages.length > 80) p.messages.shift();
@@ -260,6 +284,12 @@ export class World {
       401,
     );
     const p = this.players.get(this.keys.get(hash(token)));
+    // A player the host removed is told why (once), then sent back to their characters.
+    const removed = !p && this.removed?.get(hash(token));
+    if (removed) {
+      this.removed.delete(hash(token));
+      reject(true, removed, 401);
+    }
     reject(!p, "Your return key is missing or invalid.", 401);
     return p;
   }

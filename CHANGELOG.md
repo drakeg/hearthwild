@@ -1,3 +1,16 @@
+## 0.20.0 — Open doors (Sprint 10)
+
+- **Host tools in the Server Manager** (HW-103):
+  - **Announcements** to everyone online, shown in chat as *[Server]*.
+  - **Kick:** a player is sent back to their character list with a note saying why, and can come straight back in.
+  - **Ban:** an account (all its characters), with an optional reason. A banned account is signed out at once and can't sign back in until you **Lift ban**. Bans are saved with the world.
+  - **Password resets** for any account; the player is signed out everywhere.
+  - Every action is recorded in the Activity log.
+- **Contributing** (HW-115): [`CONTRIBUTING.md`](CONTRIBUTING.md) covers the ground rules, setup, the flow from issue to release, the Definition of Done and the house style. Also new: a [Code of Conduct](CODE_OF_CONDUCT.md), a [security policy](SECURITY.md) with private reporting, and issue templates for bugs and ideas.
+- **No more missing releases** (HW-101): after each release, the workflow also releases any version a merge skipped (as happened with 0.13.0 and 0.17.0 when stacked pull requests were merged together).
+- **Simpler client files** (HW-102): every file in `public/` is served automatically and safely, with no hand-kept list to update.
+- A hundred and eighteen checks, including new tests for the host tools and for serving files safely.
+
 ## 0.19.0 — Server Manager (Sprint 9)
 
 - **Server Manager** (HW-090): a friendly window in the desktop app for running the server. Open **Server → Server Manager…** (⇧⌘M or Ctrl+Shift+M). It shows:

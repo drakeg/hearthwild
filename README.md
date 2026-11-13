@@ -133,6 +133,7 @@ The desktop app runs its own Hearthwild server. Open **Server → Server Manager
 - **Controls:** **Start**, **Stop** and **Restart** it. The game window reconnects by itself.
 - **Invite friends:** turn on **Share with my network**, pick a port and an HTTPS certificate and key, then **Save and restart**. The window shows the address to give friends, with a Copy button; they open it in a web browser. Friends can only sign in over HTTPS, which keeps passwords private on the network.
 - **Guild charters:** set how many signatures a new guild needs.
+- **Host tools:** send an announcement to everyone online; **Kick** a player (they can come back in); **Ban** an account (all its characters), with a reason, and lift bans later; set a new password for an account.
 - **Your world save:** open the save folder, or **Back up now** to put a timestamped copy in `backups/`.
 - **Activity:** the server starting and stopping, players joining and leaving, and any errors.
 

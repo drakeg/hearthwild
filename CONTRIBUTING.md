@@ -23,7 +23,7 @@ npm test             # all automated tests
 npm run check        # syntax checks
 ```
 
-There's no build step: edit a file in `public/` or `server/` and reload. The desktop app (Electron) is packaged by the release workflow; you don't need it to develop. Your local world is saved in `data/` (ignored by Git).
+There's no build step: edit a file in `public/` or `server/` and reload. Every file in `public/` with a known type is served automatically; restart the server after adding one. The desktop app (Electron) is packaged by the release workflow; you don't need it to develop. Your local world is saved in `data/` (ignored by Git).
 
 ### Where things live
 

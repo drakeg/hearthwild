@@ -144,11 +144,13 @@ function status() {
           .filter((p) => now - p.seen < 15000)
           .map((p) => ({
             name: p.name,
+            account: hosted.admin.accountOf(p.name),
             level: p.level,
             classId: p.classId,
             where: p.instance ? "In a dungeon" : (terrain?.ZONES[terrain.zoneAt(p.x, p.z)]?.name ?? ""),
           }))
       : [],
+    bans: running ? hosted.admin.bans() : [],
   };
 }
 async function stopServer() {
@@ -209,6 +211,23 @@ ipcMain.handle("server:pick", guard(async (kind) => {
     properties: ["openFile"],
   });
   return { path: picked.canceled ? null : picked.filePaths[0] };
+}));
+// Host tools: each needs the server running here (not a separate development server).
+const admin = (fn) =>
+  guard(async (...args) => {
+    if (external || !hosted) return { error: "Start the server first." };
+    return fn(...args);
+  });
+ipcMain.handle("server:announce", admin((text) => {
+  const message = hosted.admin.announce(text);
+  log(`Announcement: ${message}`);
+}));
+ipcMain.handle("server:kick", admin((name) => log(`Removed ${hosted.admin.kick(name)} from the world.`)));
+ipcMain.handle("server:ban", admin((username, reason) => log(`Banned the account ${hosted.admin.ban(username, reason)}${reason ? ` (${reason})` : ""}.`)));
+ipcMain.handle("server:unban", admin((username) => log(`Lifted the ban on ${hosted.admin.unban(username)}.`)));
+ipcMain.handle("server:reset-password", admin(async (username, password) => {
+  await hosted.admin.resetPassword(username, password);
+  log(`Set a new password for ${username}.`);
 }));
 ipcMain.handle("server:open-folder", guard(() => shell.openPath(activeData ?? app.getPath("userData"))));
 ipcMain.handle("server:copy", guard((text) => clipboard.writeText(String(text).slice(0, 300))));

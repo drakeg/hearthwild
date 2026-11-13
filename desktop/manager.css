@@ -249,3 +249,60 @@ input[type="number"] {
     grid-column: 1;
   }
 }
+
+h3 {
+  font-size: 13px;
+  color: var(--muted);
+  font-weight: 600;
+  margin: 12px 0 6px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+}
+.inline {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 10px;
+}
+.inline input {
+  flex: 1;
+  min-width: 140px;
+  font: inherit;
+  background: #120e08;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  padding: 6px 8px;
+}
+td.actions {
+  text-align: right;
+  white-space: nowrap;
+}
+td.actions button {
+  padding: 3px 10px;
+  font-size: 12px;
+  margin-left: 4px;
+}
+.plain {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.plain li {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  padding: 3px 0;
+}
+.plain li button {
+  margin-left: auto;
+  padding: 3px 10px;
+  font-size: 12px;
+}

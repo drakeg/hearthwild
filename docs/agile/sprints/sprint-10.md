@@ -7,9 +7,9 @@
 | ID | Story | Points | Status |
 |---|---|---|---|
 | HW-115 | Contributor docs: CONTRIBUTING, Code of Conduct, SECURITY, issue templates | 2 | In review |
-| HW-101 | The release workflow publishes versions skipped when stacked PRs merge together | 3 | In sprint |
-| HW-102 | Serve every file under `public/` safely, instead of a hand-kept list | 2 | In sprint |
-| HW-103 | Host admin tools in the Server Manager: announcements, kick, ban and unban, password reset | 5 | In sprint |
+| HW-101 | The release workflow publishes versions skipped when stacked PRs merge together | 3 | In review |
+| HW-102 | Serve every file under `public/` safely, instead of a hand-kept list | 2 | In review |
+| HW-103 | Host admin tools in the Server Manager: announcements, kick, ban and unban, password reset | 5 | In review |
 
 **Committed:** 12 points (Sprint 9 velocity: 17; held lower while HW-100 and HW-114 wait on Product Owner decisions)
 
@@ -30,6 +30,10 @@
 
 ## Progress log
 - **2026-11-13:** sprint planned. HW-115 written; its security claims were checked against the code (scrypt, rate limits, request size limits, HTTPS for network sign-in).
+
+- **2026-11-13:** HW-102 done. The server now scans `public/` at startup; hidden files, odd names and unknown types are refused (tested).
+- **2026-11-13:** HW-101 done. A `catch-up` job finds CHANGELOG versions with no release and starts a run for each, from the commit that set it (`workflow_dispatch` takes a `commit` input; concurrency is per commit). A local dry run found the right commits for 0.12.0, 0.13.0 and 0.17.0, and skipped versions before 0.8.0. It hasn't run on GitHub yet.
+- **2026-11-13:** HW-103 done. Server: `admin` API, account bans (saved with the world), a kick with a one-time reason, announcements, password resets. Window: Kick and Ban on each player, announcements, the ban list with Lift ban, password reset ([screenshot](sprint-10-host-tools.png)). 118 tests pass.
 
 ## Review
 *(At the end of the sprint.)*

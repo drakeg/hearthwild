@@ -32,10 +32,37 @@
     <section class="card">
       <h2>Players online <span id="count" class="badge">0</span></h2>
       <table id="players">
-        <thead><tr><th>Name</th><th>Level</th><th>Class</th><th>Where</th></tr></thead>
+        <thead><tr><th>Name</th><th>Level</th><th>Class</th><th>Where</th><th><span class="sr">Actions</span></th></tr></thead>
         <tbody></tbody>
       </table>
       <p id="nobody" class="muted">Nobody is online right now.</p>
+      <form id="announce-form" class="inline">
+        <label for="announce" class="sr">Announcement</label>
+        <input id="announce" maxlength="300" placeholder="Send an announcement to everyone online…" />
+        <button type="submit">Announce</button>
+      </form>
+    </section>
+
+    <section class="card">
+      <h2>Accounts</h2>
+      <h3>Banned</h3>
+      <ul id="bans" class="plain"></ul>
+      <form id="ban-form" class="inline">
+        <label for="ban-name" class="sr">Account to ban</label>
+        <input id="ban-name" placeholder="Account username" />
+        <input id="ban-reason" placeholder="Reason (optional)" maxlength="200" />
+        <button type="submit" class="danger">Ban</button>
+      </form>
+      <h3>Reset a password</h3>
+      <form id="reset-form" class="inline">
+        <label for="reset-name" class="sr">Account username</label>
+        <input id="reset-name" placeholder="Account username" autocomplete="off" />
+        <label for="reset-pass" class="sr">New password</label>
+        <input id="reset-pass" type="password" placeholder="New password (10+ characters)" autocomplete="new-password" />
+        <button type="submit">Set password</button>
+      </form>
+      <p class="hint">Give the player the new password privately. They're signed out everywhere and can change it after signing in.</p>
+      <p id="accounts-msg" class="muted" role="status"></p>
     </section>
 
     <section class="card">

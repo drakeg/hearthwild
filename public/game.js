@@ -1458,7 +1458,7 @@ async function poll() {
       $("chat-status").textContent = "Connection restored.";
   } catch (e) {
     if (e.status === 401) {
-      accounts.roster();
+      accounts.roster(e.message);
       return;
     }
     keys.clear();
