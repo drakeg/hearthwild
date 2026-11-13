@@ -4,18 +4,21 @@ Ordered by priority: the top is next. The Product Owner (Greg) sets the order; a
 
 **Status:** `Ready` = meets the Definition of Ready · `Backlog` = still needs refinement
 
-## Current sprint: [Sprint 9](sprints/sprint-09.md)
+## Current sprint: [Sprint 10](sprints/sprint-10.md)
 
-HW-090 Server Manager window · HW-091 Network sharing configuration · HW-092 Agile process docs · HW-093 PR template
+HW-115 Contributor docs · HW-101 Release skipped versions · HW-102 Serve `public/` safely · HW-103 Host admin tools
+
+## Waiting on the Product Owner
+
+| ID | Type | Item | Decision needed |
+|---|---|---|---|
+| HW-114 | Chore | **Choose an open-source license** (the repo is public but `UNLICENSED`, so nobody may legally reuse or contribute code yet) | Which license, e.g. MIT, Apache-2.0, GPL-3.0 or AGPL-3.0 |
+| HW-100 | Story | **A hosted server you can leave running**, updated from each release, with HTTPS | Where to host (cloud VM, home machine, Raspberry Pi), a domain name, and the budget |
 
 ## Up next
 
 | ID | Type | Item | Epic | Points | Status |
 |---|---|---|---|---|---|
-| HW-100 | Story | **Hosted server you can leave running:** deploy the server to a small cloud host or home machine, updated automatically from each release, with HTTPS | Server & Hosting | 8 | Backlog |
-| HW-101 | Chore | Release workflow publishes every version a merge skipped (stacked PRs merged together left out v0.13.0 and v0.17.0) | Process & Tooling | 3 | Ready |
-| HW-102 | Chore | Serve every file under `public/` safely instead of a hand-kept list | Tech debt | 2 | Ready |
-| HW-103 | Story | **Host admin tools** in the Server Manager: kick, ban, server announcements, password resets | Server & Hosting | 5 | Backlog |
 | HW-104 | Chore | Playtest the Sundered Spire with real players, then tune boss health and damage | Dungeons & Raids | 3 | Backlog |
 | HW-105 | Chore | Measure frame rate on a real Mac and a modest Windows PC in the busiest zones; set a performance budget | Tech debt | 3 | Backlog |
 | HW-106 | Story | **Player trading and mail:** send items and gold to other characters | Social | 8 | Backlog |

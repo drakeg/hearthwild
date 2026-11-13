@@ -140,7 +140,7 @@ Settings are kept in `server-config.json` in the app's data folder. If a develop
 
 ## Development process
 
-Hearthwild is built in one-week sprints, with a prioritized backlog. The process, the backlog and every sprint's plan, progress, review and retrospective are documented in [`docs/agile/`](docs/agile/README.md).
+Want to help? Start with [CONTRIBUTING.md](CONTRIBUTING.md). Hearthwild is built in one-week sprints, with a prioritized backlog. The process, the backlog and every sprint's plan, progress, review and retrospective are documented in [`docs/agile/`](docs/agile/README.md).
 
 ## Friends hosting
 
