@@ -2,7 +2,7 @@
 
 - **Dates:** 2026-11-13 → 2026-11-20
 - **Goal:** Back to the game after the process and hosting sprints: players can send each other gold and items, and every class gets meaningful choices at levels 10, 20 and 30.
-- **Planned release:** v0.21.0 (stacked on Sprint 10's PR #16)
+- **Planned release:** v0.21.0 · [PR #17](https://github.com/drakeg/hearthwild/pull/17) (merge after #16)
 
 | ID | Story | Points | Status |
 |---|---|---|---|
