@@ -14,5 +14,5 @@
   "main": "desktop/main.cjs",
   "description": "Hearthwild multiplayer fantasy RPG prototype",
   "author": "Hearthwild",
-  "license": "UNLICENSED"
+  "license": "AGPL-3.0-or-later"
 }

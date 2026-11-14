@@ -9,8 +9,9 @@
 | HW-106 | Mail: send a letter, gold and one item to any character from a mailbox | 8 | In review |
 | HW-109 | Talents: two choices per class at levels 10, 20 and 30, forgettable for gold | 8 | In review |
 | HW-120 | Monetization epic written into the backlog (no code) | 0 | Done |
+| HW-114 | License the project under AGPL-3.0-or-later (Product Owner decision, 2026-11-14) | 1 | In review |
 
-**Committed:** 16 points
+**Committed:** 17 points (HW-114 added mid-sprint after the Product Owner decided)
 
 ## Acceptance criteria
 
@@ -29,6 +30,8 @@
 ## Progress log
 - **2026-11-13:** sprint planned. Shared `public/talents.js` (data, stat mods, `withTalents`) and `server/mail.js` built. The Hollow Crypt Epics are now tagged as boss treasure so they can't be mailed. 123 tests pass. The spellbook talents were checked in the browser, then given padding ([screenshot](sprint-11-talents.png)).
 - **2026-11-13:** the Monetization epic (HW-120 to HW-130) added to the backlog, below game development.
+
+- **2026-11-14:** the Product Owner chose **AGPL-3.0**. Added `LICENSE` (the official text, AGPL-3.0-or-later), the `package.json` license field, a README License section, the CONTRIBUTING terms (contributions under the same license), and a "Get the source code" link on the opening screen (AGPL §13). The Product Owner also chose a small cloud server for HW-100, which stays low in the backlog.
 
 ## Review
 *(At the end of the sprint.)*

@@ -7,6 +7,7 @@
   Friends are told at once when mail arrives, and an on-screen notice shows unread letters until you read them. Treasure from dungeon and raid bosses stays with whoever won it, and worn gear must come off before it can be sent. Mail is saved with the world.
 - **Talents** (HW-109): at levels 10, 20 and 30, every class chooses one of two talents in the spellbook (**P**). For example, a warrior picks between more health or more damage, then armor or harder-hitting finishers, then a longer Thunder slam stun or more of both. Talents change stats or specific abilities, and the spellbook and hotbar show the new numbers. **Forget talents** (5 gold per level) to choose again.
 - The Hollow Crypt's Epics now count as boss treasure, like every other dungeon's.
+- **Hearthwild is now free software** under the GNU AGPL v3 or later (HW-114). See `LICENSE`. The opening screen links to the source code, and contributions are welcome under the same terms (see `CONTRIBUTING.md`).
 - The backlog now has a **Monetization** epic (HW-120 to HW-130), planned behind game development.
 - A hundred and twenty-three checks, including new tests for talents (choosing, stats, abilities, healing, forgetting) and mail (sending, mailboxes, taking, deleting, boss treasure, saving).
 

@@ -877,3 +877,16 @@
 .mail-notice[hidden] {
   display: none;
 }
+
+.source-link {
+  display: inline-block;
+  margin-top: 10px;
+  font-size: 12px;
+  color: #c9b98f;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.source-link:hover,
+.source-link:focus-visible {
+  color: #ffe2a0;
+}
