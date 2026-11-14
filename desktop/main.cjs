@@ -288,7 +288,11 @@ async function launch() {
       partition: "persist:hearthwild",
     },
   });
-  win.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+  // Only the game's own source-code link may leave the app, and it opens in the system browser.
+  win.webContents.setWindowOpenHandler(({ url }) => {
+    if (url === "https://github.com/drakeg/hearthwild") shell.openExternal(url);
+    return { action: "deny" };
+  });
   win.webContents.on("will-navigate", (e, url) => {
     if (new URL(url).origin !== origin) e.preventDefault();
   });

@@ -2,7 +2,7 @@
 
 Thanks for wanting to help build Hearthwild! This guide covers the ground rules, how to set up the game, and how a change goes from an idea to a release.
 
-> **Licensing:** Hearthwild doesn't have an open-source license yet (`package.json` says `UNLICENSED`). Until the project owner chooses one (backlog item HW-114), please **open an issue before starting work you'd like merged**, so nobody's time is wasted.
+> **Licensing:** Hearthwild is free software under the [GNU AGPL v3 or later](LICENSE). By submitting a pull request, you agree that your contribution is licensed under the same terms. Assets you add must be CC0 or CC-BY (see the ground rules).
 
 ## Ground rules
 

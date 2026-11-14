@@ -188,3 +188,14 @@ The HUD has been measured at 320×480, 480×480, 640×480, 800×600, 1024×768 a
 ## Releases
 
 Raising the `version` in `package.json` on `main` publishes a release automatically. GitHub Actions (`.github/workflows/release.yml`) runs the tests, builds the Mac (Apple Silicon and Intel), Windows and Linux packages, and attaches them to a new GitHub release. The release notes come from that version's `CHANGELOG.md` section. You can also run the workflow by hand from the repository's **Actions** tab.
+
+## License
+
+Copyright © 2026 Greg (@drakeg) and Hearthwild contributors.
+
+Hearthwild is free software: you can redistribute it and/or modify it under the terms of the **GNU Affero General Public License, version 3 or (at your option) any later version**, as published by the Free Software Foundation. See [`LICENSE`](LICENSE). It comes with no warranty.
+
+The AGPL means that if you run a **modified** Hearthwild server for other people, you must offer them your modified source code. The game's opening screen has a "Get the source code" link for this; point it at your own copy.
+
+Third-party assets keep their own licenses, listed in [`public/models/CREDITS.md`](public/models/CREDITS.md) (CC0 and CC-BY). The bundled three.js library is MIT-licensed.
+
