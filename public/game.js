@@ -4,6 +4,7 @@ import { WORLD_HALF, WORLD_SIZE } from "./world-config.js";
 import { zoneWeights } from "./terrain.js";
 import { ranked, RANK_NAMES } from "./ui-model.js";
 import { REAGENTS, REAGENT_IDS } from "./reagents.js";
+import { withTalents } from "./talents.js";
 import { characterUi } from "./character-ui.js";
 import { accountUi } from "./accounts-ui.js";
 import { BAR_KEYS, bagCells, bagItems, questMarker, stackConsumables, itemIconStyle } from "./ui-model.js";
@@ -383,7 +384,7 @@ async function fetchState(after = 0) {
   if (incoming.shop) content = { token, key: incoming.content, shop: incoming.shop, recipes: incoming.recipes, classes: incoming.classes, abilities: incoming.abilities, questDefinitions: incoming.questDefinitions, npcs: incoming.npcs };
   const { token: _, key, ...rest } = content;
   // Abilities as this character uses them, with the ranks they have reached.
-  return { ...rest, ...incoming, abilities: rest.abilities.map((a) => ranked(a, incoming.self.level)), npcs: incoming.self.instance ? [] : rest.npcs };
+  return { ...rest, ...incoming, abilities: rest.abilities.map((a) => withTalents(ranked(a, incoming.self.level), incoming.self.classId, incoming.self.talents)), npcs: incoming.self.instance ? [] : rest.npcs };
 }
 async function api(path, data) {
   const response = await fetch(path, {
@@ -1410,6 +1411,12 @@ function updateModels() {
   combatUi.update(state);
   guildUi.update(state);
   finderUi.update(state);
+  // Unread mail waits at any provisioner's mailbox.
+  const unread = state.self.mail?.unread ?? 0,
+    note = $("mail-notice") ?? Object.assign(document.createElement("div"), { id: "mail-notice", className: "mail-notice" });
+  if (!note.isConnected) $("hud").append(note);
+  note.hidden = !unread || !!state.self.instance;
+  note.textContent = `✉ ${unread} unread letter${unread === 1 ? "" : "s"} · visit a mailbox`;
   if (state.self.dead) {
     queuedAbility = queuedAttack = interaction = null;
     autorun = false;
@@ -1458,7 +1465,7 @@ async function poll() {
       $("chat-status").textContent = "Connection restored.";
   } catch (e) {
     if (e.status === 401) {
-      accounts.roster();
+      accounts.roster(e.message);
       return;
     }
     keys.clear();
@@ -2348,6 +2355,10 @@ $("mount-menu").onclick = () => travelAction({ type: "mount" });
 $("waystone-menu").onclick = () => useWaystone();
 const hud = createHud({
   getState: () => state,
+  act: (a) =>
+    api("/api/actions", a)
+      .then((r) => r?.message && combatUi.info(r.message))
+      .catch((e) => uiError(e.message)),
   toggleBag,
   useAbility,
   clearMovement: () => {

@@ -7,7 +7,8 @@ export function accountUi({ api, onEnter, onLeave }) {
     $("roster-panel").hidden = true;
     $("join").hidden = true;
   };
-  async function roster() {
+  // `notice` explains why the player is back here (for example, the host removed them).
+  async function roster(notice = "") {
     onLeave();
     try {
       const data = await api("/api/characters");
@@ -34,6 +35,7 @@ export function accountUi({ api, onEnter, onLeave }) {
         $("character-roster").append(b);
       }
       $("new-character").disabled = data.characters.length >= 12;
+      $("roster-error").textContent = notice && !/return key/.test(notice) ? notice : "";
     } catch (e) {
       loginView();
       $("account-error").textContent = e.status === 401 ? "" : e.message;

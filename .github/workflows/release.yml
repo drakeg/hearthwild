@@ -1,5 +1,7 @@
 # Builds Hearthwild for macOS, Windows and Linux and publishes a GitHub release
 # whenever the version in package.json changes on main (or when run by hand).
+# After a release, it also releases any earlier version a merge skipped: when stacked pull
+# requests merge together, the versions in between never got their own run (HW-101).
 name: Release
 
 on:
@@ -7,13 +9,22 @@ on:
     branches: [main]
     paths: [package.json]
   workflow_dispatch:
+    inputs:
+      commit:
+        description: "Commit to release (defaults to the branch's latest)"
+        required: false
 
 permissions:
   contents: write
+  actions: write
 
+# One run per commit at a time; different versions may release side by side.
 concurrency:
-  group: release
+  group: release-${{ inputs.commit || github.sha }}
   cancel-in-progress: false
+
+env:
+  TARGET: ${{ inputs.commit || github.sha }}
 
 jobs:
   check:
@@ -23,6 +34,8 @@ jobs:
       exists: ${{ steps.v.outputs.exists }}
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TARGET }}
       - uses: actions/setup-node@v7
         with:
           node-version: 26
@@ -48,6 +61,8 @@ jobs:
     runs-on: macos-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TARGET }}
       - uses: actions/setup-node@v7
         with:
           node-version: 26
@@ -77,6 +92,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TARGET }}
       - uses: actions/setup-node@v7
         with:
           node-version: 26
@@ -102,6 +119,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ env.TARGET }}
       - uses: actions/download-artifact@v8
         with:
           path: release
@@ -116,5 +135,38 @@ jobs:
           TITLE=$(grep -m1 "^## $V" CHANGELOG.md | sed "s/^## $V — //")
           # Replace any half-finished draft left by an earlier attempt.
           gh release delete "v$V" --repo "$GITHUB_REPOSITORY" --yes --cleanup-tag 2>/dev/null || true
-          gh release create "v$V" --repo "$GITHUB_REPOSITORY" --target "$GITHUB_SHA" \
+          gh release create "v$V" --repo "$GITHUB_REPOSITORY" --target "$TARGET" \
             --title "Hearthwild $V — ${TITLE:-Release}" --notes-file notes.md release/*
+
+  # Releases any version with a CHANGELOG entry but no GitHub Release, each from the commit
+  # that set that version in package.json.
+  catch-up:
+    needs: [check, publish]
+    if: always() && github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+      - name: Release skipped versions
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          CURRENT=$(node -p "require('./package.json').version")
+          COUNT=0
+          for V in $(grep -oE '^## [0-9]+\.[0-9]+\.[0-9]+' CHANGELOG.md | cut -c4- | head -12); do
+            [ "$V" = "$CURRENT" ] && continue
+            # Downloads for every OS began with 0.8.0; earlier versions predate the packaging.
+            [ "$(printf '%s\n' 0.8.0 "$V" | sort -V | head -1)" = 0.8.0 ] || continue
+            if gh release view "v$V" --repo "$GITHUB_REPOSITORY" --json isDraft -q .isDraft 2>/dev/null | grep -q false; then continue; fi
+            SHA=$(git log --reverse --format=%H -G"\"version\": \"$V\"" -- package.json | head -1)
+            if [ -z "$SHA" ] || [ "$(git show "$SHA:package.json" | node -e 'process.stdin.on("data",d=>console.log(JSON.parse(d).version))')" != "$V" ]; then
+              echo "No commit sets version $V; skipping."
+              continue
+            fi
+            echo "Releasing skipped version $V from $SHA"
+            gh workflow run release.yml --repo "$GITHUB_REPOSITORY" --ref "${GITHUB_REF_NAME}" -f commit="$SHA"
+            COUNT=$((COUNT + 1))
+            [ "$COUNT" -ge 4 ] && break
+          done
+          echo "Started $COUNT catch-up release(s)."

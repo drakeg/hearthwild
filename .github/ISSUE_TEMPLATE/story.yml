@@ -1,0 +1,23 @@
+name: Idea / story
+description: Suggest something new for Hearthwild.
+labels: [idea]
+body:
+  - type: textarea
+    id: story
+    attributes:
+      label: The idea
+      description: "As a ‹player / host / developer›, I want ‹something› so that ‹why it matters›."
+    validations:
+      required: true
+  - type: textarea
+    id: criteria
+    attributes:
+      label: How would we know it's done?
+      description: A few acceptance criteria, as a list.
+  - type: checkboxes
+    id: rules
+    attributes:
+      label: Ground rules
+      options:
+        - label: This is original, and wouldn't copy another game's content, art or names.
+          required: true

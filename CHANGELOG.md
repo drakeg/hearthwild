@@ -1,3 +1,28 @@
+## 0.21.0 — Letters and Talents (Sprint 11)
+
+- **Mail** (HW-106): every provisioner now keeps a mailbox. Talk to one and open the **Mailbox** tab to:
+  - read your letters and take the gold and items attached;
+  - send a letter, gold and one item to any character by name, for 1 gold postage.
+
+  Friends are told at once when mail arrives, and an on-screen notice shows unread letters until you read them. Treasure from dungeon and raid bosses stays with whoever won it, and worn gear must come off before it can be sent. Mail is saved with the world.
+- **Talents** (HW-109): at levels 10, 20 and 30, every class chooses one of two talents in the spellbook (**P**). For example, a warrior picks between more health or more damage, then armor or harder-hitting finishers, then a longer Thunder slam stun or more of both. Talents change stats or specific abilities, and the spellbook and hotbar show the new numbers. **Forget talents** (5 gold per level) to choose again.
+- The Hollow Crypt's Epics now count as boss treasure, like every other dungeon's.
+- The backlog now has a **Monetization** epic (HW-120 to HW-130), planned behind game development.
+- A hundred and twenty-three checks, including new tests for talents (choosing, stats, abilities, healing, forgetting) and mail (sending, mailboxes, taking, deleting, boss treasure, saving).
+
+## 0.20.0 — Open doors (Sprint 10)
+
+- **Host tools in the Server Manager** (HW-103):
+  - **Announcements** to everyone online, shown in chat as *[Server]*.
+  - **Kick:** a player is sent back to their character list with a note saying why, and can come straight back in.
+  - **Ban:** an account (all its characters), with an optional reason. A banned account is signed out at once and can't sign back in until you **Lift ban**. Bans are saved with the world.
+  - **Password resets** for any account; the player is signed out everywhere.
+  - Every action is recorded in the Activity log.
+- **Contributing** (HW-115): [`CONTRIBUTING.md`](CONTRIBUTING.md) covers the ground rules, setup, the flow from issue to release, the Definition of Done and the house style. Also new: a [Code of Conduct](CODE_OF_CONDUCT.md), a [security policy](SECURITY.md) with private reporting, and issue templates for bugs and ideas.
+- **No more missing releases** (HW-101): after each release, the workflow also releases any version a merge skipped (as happened with 0.13.0 and 0.17.0 when stacked pull requests were merged together).
+- **Simpler client files** (HW-102): every file in `public/` is served automatically and safely, with no hand-kept list to update.
+- A hundred and eighteen checks, including new tests for the host tools and for serving files safely.
+
 ## 0.19.0 — Server Manager (Sprint 9)
 
 - **Server Manager** (HW-090): a friendly window in the desktop app for running the server. Open **Server → Server Manager…** (⇧⌘M or Ctrl+Shift+M). It shows:

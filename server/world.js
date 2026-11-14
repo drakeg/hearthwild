@@ -24,7 +24,10 @@ import { CRYPT, DUNGEON_LIST, dungeonOf } from "../public/dungeon-layout.js";
 import { DUNGEON_LOOT } from "./content-world.js";
 import { Grid, VIEW, AWAKE_RADIUS, contentKey } from "./interest.js";
 import { Finder, FINDER } from "./finder.js";
+import { Mail } from "./mail.js";
 import { REAGENTS, POUCH_LIMIT } from "../public/reagents.js";
+import { TALENTS } from "../public/talents.js";
+const talentResetCost = (p) => 5 * (p.level ?? 1);
 import {
   MELEE_RANGE,
   LEASH_RANGE,
@@ -111,6 +114,7 @@ export class World {
     this.contentBase = contentKey({ shop: this.shop, recipes: RECIPES, classes: CLASSES, quests: QUESTS, npcs: NPCS, abilities: ABILITIES });
     this.parties = new Parties(this);
     this.finder = new Finder(this);
+    this.mail = new Mail(this);
     this.crypts = new Crypts(this);
     this.guilds = new Guilds(this, saved.guilds, {
       signatures: charterSignatures ?? (Number(process.env.HEARTHWILD_CHARTER_SIGNATURES) || 2),
@@ -143,6 +147,53 @@ export class World {
   }
   maxHp(p) {
     return stats(p).maxHp;
+  }
+  // Talents: one choice of two at levels 10, 20 and 30; forgetting them all costs gold.
+  talent(p, a) {
+    p.talents ??= {};
+    if (a.op === "reset") {
+      reject(!Object.keys(p.talents).length, "You haven’t chosen any talents yet.");
+      const cost = talentResetCost(p);
+      reject(p.coins < cost, `Forgetting your talents costs ${cost} gold.`);
+      p.coins -= cost;
+      p.talents = {};
+      return { message: `Your talents are forgotten (${cost} gold). Choose again in your spellbook.` };
+    }
+    const tier = Number(a.tier),
+      options = TALENTS[p.classId]?.[tier];
+    reject(!options, "Choose a talent tier: 10, 20 or 30.");
+    reject(p.level < tier, `That talent opens at level ${tier}.`);
+    reject(p.talents[tier], "You’ve already chosen a talent at this level. Forget your talents to choose again.");
+    const pick = options.find((x) => x.id === a.id);
+    reject(!pick, "Choose one of the two talents for that level.");
+    reject(p.casting, "Finish casting first.");
+    p.talents[tier] = pick.id;
+    p.hp = Math.min(p.hp, this.maxHp(p));
+    return { message: `Talent learned: ${pick.name}. ${pick.text}` };
+  }
+  // ---------- Host tools (used by the Server Manager) ----------
+  online(now = Date.now()) {
+    return [...this.players.values()].filter((q) => now - q.seen < 15000);
+  }
+  // Ends a player's session: their next request returns them to the character list with a reason.
+  kick(p, reason = "The host removed you from the world. You can come back in from your characters.") {
+    this.removed ??= new Map();
+    if (this.removed.size > 200) this.removed.clear();
+    this.removed.set(p.keyHash, reason);
+    this.keys.delete(p.keyHash);
+    p.accessToken = null;
+    p.keyHash = hash(randomBytes(32).toString("hex"));
+    this.keys.set(p.keyHash, p.id);
+    p.seen = -Infinity;
+    p.input = { x: 0, z: 0 };
+    p.casting = null;
+    p.autoAttack = null;
+  }
+  announce(text, now = Date.now()) {
+    const message = String(text ?? "").trim().slice(0, 300);
+    reject(!message, "Write an announcement first.");
+    for (const p of this.online(now)) this.system(p, `[Server] ${message}`, now);
+    return message;
   }
   system(p, text, now = Date.now()) {
     p.messages.push({ id: ++this.sequence, from: "", channel: "system", text, time: now });
@@ -260,6 +311,12 @@ export class World {
       401,
     );
     const p = this.players.get(this.keys.get(hash(token)));
+    // A player the host removed is told why (once), then sent back to their characters.
+    const removed = !p && this.removed?.get(hash(token));
+    if (removed) {
+      this.removed.delete(hash(token));
+      reject(true, removed, 401);
+    }
     reject(!p, "Your return key is missing or invalid.", 401);
     return p;
   }
@@ -317,6 +374,9 @@ export class World {
         home: p.home ?? "camp",
         homeName: stopById(p.home ?? "camp").name,
         finder: this.finder.view(p, now),
+        talents: p.talents ?? {},
+        talentResetCost: talentResetCost(p),
+        mail: this.mail.view(p),
         waystoneReadyAt: p.waystoneReadyAt ?? 0,
         recall: p.recall,
         travel: p.travel ? { to: p.travel.to, name: p.travel.name, startedAt: p.travel.startedAt, eta: p.travel.eta } : null,
@@ -386,6 +446,8 @@ export class World {
     }
     if (a.type === "party") return this.parties.act(p, a, now, reject);
     if (a.type === "finder") return this.finder.act(p, a, now, reject);
+    if (a.type === "talent") return this.talent(p, a);
+    if (a.type === "mail") return this.mail.act(p, a, now, reject);
     if (a.type === "guild") return this.guilds.act(p, a, now, reject);
     if (a.type === "release") {
       reject(!p.dead, "You are not dead.");
@@ -1312,6 +1374,8 @@ export class World {
         riding: !!p.riding,
         home: p.home ?? "camp",
         waystoneReadyAt: p.waystoneReadyAt ?? 0,
+        talents: p.talents ?? {},
+        mail: p.mail ?? [],
         materials: p.materials,
         xp: p.xp,
         power: p.power,

@@ -3,6 +3,7 @@ import { WORLD_HALF, WORLD_SIZE, WORLD_LIMIT, ZONES, TOWNS } from "./world-confi
 import { zoneWeights, zoneAt, terrainHeight, lakeAt, ROADS, HOUSES, LAKES } from "./terrain.js";
 import { mapPoint, filterQuests, questMarker, zoneBounds, RANK_NAMES } from "./ui-model.js";
 import { REAGENTS, REAGENT_IDS } from "./reagents.js";
+import { TALENTS, TALENT_TIERS } from "./talents.js";
 const $ = (id) => document.getElementById(id);
 // Ability icons: keys 1–4 come from the first sheet, keys 9–12 from the second (one row per class).
 export function abilityIcon(classId, key) {
@@ -23,6 +24,7 @@ export function createHud({
   useAbility,
   clearMovement,
   focusWorld,
+  act,
 }) {
   let chosenQuest = "wildgrowth",
     journalKey = "",
@@ -265,6 +267,48 @@ export function createHud({
     const tip = document.createElement("small");
     tip.textContent = view === "world" ? "Open a zone to mark a patch." : "Click a patch to mark it.";
     box.append(tip);
+  }
+  // Talents: one of two at levels 10, 20 and 30, chosen in the spellbook.
+  function renderTalents(s) {
+    const box = $("talent-list"),
+      p = s.self,
+      picks = p.talents ?? {};
+    box.replaceChildren();
+    const head = document.createElement("h3");
+    head.textContent = "Talents";
+    box.append(head);
+    for (const tier of TALENT_TIERS) {
+      const row = document.createElement("div");
+      row.className = `talent-tier${p.level < tier ? " locked" : ""}`;
+      const label = document.createElement("span");
+      label.className = "talent-level";
+      label.textContent = `Level ${tier}`;
+      row.append(label);
+      for (const x of TALENTS[p.classId][tier]) {
+        const b = document.createElement("button"),
+          chosen = picks[tier] === x.id;
+        b.className = `talent${chosen ? " chosen" : ""}`;
+        b.disabled = p.level < tier || !!picks[tier];
+        b.setAttribute("aria-pressed", chosen);
+        const name = document.createElement("strong"),
+          text = document.createElement("small");
+        name.textContent = x.name;
+        text.textContent = x.text;
+        b.append(name, text);
+        b.onclick = () => act({ type: "talent", tier, id: x.id });
+        row.append(b);
+      }
+      box.append(row);
+    }
+    const foot = document.createElement("p");
+    foot.className = "talent-foot";
+    if (Object.keys(picks).length) {
+      const reset = document.createElement("button");
+      reset.textContent = `Forget talents (${p.talentResetCost} gold)`;
+      reset.onclick = () => confirm("Forget all your talents so you can choose again?") && act({ type: "talent", op: "reset" });
+      foot.append(reset);
+    } else foot.textContent = p.level < 10 ? "Your first talent opens at level 10." : "Choose one talent for each level you’ve reached.";
+    box.append(foot);
   }
   function drawMap(canvas, s, mini = false) {
     if (s.self.instance) return drawCrypt(canvas, s, mini);
@@ -624,9 +668,10 @@ export function createHud({
     }
     if (
       !$("spellbook").hidden &&
-      spellKey !== JSON.stringify([s.self.level, s.self.classId])
+      spellKey !== JSON.stringify([s.self.level, s.self.classId, s.self.talents])
     ) {
-      spellKey = JSON.stringify([s.self.level, s.self.classId]);
+      spellKey = JSON.stringify([s.self.level, s.self.classId, s.self.talents]);
+      renderTalents(s);
       $("spell-list").replaceChildren();
       for (const a of s.abilities) {
         const b = document.createElement("button"),

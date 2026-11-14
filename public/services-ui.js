@@ -8,6 +8,8 @@ const $ = (id) => document.getElementById(id),
   };
 export function servicesUi({ getState, act, stop, focusWorld }) {
   let mode = "buy",
+    // A letter being written survives the window redrawing.
+    draft = { to: "", subject: "", body: "", coins: "", item: "" },
     vendor = null,
     key = "",
     busy = false;
@@ -31,6 +33,7 @@ export function servicesUi({ getState, act, stop, focusWorld }) {
     ["buy", "Buy"],
     ["sell", "Sell"],
     ["buyback", "Buyback"],
+    ["mail", "Mailbox"],
     ["professions", "Professions"],
   ]) {
     const b = el("button", name);
@@ -91,10 +94,13 @@ export function servicesUi({ getState, act, stop, focusWorld }) {
         p.buyback,
         p.materials,
         p.professions,
+        p.mail,
         busy,
         near,
       ]);
     if (key === next) return;
+    // Don't redraw the letter form under someone typing in it.
+    if (mode === "mail" && body.querySelector(".mail-form")?.contains(document.activeElement) && !busy) return;
     key = next;
     title.textContent =
       mode === "professions"
@@ -107,6 +113,75 @@ export function servicesUi({ getState, act, stop, focusWorld }) {
     }
     if (mode !== "professions" && !near) {
       body.append(el("p", "Talk to Torren or Mira at camp to buy and sell."));
+      return;
+    }
+    if (mode === "mail") {
+      const m = p.mail;
+      body.append(el("h3", m.letters.length ? `Your letters (${m.letters.length})` : "Your mailbox is empty."));
+      for (const letter of m.letters) {
+        const attached = [letter.coins && `${letter.coins} gold`, letter.item && letter.item.name].filter(Boolean).join(" + ");
+        row(
+          `${letter.read ? "" : "● "}${letter.subject} — from ${letter.from}`,
+          `${letter.body || "(no message)"}${attached ? ` · Attached: ${attached}` : ""} · ${new Date(letter.sentAt).toLocaleDateString()}`,
+          [
+            ...(attached ? [button(`Take ${attached}`, { type: "mail", op: "take", id: letter.id })] : []),
+            button("Delete", { type: "mail", op: "delete", id: letter.id }, !!attached),
+          ],
+        );
+        // Opening the mailbox marks letters as read.
+        if (!letter.read) act({ type: "mail", op: "read", id: letter.id }).catch(() => {});
+      }
+      body.append(el("h3", "Send a letter"));
+      const form = el("form", undefined, "mail-form"),
+        field = (label, input) => {
+          const l = el("label", label);
+          l.append(input);
+          form.append(l);
+          return input;
+        },
+        input = (name, attrs = {}) => {
+          const i = Object.assign(document.createElement(attrs.tag ?? "input"), attrs.props ?? {});
+          i.value = draft[name];
+          i.oninput = () => (draft[name] = i.value);
+          return i;
+        };
+      field("To (character name)", input("to", { props: { maxLength: 24, required: true, autocomplete: "off" } }));
+      field("Subject", input("subject", { props: { maxLength: 60 } }));
+      field("Message", input("body", { tag: "textarea", props: { maxLength: 500, rows: 3 } }));
+      field("Gold to send", input("coins", { props: { type: "number", min: 0, max: Math.max(0, p.coins - 1), placeholder: "0" } }));
+      const pick = input("item", { tag: "select" }),
+        worn = new Set(Object.values(p.equipment));
+      pick.append(el("option", "No item"));
+      pick.firstChild.value = "";
+      for (const i of p.inventory.filter((i) => !worn.has(i.id))) {
+        const o = el("option", `${i.name}${i.rarity ? ` (${i.rarity})` : ""}`);
+        o.value = i.id;
+        pick.append(o);
+      }
+      pick.value = draft.item;
+      field("Attach an item", pick);
+      const go = el("button", "Send (1 gold postage)");
+      go.type = "submit";
+      go.disabled = busy;
+      form.append(go);
+      form.onsubmit = async (e) => {
+        e.preventDefault();
+        if (busy) return;
+        busy = true;
+        try {
+          const r = await act({ type: "mail", op: "send", to: draft.to, subject: draft.subject, body: draft.body, coins: Number(draft.coins || 0), item: draft.item || undefined });
+          status.textContent = r.message ?? "Sent.";
+          draft = { to: "", subject: "", body: "", coins: "", item: "" };
+        } catch (err) {
+          status.textContent = err.message;
+        } finally {
+          busy = false;
+          key = "";
+          update();
+        }
+      };
+      body.append(form);
+      body.append(el("p", "Treasure from dungeon and raid bosses stays with whoever won it, and can’t be mailed."));
       return;
     }
     if (mode === "buy") {

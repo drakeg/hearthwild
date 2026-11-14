@@ -51,6 +51,8 @@ The playable map is now 160×160, roughly seven times the previous area. Thirty-
 
 - **Group up:** click another adventurer of your faction and choose *Invite to group*, or type `/invite Name`. Other commands: `/leave`, `/kick Name`, `/promote Name`, and `/p message` for party chat. Groups hold up to five.
 - Group members near a kill share its experience (with a group bonus) and quest credit, and each gets their own loot.
+- **Mail:** every provisioner keeps a mailbox (the **Mailbox** tab when you talk to them). Send a letter, gold and an item to any character for 1 gold postage. Boss treasure can't be mailed.
+- **Talents:** at levels 10, 20 and 30, choose one of two talents in the spellbook (**P**). You can forget them for gold and choose again.
 - **Dungeon Finder (O):** choose your role (warriors can tank, druids can heal, and everyone can deal damage) and the dungeons you're ready for, then join the queue alone or with your group. The Finder builds a group of one tank, one healer and three damage dealers from your faction. After 90 seconds in the queue, a tank, a healer and one more will do. Everyone gets a ready check; when all accept, the group is formed and carried straight into a fresh copy of the dungeon. Walk out through the portal (or leave the group) to return to where you queued. Killing the boss pays each member a bonus satchel of gold and experience.
 - **The Hollow Crypt:** talk to Scout Haldren at the sealed door in Amberwatch Ruins, then press **F** at the door. Your group gets its own copy of the dungeon. Walk back to the glowing portal by the entrance to leave.
 - Vorlath the Ashen Warden: step out of red circles, interrupt *Soul Drain*, and kill or control his acolytes.
@@ -133,6 +135,7 @@ The desktop app runs its own Hearthwild server. Open **Server → Server Manager
 - **Controls:** **Start**, **Stop** and **Restart** it. The game window reconnects by itself.
 - **Invite friends:** turn on **Share with my network**, pick a port and an HTTPS certificate and key, then **Save and restart**. The window shows the address to give friends, with a Copy button; they open it in a web browser. Friends can only sign in over HTTPS, which keeps passwords private on the network.
 - **Guild charters:** set how many signatures a new guild needs.
+- **Host tools:** send an announcement to everyone online; **Kick** a player (they can come back in); **Ban** an account (all its characters), with a reason, and lift bans later; set a new password for an account.
 - **Your world save:** open the save folder, or **Back up now** to put a timestamped copy in `backups/`.
 - **Activity:** the server starting and stopping, players joining and leaving, and any errors.
 
@@ -140,7 +143,7 @@ Settings are kept in `server-config.json` in the app's data folder. If a develop
 
 ## Development process
 
-Hearthwild is built in one-week sprints, with a prioritized backlog. The process, the backlog and every sprint's plan, progress, review and retrospective are documented in [`docs/agile/`](docs/agile/README.md).
+Want to help? Start with [CONTRIBUTING.md](CONTRIBUTING.md). Hearthwild is built in one-week sprints, with a prioritized backlog. The process, the backlog and every sprint's plan, progress, review and retrospective are documented in [`docs/agile/`](docs/agile/README.md).
 
 ## Friends hosting
 

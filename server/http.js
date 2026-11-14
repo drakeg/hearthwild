@@ -18,52 +18,39 @@ import { Accounts } from "./accounts.js";
 import { createServer as createSecureServer } from "node:https";
 const root = fileURLToPath(new URL("../public/", import.meta.url));
 const VERSION = JSON.parse(readFileSync(new URL("../package.json", import.meta.url), "utf8")).version;
-const assets = new Map([
-  ["/", ["index.html", "text/html"]],
-  ["/services-ui.js", ["services-ui.js", "text/javascript"]],
-  ["/world-config.js", ["world-config.js", "text/javascript"]],
-  ["/game-menu.js", ["game-menu.js", "text/javascript"]],
-  ["/game.js", ["game.js", "text/javascript"]],
-  ["/accounts-ui.js", ["accounts-ui.js", "text/javascript"]],
-  ["/layout.css", ["layout.css", "text/css"]],
-  ["/character-ui.js", ["character-ui.js", "text/javascript"]],
-  ["/controls.js", ["controls.js", "text/javascript"]],
-  ["/scenery.js", ["scenery.js", "text/javascript"]],
-  ["/style.css", ["style.css", "text/css"]],
-  ["/hud.css", ["hud.css", "text/css"]],
-  ["/hud.js", ["hud.js", "text/javascript"]],
-  ["/combat-ui.js", ["combat-ui.js", "text/javascript"]],
-  ["/guild-ui.js", ["guild-ui.js", "text/javascript"]],
-  ["/finder-ui.js", ["finder-ui.js", "text/javascript"]],
-  ["/reagents.js", ["reagents.js", "text/javascript"]],
-  ["/terrain.js", ["terrain.js", "text/javascript"]],
-  ["/world-stream.js", ["world-stream.js", "text/javascript"]],
-  ["/characters.js", ["characters.js", "text/javascript"]],
-  ["/dungeon-layout.js", ["dungeon-layout.js", "text/javascript"]],
-  ["/dungeon-scene.js", ["dungeon-scene.js", "text/javascript"]],
-  ["/combat-ui.css", ["combat-ui.css", "text/css"]],
-  ["/ui-model.js", ["ui-model.js", "text/javascript"]],
-  ["/art/abilities.png", ["art/abilities.png", "image/png"]],
-  ["/art/abilities-2.png", ["art/abilities-2.png", "image/png"]],
-  ["/vendor/three.module.js", ["vendor/three.module.js", "text/javascript"]],
-  ["/vendor/three.core.js", ["vendor/three.core.js", "text/javascript"]],
-  ["/favicon.ico", [null, "image/x-icon"]],
-]);
-// Vendored three.js add-ons, models and textures: registered by name so nothing else under public/ is served.
-for (const [dir, ext, type] of [
-  ["vendor/addons", ".js", "text/javascript"],
-  ["models", ".glb", "model/gltf-binary"],
-  ["models/q", ".glb", "model/gltf-binary"],
-  ["models/nature", ".glb", "model/gltf-binary"],
-  ["models/props", ".glb", "model/gltf-binary"],
-  ["models/dungeon", ".glb", "model/gltf-binary"],
-  ["art", ".png", "image/png"],
-  ["art", ".jpg", "image/jpeg"],
-])
-  if (existsSync(join(root, dir)))
-    for (const name of readdirSync(join(root, dir)))
-      if (name.endsWith(ext) && /^[\w.-]+$/.test(name))
-        assets.set(`/${dir}/${name}`, [`${dir}/${name}`, type]);
+// Every file under public/ with a known type is served at its own path. Hidden files and
+// folders, odd names and unknown types are never served, and nothing outside public/ is reachable.
+const TYPES = {
+  ".html": "text/html",
+  ".js": "text/javascript",
+  ".css": "text/css",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".svg": "image/svg+xml",
+  ".glb": "model/gltf-binary",
+  ".json": "application/json",
+  ".woff2": "font/woff2",
+};
+export function publicAssets(dir = root) {
+  const found = new Map([
+    ["/", ["index.html", "text/html"]],
+    ["/favicon.ico", [null, "image/x-icon"]],
+  ]);
+  const walk = (rel) => {
+    for (const entry of readdirSync(join(dir, rel), { withFileTypes: true })) {
+      if (!/^[\w][\w.-]*$/.test(entry.name)) continue;
+      const path = rel ? `${rel}/${entry.name}` : entry.name;
+      if (entry.isDirectory()) walk(path);
+      else if (entry.isFile()) {
+        const type = TYPES[entry.name.slice(entry.name.lastIndexOf("."))];
+        if (type) found.set(`/${path}`, [path, type]);
+      }
+    }
+  };
+  walk("");
+  return found;
+}
+const assets = publicAssets();
 export function createGameServer({ dataDir = resolve("data"), tls } = {}) {
   mkdirSync(dataDir, { recursive: true, mode: 0o700 });
   const file = join(dataDir, "world.json");
@@ -352,13 +339,47 @@ export function createGameServer({ dataDir = resolve("data"), tls } = {}) {
     accounts,
     tls: !!tls,
     save: () => persist(),
+    // Host tools for the Server Manager.
+    admin: {
+      announce: (text) => world.announce(text),
+      kick: (name) => {
+        const p = world.online().find((q) => q.name.toLowerCase() === String(name).toLowerCase());
+        if (!p) throw new GameError(`${name} isn’t online.`, 404);
+        world.kick(p);
+        return p.name;
+      },
+      ban: (username, reason) => {
+        const account = accounts.ban(username, reason);
+        for (const p of world.players.values())
+          if (p.accountId === account.id) world.kick(p, "This account has been banned from this server.");
+        persist();
+        return account.username;
+      },
+      unban: (username) => {
+        const account = accounts.unban(username);
+        persist();
+        return account.username;
+      },
+      bans: () => [...accounts.accounts.values()].filter((a) => a.banned).map((a) => ({ username: a.username, at: a.banned.at, reason: a.banned.reason })),
+      // The account a character belongs to, so the window can offer "ban" from the player list.
+      accountOf: (name) => {
+        const p = [...world.players.values()].find((q) => q.name.toLowerCase() === String(name).toLowerCase());
+        return p?.accountId ? accounts.accounts.get(p.accountId)?.username : null;
+      },
+      resetPassword: async (username, password) => {
+        await accounts.resetPassword(username, password);
+        for (const p of world.players.values())
+          if (p.accountId === accounts.find(username).id) world.kick(p, "Your password was changed by the host. Sign in with the new one.");
+        persist();
+      },
+    },
     close: async () => {
       clearInterval(tick);
       clearInterval(saves);
       clearInterval(cleanup);
       persist();
       // Close open connections too, so a restart doesn't wait on idle browser connections.
-      const closing = new Promise((r, j) => server.close((e) => (e ? j(e) : r())));
+      const closing = new Promise((r, j) => server.close((e) => (e && e.code !== "ERR_SERVER_NOT_RUNNING" ? j(e) : r())));
       server.closeAllConnections?.();
       await closing;
       if (

@@ -67,7 +67,18 @@ function render(s) {
   body.replaceChildren(
     ...s.players.map((p) => {
       const tr = el("tr");
-      tr.append(el("td", p.name), el("td", String(p.level)), el("td", CLASSES[p.classId] ?? p.classId), el("td", p.where));
+      const actions = el("td", undefined, "actions"),
+        kick = el("button", "Kick"),
+        ban = el("button", "Ban", "danger");
+      kick.onclick = () => confirm(`Remove ${p.name} from the world? They can come back in.`) && act(api.kick(p.name), `Removed ${p.name}.`);
+      ban.disabled = !p.account;
+      ban.title = p.account ? `Ban the account ${p.account}` : "This character has no account";
+      ban.onclick = () => {
+        const reason = prompt(`Ban the account “${p.account}” (all its characters)? Optional reason:`, "");
+        if (reason !== null) act(api.ban(p.account, reason), `Banned ${p.account}.`);
+      };
+      actions.append(kick, ban);
+      tr.append(el("td", p.name), el("td", String(p.level)), el("td", CLASSES[p.classId] ?? p.classId), el("td", p.where), actions);
       return tr;
     }),
   );
@@ -84,6 +95,19 @@ function render(s) {
     $("signatures").value = s.config.charterSignatures;
   }
   $("folder").textContent = s.dataDir ?? "";
+  const bans = s.bans ?? [];
+  $("bans").replaceChildren(
+    ...(bans.length
+      ? bans.map((b) => {
+          const li = el("li"),
+            lift = el("button", "Lift ban");
+          lift.onclick = () => act(api.unban(b.username), `Lifted the ban on ${b.username}.`);
+          li.append(el("strong", b.username), el("span", ` · ${new Date(b.at).toLocaleDateString()}${b.reason ? ` · ${b.reason}` : ""}`, "muted"), lift);
+          return li;
+        })
+      : [el("li", "Nobody is banned.", "muted")]),
+  );
+  for (const f of ["announce-form", "ban-form", "reset-form"]) for (const c of $(f).elements) c.disabled = !s.running || !!s.external;
   $("activity").replaceChildren(
     ...[...s.activity].reverse().map((a) => {
       const li = el("li");
@@ -156,6 +180,28 @@ $("settings").onsubmit = (e) => {
 $("save-restart").onclick = () => {
   if (last?.players.length && !confirm(`Restart now? ${last.players.length} player(s) will be disconnected briefly.`)) return;
   saveSettings(true);
+};
+// Host tools: run, then report the outcome under Accounts.
+async function act(promise, done) {
+  const r = await promise;
+  $("accounts-msg").textContent = r?.error ?? done;
+  await refresh();
+  return !r?.error;
+}
+$("announce-form").onsubmit = async (e) => {
+  e.preventDefault();
+  if (await act(api.announce($("announce").value), "Announcement sent.")) $("announce").value = "";
+};
+$("ban-form").onsubmit = async (e) => {
+  e.preventDefault();
+  const name = $("ban-name").value.trim();
+  if (name && confirm(`Ban the account “${name}”? It will be signed out and can't sign back in.`) && (await act(api.ban(name, $("ban-reason").value), `Banned ${name}.`)))
+    $("ban-name").value = $("ban-reason").value = "";
+};
+$("reset-form").onsubmit = async (e) => {
+  e.preventDefault();
+  const name = $("reset-name").value.trim();
+  if (await act(api.resetPassword(name, $("reset-pass").value), `Set a new password for ${name}.`)) $("reset-name").value = $("reset-pass").value = "";
 };
 api.onChange(refresh);
 setInterval(refresh, 2000);

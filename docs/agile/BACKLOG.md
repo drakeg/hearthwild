@@ -4,28 +4,49 @@ Ordered by priority: the top is next. The Product Owner (Greg) sets the order; a
 
 **Status:** `Ready` = meets the Definition of Ready · `Backlog` = still needs refinement
 
-## Current sprint: [Sprint 9](sprints/sprint-09.md)
+## Current sprint: [Sprint 11](sprints/sprint-11.md)
 
-HW-090 Server Manager window · HW-091 Network sharing configuration · HW-092 Agile process docs · HW-093 PR template
+HW-106 Mail · HW-109 Talents · HW-120 Monetization epic (backlog only)
+
+## Waiting on the Product Owner
+
+| ID | Type | Item | Decision needed |
+|---|---|---|---|
+| HW-114 | Chore | **Choose an open-source license** (the repo is public but `UNLICENSED`, so nobody may legally reuse or contribute code yet) | Which license, e.g. MIT, Apache-2.0, GPL-3.0 or AGPL-3.0 |
+| HW-100 | Story | **A hosted server you can leave running**, updated from each release, with HTTPS | Where to host (cloud VM, home machine, Raspberry Pi), a domain name, and the budget |
 
 ## Up next
 
 | ID | Type | Item | Epic | Points | Status |
 |---|---|---|---|---|---|
-| HW-100 | Story | **Hosted server you can leave running:** deploy the server to a small cloud host or home machine, updated automatically from each release, with HTTPS | Server & Hosting | 8 | Backlog |
-| HW-101 | Chore | Release workflow publishes every version a merge skipped (stacked PRs merged together left out v0.13.0 and v0.17.0) | Process & Tooling | 3 | Ready |
-| HW-102 | Chore | Serve every file under `public/` safely instead of a hand-kept list | Tech debt | 2 | Ready |
-| HW-103 | Story | **Host admin tools** in the Server Manager: kick, ban, server announcements, password resets | Server & Hosting | 5 | Backlog |
 | HW-104 | Chore | Playtest the Sundered Spire with real players, then tune boss health and damage | Dungeons & Raids | 3 | Backlog |
 | HW-105 | Chore | Measure frame rate on a real Mac and a modest Windows PC in the busiest zones; set a performance budget | Tech debt | 3 | Backlog |
-| HW-106 | Story | **Player trading and mail:** send items and gold to other characters | Social | 8 | Backlog |
 | HW-107 | Story | **Mining and blacksmithing:** ore nodes per zone, crafted gear | World | 8 | Backlog |
 | HW-108 | Story | **Second raid** for the Outer Ring | Dungeons & Raids | 13 | Backlog |
-| HW-109 | Story | **Talents:** a small choice per class at levels 10, 20 and 30 | Classes | 8 | Backlog |
 | HW-110 | Story | **New beast models** (CC0) to replace the recoloured foxes | Art | 5 | Backlog |
 | HW-111 | Story | **Achievements and titles** | Social | 5 | Backlog |
 | HW-112 | Story | **World events:** a roaming world boss in the Outer Ring | World | 5 | Backlog |
+| HW-116 | Story | **Face-to-face trade window:** two players swap items and gold, both confirming | Social | 5 | Backlog |
 | HW-113 | Bug | The `release-0.12` branch is left over from the v0.12.0 re-release; delete it on GitHub | Process & Tooling | 1 | Ready |
+
+## Epic: Monetization (HW-120)
+
+Planned on 2026-11-13 from a monetization review. Ordered so each step tests demand before the next costs more. Prices and revenue are estimates. These items wait behind game development, and HW-114 (the license) and whether the repo stays public must be decided first.
+
+| ID | Type | Item | Points | Status |
+|---|---|---|---|---|
+| HW-121 | Chore | Decide what's sold versus free: repo visibility, whether GitHub Release downloads stay free, and a trademark check on "Hearthwild" | 1 | Waiting on PO |
+| HW-122 | Story | **Free demo build:** the Stillwood only (levels 1–6), built by the release workflow alongside the full game | 5 | Backlog |
+| HW-123 | Story | **Gameplay trailer and press kit:** 60–90 s of the Outer Ring and the raid, screenshots, a short description | 3 | Backlog |
+| HW-124 | Story | **itch.io early-access page:** pay what you want, $5 minimum and $10 suggested; demo plus full builds uploaded by the workflow | 3 | Backlog |
+| HW-125 | Story | **Supporter page** (Ko-fi or Patreon) linked from the game menu and README, with credits for supporters | 2 | Backlog |
+| HW-126 | Story | **Terms of service and a privacy policy** for player accounts | 2 | Backlog |
+| HW-127 | Story | **Waitlist for hosted worlds:** a "join the waitlist" form, aiming for 50 sign-ups before building billing | 2 | Backlog |
+| HW-128 | Story | **Hosted private worlds ("Realms"):** an always-on world for a group of up to 10, about $6 a month; builds on HW-100 | 13 | Backlog |
+| HW-129 | Story | **Billing for Realms:** subscription checkout, receipts, cancellation | 8 | Backlog |
+| HW-130 | Chore | **Steam "coming soon" page and wishlists**, once the itch.io launch shows demand ($100 fee, refunded after $1,000 in sales) | 3 | Backlog |
+
+**How we'll know it's working:** playtesters play more than an hour and come back; at least 10% of pay-what-you-want downloads pay something; 50 waitlist sign-ups before building Realms.
 
 ## New
 *(Add items here; they're refined and placed above.)*

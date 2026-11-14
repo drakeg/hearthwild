@@ -120,7 +120,10 @@ export const ITEMS = {
 };
 import { TOWNS, MAX_LEVEL } from "../public/terrain.js";
 import { REAGENT_IDS } from "../public/reagents.js";
-import { GEAR, LATE_ABILITIES, ABILITY_RANKS, WORLD_FOLK, WORLD_QUESTS, TRAVEL_FOLK } from "./content-world.js";
+import { talentMods, withTalents } from "../public/talents.js";
+// The Hollow Crypt's Epics are boss treasure like every other dungeon's (they can't be mailed).
+for (const k of DUNGEON_LOOT["hollow-crypt"]) ITEMS[k].dungeon ??= "hollow-crypt";
+import { GEAR, LATE_ABILITIES, ABILITY_RANKS, WORLD_FOLK, WORLD_QUESTS, TRAVEL_FOLK, DUNGEON_LOOT } from "./content-world.js";
 import { ranked } from "../public/ui-model.js";
 const town = (id) => TOWNS.find((t) => t.id === id);
 // Each town has a quest giver near its square and a provisioner beside the road.
@@ -245,6 +248,9 @@ export function stats(p) {
       item = ITEMS[instance?.template];
     if (item) for (const key of Object.keys(result)) result[key] += item[key];
   }
+  // Talents add a share on top of level and gear.
+  const mods = talentMods(p.classId, p.talents);
+  for (const key of Object.keys(result)) if (mods[key]) result[key] = Math.round(result[key] * (1 + mods[key]));
   return result;
 }
 export const describeItem = (i) => ({ ...i, ...ITEMS[i.template] });
@@ -484,7 +490,7 @@ for (const [classId, list] of Object.entries(ABILITY_RANKS))
     (a.ranks ??= []).push({ level, set, text });
   }
 // An ability as this character uses it, with every rank they have reached.
-export const abilityFor = (p, ability) => ranked(ability, p.level ?? 1);
+export const abilityFor = (p, ability) => withTalents(ranked(ability, p.level ?? 1), p.classId, p.talents);
 // Starter gear is wearable from level 1 (Uncommon) and 3 (Rare); the Hollow Crypt's Epics from 6.
 for (const item of Object.values(ITEMS))
   if (item.slot && item.slot !== "consumable" && item.level === undefined)

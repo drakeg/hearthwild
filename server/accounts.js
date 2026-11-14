@@ -80,6 +80,7 @@ export class Accounts {
       expected = Buffer.from(account?.passwordHash ?? "00".repeat(64), "hex");
     if (!timingSafeEqual(actual, expected) || !account)
       throw new GameError("Username or password is incorrect.", 401);
+    if (account.banned) throw new GameError("This account has been banned from this server.", 403);
     return this.issue(account);
   }
   issue(account) {
@@ -104,6 +105,7 @@ export class Accounts {
       account =
         s && s.expiresAt > Date.now() ? this.accounts.get(s.accountId) : null;
     if (!account) throw new GameError("Sign in to your account.", 401);
+    if (account.banned) throw new GameError("This account has been banned from this server.", 403);
     return { id: account.id, username: account.username };
   }
   logout(session) {
@@ -121,6 +123,24 @@ export class Accounts {
     account.passwordHash = passwordHash;
     for (const [hash, s] of this.sessions)
       if (s.accountId === account.id) this.sessions.delete(hash);
+  }
+  find(username) {
+    const key = String(username ?? "").trim().toLowerCase(),
+      account = [...this.accounts.values()].find((a) => a.key === key);
+    if (!account) throw new GameError(`No account named “${username}”.`, 404);
+    return account;
+  }
+  // A banned account can't sign in, and its open sessions end at once.
+  ban(username, reason = "") {
+    const account = this.find(username);
+    account.banned = { at: Date.now(), reason: String(reason).slice(0, 200) };
+    for (const [hash, s] of this.sessions) if (s.accountId === account.id) this.sessions.delete(hash);
+    return account;
+  }
+  unban(username) {
+    const account = this.find(username);
+    delete account.banned;
+    return account;
   }
   save() {
     return {
