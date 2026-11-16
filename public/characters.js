@@ -166,6 +166,8 @@ export const CREATURES = {
   sunscale: { model: "fox", size: 2.0, tint: "#b8763c" },
   "star-lynx": { model: "fox", size: 1.45, tint: "#cdc4f6" },
   voidmaw: { model: "fox", size: 2.2, tint: "#2a2242" },
+  // Gharrowmaw, the world boss: a towering, scarred beast.
+  colossus: { model: "fox", size: 5.5, tint: "#4b3d33", plate: 8 },
   ...Object.fromEntries(
     ["gatekeeper", "lightbinder", "void-heart", "cinder-reaver", "ashbound-zealot", "thornweaver", "gloam-warden", "sandreaver", "dune-mystic", "astral-seeker", "starfall-sentinel", "forgelord", "briar-queen", "sun-king", "astromancer"].map((k) => [k, { model: k }]),
   ),

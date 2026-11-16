@@ -117,6 +117,12 @@ Talk to **Torren the Provisioner** (south of camp) or **Herbalist Mira**, then c
 
 Mira teaches **Herbalism** and **Alchemy** free. Gathering increases learned Herbalism; crafting increases Alchemy, each capped at 100. Use K to craft anywhere. Two Starleaf make a healing draught (restores 60 health); at Alchemy 5, four make a greater draught (110 health). Select a potion in Bags and choose **Use draught**. Potions share a 20-second cooldown and cannot be wasted at full health. Four Starleaf stay reserved for an accepted gathering quest until turn-in; surplus herbs can be sold or crafted. These are the first two professions and recipes, not complete profession trees.
 
+Smith Bran Hollis, also at camp, teaches **Mining** and **Blacksmithing** free. Mining digs ore from veins across eight zones; Blacksmithing forges Rare weapons and chest pieces from it, from level 6 to 30. Turn on **Herbs & ore** on the map to find veins.
+
+**Gharrowmaw, the Wandering Colossus**, is a world boss that roams the Outer Ring. Everyone online hears when it wakes; bring friends, stay out of its stomp, and everyone who helps earns an Epic.
+
+To **trade** with someone standing near you, right-click them and choose **Trade**, or type `/trade Name`. Both of you must confirm before anything changes hands.
+
 ## Faction communication
 
 | Channel | Recipients |

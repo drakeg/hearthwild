@@ -1183,3 +1183,24 @@ body.is-dead #world {
 .finder-ready .cui-button + .cui-button {
   margin-left: 8px;
 }
+
+/* Trade window */
+.trade-window { width: min(560px, calc(100vw - 32px)); }
+.trade-table { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.trade-side { border: 1px solid rgba(217, 180, 101, 0.35); border-radius: 8px; padding: 8px 10px; background: rgba(20, 16, 10, 0.4); }
+.trade-side.confirmed { border-color: #7fd18b; box-shadow: 0 0 0 1px #7fd18b inset; }
+.trade-side h3 { margin: 0 0 6px; font-size: 14px; }
+.trade-items { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+.trade-items li { display: flex; justify-content: space-between; align-items: center; min-height: 24px; padding: 2px 6px; border-radius: 4px; background: rgba(255, 255, 255, 0.05); font-size: 13px; }
+.trade-items li.empty { opacity: 0.4; }
+.trade-remove { background: none; border: 0; color: #e7a08c; cursor: pointer; font-size: 15px; }
+.trade-gold-row { display: flex; gap: 6px; align-items: center; margin: 8px 0 0; font-size: 13px; }
+.trade-gold { width: 90px; }
+.trade-status { margin: 6px 0 0; font-size: 12px; opacity: 0.85; }
+.trade-bag { display: flex; flex-wrap: wrap; gap: 4px; max-height: 140px; overflow-y: auto; margin-bottom: 8px; }
+.trade-bag-item { font-size: 12px; padding: 3px 7px; border-radius: 4px; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.06); color: inherit; cursor: pointer; }
+.trade-bag-item:disabled { opacity: 0.4; cursor: default; }
+.rarity-uncommon { color: #7fd18b; }
+.rarity-rare { color: #6fa8ff; }
+.rarity-epic { color: #c58cff; }
+@media (max-width: 520px) { .trade-table { grid-template-columns: 1fr; } }

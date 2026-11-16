@@ -12,6 +12,7 @@ import { createHud, iconStyle, abilityIcon } from "./hud.js";
 import { createCombatUi } from "./combat-ui.js";
 import { createGuildUi } from "./guild-ui.js";
 import { createFinderUi } from "./finder-ui.js";
+import { createTradeUi } from "./trade-ui.js";
 import {
   preloadCharacters,
   createRig,
@@ -234,7 +235,7 @@ function enemy(e) {
   } else g = createCreature();
   g.userData.enemy = e.id;
   g.userData.kind = e.kind;
-  g.userData.plateY = e.boss ? 2.9 : type.model === "fox" ? 1.4 * (type.size ?? 1) : 1.95;
+  g.userData.plateY = type.plate ?? (e.boss ? 2.9 : type.model === "fox" ? 1.4 * (type.size ?? 1) : 1.95);
   scene.add(g);
   return g;
 }
@@ -381,7 +382,7 @@ async function fetchState(after = 0) {
   const known = content && content.token === token ? `&content=${content.key}` : "",
     herbs = typeof hud !== "undefined" && hud.herbScope?.() ? `&herbs=${hud.herbScope()}` : "";
   const incoming = await api(`/api/state?after=${after}${known}${herbs}`);
-  if (incoming.shop) content = { token, key: incoming.content, shop: incoming.shop, recipes: incoming.recipes, classes: incoming.classes, abilities: incoming.abilities, questDefinitions: incoming.questDefinitions, npcs: incoming.npcs };
+  if (incoming.shop) content = { token, key: incoming.content, shop: incoming.shop, recipes: incoming.recipes, smithing: incoming.smithing, classes: incoming.classes, abilities: incoming.abilities, questDefinitions: incoming.questDefinitions, npcs: incoming.npcs };
   const { token: _, key, ...rest } = content;
   // Abilities as this character uses them, with the ranks they have reached.
   return { ...rest, ...incoming, abilities: rest.abilities.map((a) => withTalents(ranked(a, incoming.self.level), incoming.self.classId, incoming.self.talents)), npcs: incoming.self.instance ? [] : rest.npcs };
@@ -428,9 +429,26 @@ function npcModel(n) {
   return g;
 }
 // Each herb is the same little plant in its own colours, with a glowing bud.
+// Ore is a squat rock with veins of its metal glinting through.
+function oreModel(ore) {
+  const g = new THREE.Group();
+  const rock = mesh(new THREE.DodecahedronGeometry(0.55, 0), ore.leaf, 0, 0.32, 0, g);
+  rock.scale.set(1.25, 0.75, 1);
+  for (let i = 0; i < 4; i++) {
+    const a = (i / 4) * Math.PI * 2 + 0.4;
+    const vein = mesh(new THREE.OctahedronGeometry(0.14, 0), ore.bud, Math.cos(a) * 0.42, 0.38 + (i % 2) * 0.14, Math.sin(a) * 0.32, g);
+    vein.material = new THREE.MeshStandardMaterial({ color: ore.bud, emissive: ore.glow, emissiveIntensity: 0.6 });
+  }
+  const tag = label(`${ore.name} · F`, ore.bud);
+  tag.position.y = 1.2;
+  tag.scale.set(2.7, 0.45, 1);
+  g.add(tag);
+  return g;
+}
 function resourceModel(r) {
   const herb = REAGENTS[r.kind ?? "starleaf"],
-    g = new THREE.Group();
+    g = herb.type === "ore" ? oreModel(herb) : new THREE.Group();
+  if (herb.type !== "ore") {
   mesh(
     new THREE.CylinderGeometry(0.045, 0.07, 0.65, 8),
     herb.leaf,
@@ -468,6 +486,7 @@ function resourceModel(r) {
   tag.position.y = 1.2;
   tag.scale.set(2.7, 0.45, 1);
   g.add(tag);
+  }
   // A generous pick volume makes the small plant easy to click without changing gather reach.
   const pick = mesh(
     new THREE.CylinderGeometry(0.65, 0.65, 1.25, 10),
@@ -1411,6 +1430,7 @@ function updateModels() {
   combatUi.update(state);
   guildUi.update(state);
   finderUi.update(state);
+  tradeUi.update(state);
   // Unread mail waits at any provisioner's mailbox.
   const unread = state.self.mail?.unread ?? 0,
     note = $("mail-notice") ?? Object.assign(document.createElement("div"), { id: "mail-notice", className: "mail-notice" });
@@ -1547,6 +1567,7 @@ async function slashCommand(text) {
   if (["leave", "leaveparty", "leavegroup"].includes(c)) return partyAction({ op: "leave" });
   if (["kick", "uninvite"].includes(c)) return partyAction({ op: "kick", name: arg });
   if (["raid", "convertraid", "makeraid"].includes(c)) return partyAction({ op: "raid" });
+  if (c === "trade") return tradeUi.request(arg);
   if (["promote", "pl"].includes(c)) return partyAction({ op: "promote", name: arg });
   const send = (channel, body, to) =>
     api("/api/actions", { type: "chat", channel, text: body, to }).catch((e) => uiError(e.message));
@@ -1561,7 +1582,7 @@ async function slashCommand(text) {
   if (["s", "say"].includes(c)) return send("nearby", arg);
   if (["f", "faction"].includes(c)) return send("faction", arg);
   if (["w", "whisper", "tell", "t"].includes(c)) return send("whisper", rest.slice(1).join(" "), rest[0]);
-  uiError(`Unknown command /${cmd}. Try /invite, /leave, /p, /g, /o, /ginvite, /w or /s.`);
+  uiError(`Unknown command /${cmd}. Try /invite, /trade, /leave, /p, /g, /o, /ginvite, /w or /s.`);
 }
 $("chat-form").onsubmit = async (e) => {
   e.preventDefault();
@@ -1673,6 +1694,7 @@ function showPlayerMenu(who, x, y) {
     item("Invite to guild", () => guildAction({ op: "invite", name: who.name }));
   if (state?.self.charter && !state.self.guildInfo)
     item("Ask to sign charter", () => guildAction({ op: "request-signature", name: who.name }));
+  item("Trade", () => tradeUi.request(who.name));
   item("Whisper", () => {
     $("channel").value = "whisper";
     $("channel").onchange();
@@ -1707,6 +1729,7 @@ function closePanels() {
   if ($("dialogue").open) $("dialogue").close(), (closed = true);
   if (typeof guildUi !== "undefined" && guildUi.isOpen()) guildUi.close(), (closed = true);
   if (typeof finderUi !== "undefined" && finderUi.isOpen()) finderUi.close(), (closed = true);
+  if (typeof tradeUi !== "undefined" && tradeUi.isOpen()) tradeUi.close(), (closed = true);
   return closed;
 }
 function useAbility(key) {
@@ -2351,6 +2374,18 @@ const finderUi = createFinderUi({
   },
 });
 $("finder-menu").onclick = () => finderUi.toggle();
+const tradeUi = createTradeUi({
+  getState: () => state,
+  act: (a) =>
+    api("/api/actions", a)
+      .then((r) => r?.message && combatUi.info(r.message))
+      .catch((e) => uiError(e.message)),
+  onOpen: () => closePanels(),
+  focusWorld: () => {
+    keys.clear();
+    canvas.focus();
+  },
+});
 $("mount-menu").onclick = () => travelAction({ type: "mount" });
 $("waystone-menu").onclick = () => useWaystone();
 const hud = createHud({

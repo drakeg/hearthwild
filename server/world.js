@@ -21,10 +21,12 @@ import { Parties } from "./party.js";
 import { Guilds } from "./guild.js";
 import { Crypts, walkableAt } from "./crypt.js";
 import { CRYPT, DUNGEON_LIST, dungeonOf } from "../public/dungeon-layout.js";
-import { DUNGEON_LOOT } from "./content-world.js";
+import { DUNGEON_LOOT, SMITH_RECIPES } from "./content-world.js";
 import { Grid, VIEW, AWAKE_RADIUS, contentKey } from "./interest.js";
 import { Finder, FINDER } from "./finder.js";
 import { Mail } from "./mail.js";
+import { Trades } from "./trade.js";
+import { WorldBoss, WORLD_BOSS } from "./worldboss.js";
 import { REAGENTS, POUCH_LIMIT } from "../public/reagents.js";
 import { TALENTS } from "../public/talents.js";
 const talentResetCost = (p) => 5 * (p.level ?? 1);
@@ -111,11 +113,13 @@ export class World {
     this.playerGrid = new Grid(100);
     // Content that never changes is sent once per client (and again only if it changes).
     this.shop = Object.entries(PRICES).filter(([, [buy]]) => buy !== null).map(([template, [buy, sell]]) => ({ ...ITEMS[template], template, buy, sell }));
-    this.contentBase = contentKey({ shop: this.shop, recipes: RECIPES, classes: CLASSES, quests: QUESTS, npcs: NPCS, abilities: ABILITIES });
+    this.contentBase = contentKey({ shop: this.shop, recipes: RECIPES, smithing: SMITH_RECIPES, classes: CLASSES, quests: QUESTS, npcs: NPCS, abilities: ABILITIES });
     this.parties = new Parties(this);
     this.finder = new Finder(this);
     this.mail = new Mail(this);
+    this.trades = new Trades(this);
     this.crypts = new Crypts(this);
+    this.worldBoss = new WorldBoss(this, saved.worldBoss);
     this.guilds = new Guilds(this, saved.guilds, {
       signatures: charterSignatures ?? (Number(process.env.HEARTHWILD_CHARTER_SIGNATURES) || 2),
     });
@@ -377,6 +381,7 @@ export class World {
         talents: p.talents ?? {},
         talentResetCost: talentResetCost(p),
         mail: this.mail.view(p),
+        trade: this.trades.view(p, now),
         waystoneReadyAt: p.waystoneReadyAt ?? 0,
         recall: p.recall,
         travel: p.travel ? { to: p.travel.to, name: p.travel.name, startedAt: p.travel.startedAt, eta: p.travel.eta } : null,
@@ -385,11 +390,12 @@ export class World {
         charter: this.guilds.charterView(p),
         charterRequest: p.charterRequest ? { from: p.charterRequest.fromName, name: p.charterRequest.name } : null,
       },
-      ...(fresh && { shop: this.shop, recipes: RECIPES, classes: CLASSES, abilities: ABILITIES[p.classId], questDefinitions: QUESTS, npcs: this.npcs }),
+      ...(fresh && { shop: this.shop, recipes: RECIPES, smithing: SMITH_RECIPES, classes: CLASSES, abilities: ABILITIES[p.classId], questDefinitions: QUESTS, npcs: this.npcs }),
       portals: p.instance
         ? [(({ origin, exit, id }) => ({ id: `${id}-exit`, type: "exit", name: "Exit", x: origin.x + exit.x, z: origin.z + exit.z }))(dungeonOf(p.instance) ?? CRYPT)]
         : DUNGEON_LIST.map((d) => ({ id: `${d.id}-door`, type: "enter", name: d.name, x: d.door.x, z: d.door.z })),
-      telegraphs: p.instance ? (this.crypts.instances.get(p.instance)?.telegraphs ?? []).map(({ boss, ...t }) => t) : [],
+      telegraphs: p.instance ? (this.crypts.instances.get(p.instance)?.telegraphs ?? []).map(({ boss, ...t }) => t) : this.worldBoss.near(p),
+      worldBoss: this.worldBoss.where(),
       // The herb finder: every patch ready to pick in the zone the map shows (or the whole world).
       ...(herbs && { herbMap: this.resources.filter((r) => !r.depleted && (herbs === "world" || r.zone === herbs)).map((r) => [Math.round(r.x), Math.round(r.z), r.kind]) }),
       resources: (p.instance ? [] : near(this.resources, VIEW.resources)).map((r) => ({
@@ -409,7 +415,7 @@ export class World {
         .filter((q) => now - q.seen < 15000 && zoneOf(q) === zone && distance(p, q) < VIEW.players)
         .map((q) => this.pub(q)),
       enemies: (p.instance ? near(this.enemiesFor(p), VIEW.enemies) : this.enemyGrid.near(p.x, p.z, VIEW.enemies))
-        .map(({ contributors, homeX, homeZ, lastAttack, threat, dots, stunnedUntil, ...e }) => ({
+        .map(({ contributors, homeX, homeZ, lastAttack, threat, dots, stunnedUntil, waypoint, stompAt, ...e }) => ({
           ...e,
           engaged: threat?.has(p.id) ?? false,
           stunned: (stunnedUntil ?? 0) > now,
@@ -448,6 +454,7 @@ export class World {
     if (a.type === "finder") return this.finder.act(p, a, now, reject);
     if (a.type === "talent") return this.talent(p, a);
     if (a.type === "mail") return this.mail.act(p, a, now, reject);
+    if (a.type === "trade") return this.trades.act(p, a, now, reject);
     if (a.type === "guild") return this.guilds.act(p, a, now, reject);
     if (a.type === "release") {
       reject(!p.dead, "You are not dead.");
@@ -616,11 +623,13 @@ export class World {
         herb = REAGENTS[kind];
       reject(r.depleted, `This plant is regrowing. Look for another ${herb.name} patch.`);
       reject(p.materials[kind] >= POUCH_LIMIT, `Your pouch can’t hold more ${herb.name}.`);
-      // Herbalists improve as they gather, and a skilled one often finds a second sprig.
+      // Ore needs a miner. Gatherers improve as they work, and a skilled one often finds extra.
+      const craft = REAGENTS[kind].type === "ore" ? "mining" : "herbalism";
+      reject(craft === "mining" && !p.professions.mining, "Learn Mining from Smith Bran at Wayfarer’s Camp to mine ore.");
       let count = 1;
-      if (p.professions.herbalism) {
-        if (this.random() < p.professions.herbalism / 250) count = 2;
-        p.professions.herbalism = Math.min(100, p.professions.herbalism + 1);
+      if (p.professions[craft]) {
+        if (this.random() < p.professions[craft] / 250) count = 2;
+        p.professions[craft] = Math.min(100, p.professions[craft] + 1);
       }
       count = Math.min(count, POUCH_LIMIT - p.materials[kind]);
       r.depleted = true;
@@ -636,7 +645,7 @@ export class World {
       }
       const questNote = kind !== "starleaf" ? "" : q.status === "ready" ? " · Quest ready — return to Herbalist Mira!" : q.status === "active" ? ` · Quest ${q.progress}/4` : "";
       return {
-        message: `Gathered ${herb.name} ×${count} · ${p.materials[kind]} in your pouch${p.professions.herbalism ? ` · Herbalism ${p.professions.herbalism}` : ""}${questNote}`,
+        message: `${craft === "mining" ? "Mined" : "Gathered"} ${herb.name} ×${count} · ${p.materials[kind]} in your pouch${p.professions[craft] ? ` · ${craft === "mining" ? "Mining" : "Herbalism"} ${p.professions[craft]}` : ""}${questNote}`,
       };
     }
     if (a.type === "loot") {
@@ -856,7 +865,7 @@ export class World {
         ownerId: q.id,
         x: e.x,
         z: e.z,
-        coins: e.boss ? (dungeonOf(e.instance)?.raid ? 150 : 60) : this.rollCoins(e),
+        coins: e.worldBoss ? WORLD_BOSS.coins : e.boss ? (dungeonOf(e.instance)?.raid ? 150 : 60) : this.rollCoins(e),
         items,
         expiresAt: now + 300000,
         zone: zoneOf(e),
@@ -888,6 +897,7 @@ export class World {
           }
         }
     }
+    if (e.worldBoss) this.worldBoss.fallen(e, now);
     if (e.boss && this.crypts.instances.get(e.instance)?.boss === e) {
       const inst = this.crypts.instances.get(e.instance);
       // A group the Dungeon Finder put together earns a satchel of coin and experience.
@@ -1200,8 +1210,10 @@ export class World {
     if (now - (this.finderAt ?? 0) >= 1000) {
       this.finderAt = now;
       this.finder.tick(now);
+      this.trades.tick(now);
     }
     this.playerGrid.build(online.filter((p) => !p.instance && !p.dead));
+    this.worldBoss.tick(now, online.filter((p) => !p.instance), dt);
     this.tickEnemies(this.enemies, online.filter((p) => !p.instance), dt, now, null);
     this.enemyGrid.build(this.enemies);
     for (const inst of this.crypts.instances.values())
@@ -1210,7 +1222,7 @@ export class World {
   tickEnemies(enemies, online, dt, now, inst) {
     for (const e of enemies) {
       if (e.hp <= 0) {
-        if (inst) continue;
+        if (inst || e.worldBoss) continue;
         if (now >= e.respawnAt) {
           const pos = monsterPosition(
             this.random,
@@ -1341,7 +1353,8 @@ export class World {
       resources: this.resources.map((r) => ({ ...r })),
       guilds: this.guilds.save(),
       loot: this.loot,
-      enemies: this.enemies.map((e) => ({
+      worldBoss: this.worldBoss.save(),
+      enemies: this.enemies.filter((e) => !e.worldBoss).map((e) => ({
         id: e.id,
         x: e.x,
         z: e.z,

@@ -1,7 +1,7 @@
 import { stillwoodLand as dryLand, STILLWOOD_LIMIT as WORLD_LIMIT, dryLand as worldDryLand, zoneAt, TOWNS } from "../public/world-config.js";
 import { lakeAt } from "../public/terrain.js";
 import { DUNGEON_LIST } from "../public/dungeon-layout.js";
-import { REAGENTS, HERB_POPULATION, herbKind } from "../public/reagents.js";
+import { REAGENTS, HERB_POPULATION, ORE_POPULATION, herbKind, oreKind } from "../public/reagents.js";
 // Server-owned gathering nodes. The Stillwood's Starleaf roams the clearing; herbs out in the
 // world each keep a home ("anchor") and regrow somewhere nearby.
 export const HERB_RESPAWN = { min: 30000, max: 90000, count: 32 };
@@ -80,18 +80,22 @@ export function createHerbs(random, saved = []) {
       nodes.push({ id: `starleaf-${i}`, kind: "starleaf", name: "Starleaf", zone: "stillwood", ...p, readyAt: 0, depleted: false });
     }
   }
-  // Herbs of the wider world.
-  for (const [zone, count] of Object.entries(HERB_POPULATION)) {
-    const old = saved.filter((r) => String(r.id).startsWith(`herb-${zone}-`)),
+  // Herbs and ore veins of the wider world.
+  for (const [prefix, population, kindOf] of [
+    ["herb", HERB_POPULATION, herbKind],
+    ["ore", ORE_POPULATION, oreKind],
+  ])
+  for (const [zone, count] of Object.entries(population)) {
+    const old = saved.filter((r) => String(r.id).startsWith(`${prefix}-${zone}-`)),
       reuse = old.length === count && old.every((r) => valid(r) && Number.isFinite(r.anchorX)),
       anchors = reuse ? null : herbAnchors(random, zone, count);
     for (let i = 0; i < count; i++) {
-      const kind = herbKind(zone, i),
-        prev = reuse ? old.find((r) => r.id === `herb-${zone}-${i}`) : null,
+      const kind = kindOf(zone, i),
+        prev = reuse ? old.find((r) => r.id === `${prefix}-${zone}-${i}`) : null,
         home = prev ? { x: prev.anchorX, z: prev.anchorZ } : anchors[i];
       if (!home) break;
       nodes.push({
-        id: `herb-${zone}-${i}`,
+        id: `${prefix}-${zone}-${i}`,
         kind,
         name: REAGENTS[kind].name,
         zone,

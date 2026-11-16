@@ -112,7 +112,7 @@ export function servicesUi({ getState, act, stop, focusWorld }) {
       b.disabled = busy || (id !== "professions" && !vendor);
     }
     if (mode !== "professions" && !near) {
-      body.append(el("p", "Talk to Torren or Mira at camp to buy and sell."));
+      body.append(el("p", "Talk to Torren, Mira or Smith Bran at camp to buy and sell."));
       return;
     }
     if (mode === "mail") {
@@ -264,20 +264,26 @@ export function servicesUi({ getState, act, stop, focusWorld }) {
       body.append(
         el(
           "p",
-          "Learn both professions free from Mira. Anyone can gather herbs; herbalists improve with every pick and often find a second sprig. Every zone has its own herb, so open the map (M) and turn on Herbs to find them. Craft draughts to improve Alchemy. Four Starleaf stay reserved while your gathering quest is active.",
+          "Learn professions free: Herbalism and Alchemy from Mira, Mining and Blacksmithing from Smith Bran, both at Wayfarer’s Camp. Every zone has its own herb and many have an ore; open the map (M) and turn on Herbs & ore to find them. Four Starleaf stay reserved while your gathering quest is active.",
         ),
       );
-      for (const id of ["herbalism", "alchemy"])
+      const PROFS = [
+        ["herbalism", "Herbalism", "herbalist", "Mira"],
+        ["alchemy", "Alchemy", "herbalist", "Mira"],
+        ["mining", "Mining", "smith", "Smith Bran"],
+        ["blacksmithing", "Blacksmithing", "smith", "Smith Bran"],
+      ];
+      for (const [id, name, teacher, who] of PROFS)
         row(
-          id === "herbalism" ? "Herbalism" : "Alchemy",
+          name,
           p.professions[id]
             ? `Skill ${p.professions[id]} / 100`
-            : "Not learned · Speak to Mira at camp.",
+            : `Not learned · Speak to ${who} at camp.`,
           [
             button(
               p.professions[id] ? "Learned" : "Learn free",
-              { type: "learn", vendor: "herbalist", profession: id },
-              !!p.professions[id] || vendor !== "herbalist" || !near,
+              { type: "learn", vendor: teacher, profession: id },
+              !!p.professions[id] || vendor !== teacher || !near,
             ),
           ],
         );
@@ -295,6 +301,21 @@ export function servicesUi({ getState, act, stop, focusWorld }) {
             ),
           ],
         );
+      if (s.smithing) {
+        body.append(el("h3", "Blacksmithing"));
+        for (const [id, r] of Object.entries(s.smithing))
+          row(
+            r.name,
+            `${Object.entries(r.ores).map(([o, n]) => `${n} ${REAGENTS[o].name} (${p.materials[o] ?? 0})`).join(" + ")} → Rare ${r.slot}, level ${r.level} · Requires Blacksmithing ${r.skill}`,
+            [
+              button(
+                `Forge ${r.name}`,
+                { type: "craft", recipe: id },
+                !p.professions.blacksmithing || p.professions.blacksmithing < r.skill || Object.entries(r.ores).some(([o, n]) => (p.materials[o] ?? 0) < n),
+              ),
+            ],
+          );
+      }
       body.append(
         el(
           "p",

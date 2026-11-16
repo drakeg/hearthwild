@@ -2,7 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 import { World } from "../server/world.js";
 import { RECIPES } from "../server/commerce.js";
-import { REAGENTS, REAGENT_IDS, HERB_POPULATION } from "../public/reagents.js";
+import { REAGENTS, REAGENT_IDS, HERB_POPULATION, ORE_POPULATION, isOre } from "../public/reagents.js";
 import { ZONES, zoneAt, lakeAt } from "../public/terrain.js";
 
 const make = () => new World({}, { combatRandom: () => 0.99 });
@@ -17,7 +17,7 @@ test("every zone grows its own herb, spread across the zone and out of the water
   const w = make();
   for (const zone of Object.keys(ZONES)) {
     const native = REAGENT_IDS.find((id) => REAGENTS[id].zone === zone),
-      here = w.resources.filter((r) => r.zone === zone);
+      here = w.resources.filter((r) => r.zone === zone && !isOre(r.kind));
     assert.ok(native, `${zone} has a herb`);
     assert.ok(here.some((r) => r.kind === native));
     for (const r of here) {
@@ -65,8 +65,9 @@ test("the herb finder lists ready patches for the zone the map shows", () => {
   const w = make(),
     h = hero(w);
   const s = w.state(h.a.token, 0, 2000, null, "dunes");
-  assert.equal(s.herbMap.length, HERB_POPULATION.dunes);
-  assert.ok(s.herbMap.every(([x, z, k]) => k === "sunpetal" && zoneAt(x, z) === "dunes"));
+  // Ore veins show on the finder too.
+  assert.equal(s.herbMap.length, HERB_POPULATION.dunes + ORE_POPULATION.dunes);
+  assert.ok(s.herbMap.every(([x, z, k]) => ["sunpetal", "sunsteel"].includes(k) && zoneAt(x, z) === "dunes"));
   assert.equal(w.state(h.a.token, 0, 2000).herbMap, undefined, "only when asked");
   assert.ok(w.state(h.a.token, 0, 2000, null, "world").herbMap.length > 400);
 });
