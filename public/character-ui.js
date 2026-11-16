@@ -54,6 +54,8 @@ export function characterUi({
       ],
       ["Herbalism", `${p.professions.herbalism}/100`],
       ["Alchemy", `${p.professions.alchemy}/100`],
+      ["Mining", `${p.professions.mining ?? 0}/100`],
+      ["Blacksmithing", `${p.professions.blacksmithing ?? 0}/100`],
       ["Gold", String(p.coins)],
     ];
     const dl = el("dl", "");

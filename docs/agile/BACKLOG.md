@@ -4,16 +4,9 @@ Ordered by priority: the top is next. The Product Owner (Greg) sets the order; a
 
 **Status:** `Ready` = meets the Definition of Ready · `Backlog` = still needs refinement
 
-## Current sprint: [Sprint 11](sprints/sprint-11.md)
+## Current sprint: [Sprint 12](sprints/sprint-12.md)
 
-HW-106 Mail · HW-109 Talents · HW-120 Monetization epic (backlog only)
-
-## Waiting on the Product Owner
-
-| ID | Type | Item | Decision needed |
-|---|---|---|---|
-| HW-114 | Chore | **Choose an open-source license** (the repo is public but `UNLICENSED`, so nobody may legally reuse or contribute code yet) | Which license, e.g. MIT, Apache-2.0, GPL-3.0 or AGPL-3.0 |
-| HW-100 | Story | **A hosted server you can leave running**, updated from each release, with HTTPS | Where to host (cloud VM, home machine, Raspberry Pi), a domain name, and the budget |
+HW-107 Mining & blacksmithing · HW-112 World boss · HW-116 Trade window · HW-114 License (carried over)
 
 ## Up next
 
@@ -21,17 +14,15 @@ HW-106 Mail · HW-109 Talents · HW-120 Monetization epic (backlog only)
 |---|---|---|---|---|---|
 | HW-104 | Chore | Playtest the Sundered Spire with real players, then tune boss health and damage | Dungeons & Raids | 3 | Backlog |
 | HW-105 | Chore | Measure frame rate on a real Mac and a modest Windows PC in the busiest zones; set a performance budget | Tech debt | 3 | Backlog |
-| HW-107 | Story | **Mining and blacksmithing:** ore nodes per zone, crafted gear | World | 8 | Backlog |
 | HW-108 | Story | **Second raid** for the Outer Ring | Dungeons & Raids | 13 | Backlog |
 | HW-110 | Story | **New beast models** (CC0) to replace the recoloured foxes | Art | 5 | Backlog |
 | HW-111 | Story | **Achievements and titles** | Social | 5 | Backlog |
-| HW-112 | Story | **World events:** a roaming world boss in the Outer Ring | World | 5 | Backlog |
-| HW-116 | Story | **Face-to-face trade window:** two players swap items and gold, both confirming | Social | 5 | Backlog |
+| HW-100 | Story | **A hosted server you can leave running**, updated from each release, with HTTPS. *Decided 2026-11-14: start with a small cloud server (about $5–12 a month). Still to settle when it's planned: a domain name, who it's for (invite-only or open), and the budget.* | Server & Hosting | 8 | Backlog (later) |
 | HW-113 | Bug | The `release-0.12` branch is left over from the v0.12.0 re-release; delete it on GitHub | Process & Tooling | 1 | Ready |
 
 ## Epic: Monetization (HW-120)
 
-Planned on 2026-11-13 from a monetization review. Ordered so each step tests demand before the next costs more. Prices and revenue are estimates. These items wait behind game development, and HW-114 (the license) and whether the repo stays public must be decided first.
+Planned on 2026-11-13 from a monetization review. Ordered so each step tests demand before the next costs more. Prices and revenue are estimates. These items wait behind game development, and whether the repo stays public (HW-121) must be decided first. The license is settled: AGPL-3.0 (HW-114). It suits hosted Realms, since others can't run a modified copy as a closed competing service.
 
 | ID | Type | Item | Points | Status |
 |---|---|---|---|---|

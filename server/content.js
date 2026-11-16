@@ -202,6 +202,16 @@ export const NPCS = [
   ...TOWN_FOLK,
   ...WORLD_FOLK,
   ...TRAVEL_FOLK,
+  {
+    id: "smith",
+    merchant: true,
+    trainer: "smith",
+    name: "Smith Bran Hollis",
+    role: "Mining & Blacksmithing trainer · Merchant",
+    x: 12,
+    z: 12,
+    text: "Ore runs in every land past the Stillwood: copper in the Downs and the Marsh, iron in the cold and the crags, and stranger metals out in the Outer Ring. Learn to mine and to smith from me, and the anvil will make you gear worth wearing.",
+  },
 ];
 // Provisioners double as innkeepers: you can make their town your waystone home.
 for (const n of NPCS) if (n.merchant) n.inn = n.town ?? "camp";
@@ -264,6 +274,8 @@ export function initAdventure(p) {
   p.inventory ??= [];
   p.equipment ??= {};
   p.professions ??= { herbalism: 0, alchemy: 0 };
+  p.professions.mining ??= 0;
+  p.professions.blacksmithing ??= 0;
   p.buyback ??= [];
   p.potionReadyAt ??= 0;
   p.materials ??= {};

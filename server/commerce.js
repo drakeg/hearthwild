@@ -1,6 +1,7 @@
 import { ITEMS, stats } from "./content.js";
 import { randomUUID } from "node:crypto";
-import { GEAR_PRICES } from "./content-world.js";
+import { GEAR_PRICES, SMITH_RECIPES } from "./content-world.js";
+export { SMITH_RECIPES };
 import { REAGENTS, POUCH_LIMIT } from "../public/reagents.js";
 export const PRICES = {
   // Zone gear: sold to merchants, never stocked (buy price null).
@@ -134,13 +135,15 @@ export function commerce(p, a, npcs, now) {
     return { message: `Bought back ${ITEMS[item.template].name}.` };
   }
   if (a.type === "learn") {
+    const smithing = ["mining", "blacksmithing"].includes(a.profession);
     requireThat(
-      ["herbalism", "alchemy"].includes(a.profession),
-      "Choose Herbalism or Alchemy.",
+      smithing || ["herbalism", "alchemy"].includes(a.profession),
+      "Choose a profession.",
     );
+    const trainer = npcs.find((n) => n.id === a.vendor)?.trainer;
     requireThat(
-      npcs.find((n) => n.id === a.vendor)?.trainer,
-      "Mira teaches professions.",
+      smithing ? trainer === "smith" : trainer === true,
+      smithing ? "Smith Bran at camp teaches Mining and Blacksmithing." : "Mira teaches Herbalism and Alchemy.",
     );
     requireThat(
       !p.professions[a.profession],
@@ -148,8 +151,22 @@ export function commerce(p, a, npcs, now) {
     );
     p.professions[a.profession] = 1;
     return {
-      message: `Learned ${a.profession === "alchemy" ? "Alchemy" : "Herbalism"} — skill 1/100.`,
+      message: `Learned ${a.profession[0].toUpperCase() + a.profession.slice(1)} — skill 1/100.`,
     };
+  }
+  // Blacksmithing: ore becomes gear.
+  if (a.type === "craft" && typeof a.recipe === "string" && Object.hasOwn(SMITH_RECIPES, a.recipe)) {
+    const recipe = SMITH_RECIPES[a.recipe];
+    requireThat(p.professions.blacksmithing > 0, "Learn Blacksmithing from Smith Bran at camp first.");
+    requireThat(p.professions.blacksmithing >= recipe.skill, `Requires Blacksmithing ${recipe.skill}.`);
+    for (const [kind, n] of Object.entries(recipe.ores))
+      requireThat((p.materials[kind] ?? 0) >= n, `You need ${n} ${REAGENTS[kind].name}.`);
+    room(a.recipe);
+    for (const [kind, n] of Object.entries(recipe.ores)) p.materials[kind] -= n;
+    p.inventory.push({ id: randomUUID(), template: a.recipe });
+    // Harder recipes teach more.
+    p.professions.blacksmithing = Math.min(100, p.professions.blacksmithing + (recipe.skill + 10 >= p.professions.blacksmithing ? 3 : 1));
+    return { message: `Forged ${recipe.name} · Blacksmithing ${p.professions.blacksmithing}/100.` };
   }
   if (a.type === "craft") {
     requireThat(

@@ -336,6 +336,21 @@ for (const [spec, names] of Object.entries(RAID_NAMES)) {
   });
 }
 DUNGEON_LOOT["sundered-spire"] = DUNGEON_LOOT["sundered-spire:2"];
+// Gharrowmaw, the world boss that roams the Outer Ring, carries Epics of its own.
+DUNGEON_LOOT["world-boss"] = ["Colossus-bone maul", "Hide of the Wanderer", "Gharrowmaw’s tusk"].map((name, i) => {
+  const key = slug(name),
+    level = 30,
+    boost = 1.8,
+    slot = ["weapon", "chest", "charm"][i];
+  GEAR[key] =
+    slot === "weapon"
+      ? { name, slot, rarity: "Epic", level, dungeon: "world-boss", damage: Math.round((8 + level * 2.1) * boost), armor: 0, maxHp: 0 }
+      : slot === "chest"
+        ? { name, slot, rarity: "Epic", level, dungeon: "world-boss", damage: 0, armor: Math.round((3 + level * 0.7) * boost), maxHp: Math.round((30 + level * 11) * boost) }
+        : { name, slot, rarity: "Epic", level, dungeon: "world-boss", damage: Math.round((2 + level * 0.7) * boost), armor: Math.round((1 + level * 0.25) * boost), maxHp: Math.round((14 + level * 5) * boost) };
+  GEAR_PRICES[key] = [null, 1100];
+  return key;
+});
 const SCOUTS = {
   "harrow-barrow": ["barrow", "Ranger Tess Mallory", "The Harrow bandits have dug into the old barrow on the hill, and their king holds court in the deepest hall. Bring down Gorran Blackhook and the Downs will breathe again."],
   "drowned-chapel": ["chapel", "Brother Ennis", "My chapel sank into the mire a generation ago. Now something sings beneath the water. Silence Mother Sallow, I beg you."],
@@ -396,3 +411,28 @@ export const ABILITY_RANKS = {
     rank("heartseeker", 30, { multiplier: 5.4 }, "Hits for 5.4× weapon damage (was 4×)."),
   ],
 };
+
+// ---------- Blacksmithing ----------
+// Each ore makes a weapon and a chest piece, a little better than the zone's Rare gear at that
+// level. Smiths improve as they forge.
+const SMITH_TIERS = [
+  { ore: "copper", level: 6, skill: 1, extra: null, names: ["Copper-forged blade", "Copper scale vest"] },
+  { ore: "iron", level: 13, skill: 20, extra: ["copper", 2], names: ["Ironbound longsword", "Iron-riveted hauberk"] },
+  { ore: "emberite", level: 21, skill: 40, extra: ["iron", 3], names: ["Emberite cleaver", "Emberite breastplate"] },
+  { ore: "duskiron", level: 24, skill: 55, extra: ["emberite", 2], names: ["Duskiron sabre", "Duskiron mail"] },
+  { ore: "sunsteel", level: 27, skill: 70, extra: ["duskiron", 2], names: ["Sunsteel glaive", "Sunsteel cuirass"] },
+  { ore: "starmetal", level: 30, skill: 85, extra: ["sunsteel", 2], names: ["Starmetal greatsword", "Starmetal aegis"] },
+];
+export const SMITH_RECIPES = {};
+for (const t of SMITH_TIERS)
+  t.names.forEach((name, i) => {
+    const id = slug(name),
+      slot = i ? "chest" : "weapon",
+      boost = 1.38;
+    GEAR[id] =
+      slot === "weapon"
+        ? { name, slot, rarity: "Rare", level: t.level, crafted: true, damage: Math.round((8 + t.level * 2.1) * boost), armor: 0, maxHp: 0 }
+        : { name, slot, rarity: "Rare", level: t.level, crafted: true, damage: 0, armor: Math.round((3 + t.level * 0.7) * boost), maxHp: Math.round((30 + t.level * 11) * boost) };
+    GEAR_PRICES[id] = [null, Math.round(t.level * t.level * 0.5 + 10)];
+    SMITH_RECIPES[id] = { name, ores: { [t.ore]: slot === "weapon" ? 6 : 8, ...(t.extra ? { [t.extra[0]]: t.extra[1] } : {}) }, skill: t.skill, level: t.level, slot };
+  });

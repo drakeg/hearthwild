@@ -1,3 +1,13 @@
+## 0.22.0 — Hands and Hammers (Sprint 12)
+
+- **Mining and blacksmithing** (HW-107): Smith Bran Hollis at Wayfarer’s Camp teaches both, free.
+  - **Ore:** six ores, each in its own zones: Copper (Amber Downs, Saltreed Marsh), Iron (Frostmere Vale, Greyspire Crags), and Emberite, Duskiron, Sunsteel and Starmetal in the Outer Ring. Look for rocks with glinting veins, or turn on **Herbs & ore** on the map (M).
+  - **Forging:** open Professions (K) to forge a Rare weapon or chest piece from each ore, levels 6 to 30. Mining and Blacksmithing both improve as you use them.
+- **A world boss** (HW-112): **Gharrowmaw, the Wandering Colossus** roams the Outer Ring. Everyone is told when it wakes, and it shows on the map with its health. In a fight it stomps the ground: get out of the red ring. Everyone who helps bring it down earns their own Epic and 220 gold. It wakes again 45 minutes after it falls.
+- **Trading** (HW-116): right-click a player and choose **Trade**, or type `/trade Name`. Each of you puts up to six items and some gold on the table; nothing changes hands until both confirm, and changing an offer clears both confirmations. Worn gear and boss treasure can’t be traded.
+- **Hearthwild is now free software** under the GNU AGPL v3 or later (HW-114). See `LICENSE`. The opening screen links to the source code, and contributions are welcome under the same terms (see `CONTRIBUTING.md`). This was decided in Sprint 11 but missed that release.
+- A hundred and thirty-one checks, including new tests for ore veins, mining, forging, the world boss and trading.
+
 ## 0.21.0 — Letters and Talents (Sprint 11)
 
 - **Mail** (HW-106): every provisioner now keeps a mailbox. Talk to one and open the **Mailbox** tab to:

@@ -117,6 +117,12 @@ Talk to **Torren the Provisioner** (south of camp) or **Herbalist Mira**, then c
 
 Mira teaches **Herbalism** and **Alchemy** free. Gathering increases learned Herbalism; crafting increases Alchemy, each capped at 100. Use K to craft anywhere. Two Starleaf make a healing draught (restores 60 health); at Alchemy 5, four make a greater draught (110 health). Select a potion in Bags and choose **Use draught**. Potions share a 20-second cooldown and cannot be wasted at full health. Four Starleaf stay reserved for an accepted gathering quest until turn-in; surplus herbs can be sold or crafted. These are the first two professions and recipes, not complete profession trees.
 
+Smith Bran Hollis, also at camp, teaches **Mining** and **Blacksmithing** free. Mining digs ore from veins across eight zones; Blacksmithing forges Rare weapons and chest pieces from it, from level 6 to 30. Turn on **Herbs & ore** on the map to find veins.
+
+**Gharrowmaw, the Wandering Colossus**, is a world boss that roams the Outer Ring. Everyone online hears when it wakes; bring friends, stay out of its stomp, and everyone who helps earns an Epic.
+
+To **trade** with someone standing near you, right-click them and choose **Trade**, or type `/trade Name`. Both of you must confirm before anything changes hands.
+
 ## Faction communication
 
 | Channel | Recipients |
@@ -188,3 +194,14 @@ The HUD has been measured at 320×480, 480×480, 640×480, 800×600, 1024×768 a
 ## Releases
 
 Raising the `version` in `package.json` on `main` publishes a release automatically. GitHub Actions (`.github/workflows/release.yml`) runs the tests, builds the Mac (Apple Silicon and Intel), Windows and Linux packages, and attaches them to a new GitHub release. The release notes come from that version's `CHANGELOG.md` section. You can also run the workflow by hand from the repository's **Actions** tab.
+
+## License
+
+Copyright © 2026 Greg (@drakeg) and Hearthwild contributors.
+
+Hearthwild is free software: you can redistribute it and/or modify it under the terms of the **GNU Affero General Public License, version 3 or (at your option) any later version**, as published by the Free Software Foundation. See [`LICENSE`](LICENSE). It comes with no warranty.
+
+The AGPL means that if you run a **modified** Hearthwild server for other people, you must offer them your modified source code. The game's opening screen has a "Get the source code" link for this; point it at your own copy.
+
+Third-party assets keep their own licenses, listed in [`public/models/CREDITS.md`](public/models/CREDITS.md) (CC0 and CC-BY). The bundled three.js library is MIT-licensed.
+

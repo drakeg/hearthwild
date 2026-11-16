@@ -518,6 +518,17 @@ export function createHud({
     for (const m of s.self.party?.members ?? []) if (m.id !== s.self.id && !m.instance) marker(m, "#6fa0ff", mini ? 3 : 5);
     for (const p of s.players) if (p.id !== s.self.id) marker(p, p.faction === s.self.faction ? "#93c9dc" : "#ce705e", mini ? 2.5 : 3.5);
     for (const l of s.loot) marker(l, "#ffe284", mini ? 3 : 4);
+    // The roaming world boss shows on every big map while it's awake.
+    const wb = s.worldBoss;
+    if (wb && !s.self.instance && (!mini || inView(wb.x, wb.z))) {
+      marker(wb, "#ff5a3a", mini ? 4 : 7);
+      if (!mini) {
+        const [bx, by] = pt(wb.x, wb.z);
+        c.textAlign = "center";
+        label(`☠ ${wb.name.split(",")[0]} · ${Math.ceil(wb.hp * 100)}%`, bx, by - 11, "bold 13px Georgia", "#ffb08f");
+        c.textAlign = "start";
+      }
+    }
     if (waypoint) {
       const point = pt(waypoint.x, waypoint.z);
       c.strokeStyle = "#f6d474";

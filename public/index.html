@@ -29,6 +29,11 @@
         <span class="world-note"
           >ORIGINAL COOPERATIVE RPG · EARLY PLAYABLE BUILD</span
         >
+        <!-- AGPL-3.0 §13: players of a server must be offered its source. If you run a modified
+             server, point this link at your own source code. -->
+        <a class="source-link" href="https://github.com/drakeg/hearthwild" target="_blank" rel="noopener"
+          >Free software (AGPL-3.0) · Get the source code</a
+        >
       </div>
       <div class="entry-flow">
       <section id="account-panel" class="join-panel"><span class="eyebrow">YOUR ACCOUNT · YOUR ADVENTURERS</span><h2>Welcome to Hearthwild</h2><p id="setup-note"></p><form id="account-form"><label for="username">Username</label><input id="username" autocomplete="username" minlength="3" maxlength="32" required><label for="password">Password</label><input id="password" type="password" autocomplete="current-password" minlength="10" maxlength="128" required><button id="sign-in" class="primary">Sign in</button><button id="create-account" type="button">Create account</button></form><p id="account-error" role="alert"></p></section>
@@ -173,11 +178,11 @@
             <div id="map-pins"></div>
             <div class="map-scope" role="group" aria-label="Map view">
               <button id="map-zone">Zone</button><button id="map-world">World</button
-              ><button id="map-herbs" aria-pressed="false" title="Show every herb patch ready to pick">Herbs</button>
+              ><button id="map-herbs" aria-pressed="false" title="Show every herb patch and ore vein ready to gather">Herbs &amp; ore</button>
             </div>
             <div id="herb-legend" hidden></div>
             <div class="map-legend">
-              ▲ You · ! Quest · ? Turn-in · ✿ Herbs · ● Creatures · ¤ Merchant
+              ▲ You · ! Quest · ? Turn-in · ✿ Herbs &amp; ore · ● Creatures · ☠ World boss · ¤ Merchant
             </div>
           </div>
           <aside class="journal">
