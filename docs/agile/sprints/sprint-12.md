@@ -2,7 +2,7 @@
 
 - **Dates:** 2026-11-16 → 2026-11-23
 - **Goal:** More to do in the Outer Ring and more reasons to play together: dig ore and forge your own gear, gather a crowd to bring down a roaming giant, and trade face to face.
-- **Planned release:** v0.22.0
+- **Planned release:** v0.22.0 · [PR #18](https://github.com/drakeg/hearthwild/pull/18)
 
 | ID | Story | Points | Status |
 |---|---|---|---|
