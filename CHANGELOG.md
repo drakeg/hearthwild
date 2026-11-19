@@ -1,3 +1,10 @@
+## 0.23.0 — Deeds and Titles (Sprint 13)
+
+- **Achievements** (HW-111): 24 to earn across Adventure, Dungeons & Raids, Exploration, Professions and Social: reach level 30, clear every dungeon, bring down the world boss, discover every zone, master a profession, make a trade, and more. Open them with **Y** (or **Achievements** in the menu) to see your progress, the date you earned each one, and your points. Characters made before this release earn the ones they already qualify for.
+- **Titles:** nine achievements unlock a title, such as *the Wayfarer*, *the Delver* or *Colossus-Slayer*. Choose one in the Achievements window and it shows on your nameplate for everyone to see.
+- **Trading fix** (HW-117): while you're trading, other windows no longer open over the trade window, and opening one no longer cancels the trade. Escape or **Cancel** still ends it.
+- A hundred and thirty-four checks, including new tests for earning achievements, titles, and the new counters.
+
 ## 0.22.0 — Hands and Hammers (Sprint 12)
 
 - **Mining and blacksmithing** (HW-107): Smith Bran Hollis at Wayfarer’s Camp teaches both, free.

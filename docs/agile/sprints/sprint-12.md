@@ -6,10 +6,10 @@
 
 | ID | Story | Points | Status |
 |---|---|---|---|
-| HW-107 | Mining and blacksmithing: ore veins in eight zones, six tiers of forged gear | 8 | In review |
-| HW-112 | World event: Gharrowmaw, a roaming world boss in the Outer Ring | 5 | In review |
-| HW-116 | Face-to-face trade window | 5 | In review |
-| HW-114 | License (AGPL-3.0-or-later), carried over from Sprint 11 | 1 | In review |
+| HW-107 | Mining and blacksmithing: ore veins in eight zones, six tiers of forged gear | 8 | Done |
+| HW-112 | World event: Gharrowmaw, a roaming world boss in the Outer Ring | 5 | Done |
+| HW-116 | Face-to-face trade window | 5 | Done |
+| HW-114 | License (AGPL-3.0-or-later), carried over from Sprint 11 | 1 | Done |
 
 **Committed:** 19 points
 
@@ -37,7 +37,9 @@
 - **2026-11-16:** found that the HW-114 license commit missed PR #17; carried into this sprint.
 
 ## Review
-*(At the end of the sprint.)*
+- **2026-11-16:** PR #18 merged; v0.22.0 released with all downloads. All 19 points done, and the AGPL license is now on `main`.
+- **Follow-up:** opening the map during a trade drew it beneath the trade window. Fixed in Sprint 13.
 
 ## Retrospective
-*(At the end of the sprint.)*
+- **Went well:** building on existing systems (herbs for ore, the boss loot table for the world boss) kept the new code small and well tested.
+- **To improve:** browser checks under software rendering are slow and pause the page; dev bots must keep themselves alive and online. Note this in the dev tools.

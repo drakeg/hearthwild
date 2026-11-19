@@ -1,6 +1,7 @@
 // Mail: send a letter, gold and one item to any character, from a mailbox (any provisioner's
 // counter). Letters wait in the recipient's mailbox until they take what's attached. Saved with
 // the world, like everything else a character owns.
+import { count as tally } from "./achievements.js";
 import { randomUUID } from "node:crypto";
 import { ITEMS } from "./content.js";
 
@@ -43,6 +44,7 @@ export class Mail {
         body = clean(a.body, MAIL.maxText);
       fail(!coins && !item && !body, "Write something, or attach gold or an item.");
       p.coins -= coins + MAIL.postage;
+      tally(p, "mailSent");
       if (item) p.inventory = p.inventory.filter((i) => i !== item);
       to.mail.push({ id: randomUUID(), from: p.name, subject, body, coins, item, sentAt: now, read: false });
       if (now - to.seen < 15000) this.world.system(to, `You have new mail from ${p.name}. Visit a provisioner’s mailbox to read it.`, now);
