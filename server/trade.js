@@ -6,6 +6,7 @@
 import { randomUUID } from "node:crypto";
 import { ITEMS } from "./content.js";
 import { slotsUsed } from "./commerce.js";
+import { count as tally } from "./achievements.js";
 
 export const TRADE = { range: 10, maxItems: 6, inviteTime: 30000, bagSlots: 60 };
 
@@ -138,6 +139,8 @@ export class Trades {
     a.q.coins += b.s.coins - a.s.coins;
     b.q.coins += a.s.coins - b.s.coins;
     this.sessions.delete(t.id);
+    tally(a.q, "trades");
+    tally(b.q, "trades");
     const what = (side, items) => [...items.map((i) => ITEMS[i.template]?.name ?? "an item"), ...(side.coins ? [`${side.coins} gold`] : [])].join(", ") || "nothing";
     this.world.system(a.q, `Trade complete. You received ${what(b.s, moving[1])}.`, now);
     this.world.system(b.q, `Trade complete. You received ${what(a.s, moving[0])}.`, now);

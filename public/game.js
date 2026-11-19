@@ -13,6 +13,8 @@ import { createCombatUi } from "./combat-ui.js";
 import { createGuildUi } from "./guild-ui.js";
 import { createFinderUi } from "./finder-ui.js";
 import { createTradeUi } from "./trade-ui.js";
+import { createAchievementsUi } from "./achievements-ui.js";
+import { titled } from "./achievements.js";
 import {
   preloadCharacters,
   createRig,
@@ -242,8 +244,9 @@ function enemy(e) {
 // Friendly NPCs show a green name with their <title> beneath, MMO style.
 // Player name with their guild in angle brackets beneath it.
 function playerTag(p) {
-  const color = p.faction === "dawnward" ? "#ffdc96" : "#b8ead6";
-  if (!p.guild) return label(p.name, color);
+  const color = p.faction === "dawnward" ? "#ffdc96" : "#b8ead6",
+    name = titled(p.name, p.title);
+  if (!p.guild) return label(name, color);
   const c = document.createElement("canvas");
   c.width = 512;
   c.height = 128;
@@ -253,9 +256,9 @@ function playerTag(p) {
   ctx.font = "500 30px system-ui";
   ctx.lineWidth = 5;
   ctx.strokeStyle = "#10271d";
-  ctx.strokeText(p.name, 256, 48);
+  ctx.strokeText(name, 256, 48);
   ctx.fillStyle = color;
-  ctx.fillText(p.name, 256, 48);
+  ctx.fillText(name, 256, 48);
   ctx.font = "500 24px system-ui";
   ctx.strokeText(`<${p.guild}>`, 256, 88);
   ctx.fillStyle = "#e9e2c8";
@@ -1354,8 +1357,8 @@ function updateModels() {
           g.userData.rig.root.position.y = 0;
         }
       }
-      if (models === playerModels && g.userData.guildName !== (item.guild ?? null)) {
-        g.userData.guildName = item.guild ?? null;
+      if (models === playerModels && g.userData.guildName !== `${item.guild ?? ""}|${item.title ?? ""}`) {
+        g.userData.guildName = `${item.guild ?? ""}|${item.title ?? ""}`;
         const old = g.userData.nameTag,
           tag = playerTag(item);
         tag.position.y = (old?.position.y ?? 2.25) + (item.guild ? 0.1 : 0) - (old?.userData.twoLine ? 0.1 : 0);
@@ -1431,6 +1434,7 @@ function updateModels() {
   guildUi.update(state);
   finderUi.update(state);
   tradeUi.update(state);
+  achievementsUi.update(state);
   // Unread mail waits at any provisioner's mailbox.
   const unread = state.self.mail?.unread ?? 0,
     note = $("mail-notice") ?? Object.assign(document.createElement("div"), { id: "mail-notice", className: "mail-notice" });
@@ -1720,7 +1724,7 @@ async function partyAction(a) {
     uiError(e.message);
   }
 }
-function closePanels() {
+function closePanels({ escape = false } = {}) {
   let closed = false;
   if (!$("bag").hidden) ($("bag").hidden = true), (closed = true);
   if (!$("character-sheet").hidden) ($("character-sheet").hidden = true), (closed = true);
@@ -1729,7 +1733,9 @@ function closePanels() {
   if ($("dialogue").open) $("dialogue").close(), (closed = true);
   if (typeof guildUi !== "undefined" && guildUi.isOpen()) guildUi.close(), (closed = true);
   if (typeof finderUi !== "undefined" && finderUi.isOpen()) finderUi.close(), (closed = true);
-  if (typeof tradeUi !== "undefined" && tradeUi.isOpen()) tradeUi.close(), (closed = true);
+  // Only Escape cancels a trade; opening another window shouldn’t.
+  if (escape && typeof tradeUi !== "undefined" && tradeUi.isOpen()) tradeUi.close(), (closed = true);
+  if (typeof achievementsUi !== "undefined" && achievementsUi.isOpen()) achievementsUi.close(), (closed = true);
   return closed;
 }
 function useAbility(key) {
@@ -1772,7 +1778,7 @@ addEventListener("keydown", (e) => {
     e.preventDefault();
     if (menu.isOpen()) menu.toggle();
     else if (typing()) document.activeElement.blur();
-    else if (closePanels()) canvas.focus();
+    else if (closePanels({ escape: true })) canvas.focus();
     else if (queuedAbility || queuedAttack || interaction) {
       queuedAbility = queuedAttack = interaction = null;
     } else if (selected) selected = null;
@@ -1781,6 +1787,8 @@ addEventListener("keydown", (e) => {
   }
   if (menu.isOpen()) return;
   if ($("dialogue").open) return;
+  // While trading, the trade window has your attention: other windows wait (chat still works).
+  if (tradeUi.isOpen() && e.key !== "Enter") return;
   if (services.isOpen() && e.code !== "KeyK") return;
   if (typing()) return;
   if (
@@ -1845,6 +1853,10 @@ addEventListener("keydown", (e) => {
   if (["KeyI", "KeyB"].includes(e.code) && !e.repeat) {
     e.preventDefault();
     toggleBag();
+  }
+  if (e.code === "KeyY" && !e.repeat) {
+    e.preventDefault();
+    achievementsUi.toggle();
   }
   if (e.code === "KeyO" && !e.repeat) {
     e.preventDefault();
@@ -2374,6 +2386,18 @@ const finderUi = createFinderUi({
   },
 });
 $("finder-menu").onclick = () => finderUi.toggle();
+const achievementsUi = createAchievementsUi({
+  act: (a) =>
+    api("/api/actions", a)
+      .then((r) => r?.message && combatUi.info(r.message))
+      .catch((e) => uiError(e.message)),
+  onOpen: () => closePanels(),
+  focusWorld: () => {
+    keys.clear();
+    canvas.focus();
+  },
+});
+$("achievements-menu").onclick = () => achievementsUi.toggle();
 const tradeUi = createTradeUi({
   getState: () => state,
   act: (a) =>

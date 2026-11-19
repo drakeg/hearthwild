@@ -1,3 +1,4 @@
+import { count as tally } from "./achievements.js";
 import { ITEMS, stats } from "./content.js";
 import { randomUUID } from "node:crypto";
 import { GEAR_PRICES, SMITH_RECIPES } from "./content-world.js";
@@ -164,6 +165,7 @@ export function commerce(p, a, npcs, now) {
     room(a.recipe);
     for (const [kind, n] of Object.entries(recipe.ores)) p.materials[kind] -= n;
     p.inventory.push({ id: randomUUID(), template: a.recipe });
+    tally(p, "crafted");
     // Harder recipes teach more.
     p.professions.blacksmithing = Math.min(100, p.professions.blacksmithing + (recipe.skill + 10 >= p.professions.blacksmithing ? 3 : 1));
     return { message: `Forged ${recipe.name} · Blacksmithing ${p.professions.blacksmithing}/100.` };
@@ -190,6 +192,7 @@ export function commerce(p, a, npcs, now) {
     room(a.recipe);
     for (const [kind, n] of Object.entries(recipe.herbs)) p.materials[kind] -= n;
     p.inventory.push({ id: randomUUID(), template: a.recipe });
+    tally(p, "crafted");
     p.professions.alchemy = Math.min(100, p.professions.alchemy + 1);
     return {
       message: `Crafted ${recipe.name} · Alchemy ${p.professions.alchemy}/100.`,

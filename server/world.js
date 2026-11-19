@@ -26,6 +26,8 @@ import { Grid, VIEW, AWAKE_RADIUS, contentKey } from "./interest.js";
 import { Finder, FINDER } from "./finder.js";
 import { Mail } from "./mail.js";
 import { Trades } from "./trade.js";
+import { award, chooseTitle, count as tally, markCleared } from "./achievements.js";
+import { TITLES } from "../public/achievements.js";
 import { WorldBoss, WORLD_BOSS } from "./worldboss.js";
 import { REAGENTS, POUCH_LIMIT } from "../public/reagents.js";
 import { TALENTS } from "../public/talents.js";
@@ -81,6 +83,7 @@ const publicPlayer = (p) => ({
   casting: p.casting ?? null,
   instance: p.instance ?? null,
   partyId: p.partyId ?? null,
+  title: TITLES[p.title] ?? null,
 });
 const zoneOf = (o) => o?.instance ?? null;
 export class World {
@@ -379,6 +382,10 @@ export class World {
         homeName: stopById(p.home ?? "camp").name,
         finder: this.finder.view(p, now),
         talents: p.talents ?? {},
+        achievements: p.achievements ?? {},
+        titleId: p.title ?? null,
+        tally: p.tally ?? {},
+        explored: p.explored ?? [],
         talentResetCost: talentResetCost(p),
         mail: this.mail.view(p),
         trade: this.trades.view(p, now),
@@ -455,6 +462,7 @@ export class World {
     if (a.type === "talent") return this.talent(p, a);
     if (a.type === "mail") return this.mail.act(p, a, now, reject);
     if (a.type === "trade") return this.trades.act(p, a, now, reject);
+    if (a.type === "title") return chooseTitle(p, a, reject);
     if (a.type === "guild") return this.guilds.act(p, a, now, reject);
     if (a.type === "release") {
       reject(!p.dead, "You are not dead.");
@@ -638,6 +646,7 @@ export class World {
         HERB_RESPAWN.min +
         Math.floor(this.random() * (HERB_RESPAWN.max - HERB_RESPAWN.min + 1));
       p.materials[kind] += count;
+      tally(p, "gathered");
       const q = p.quests.starleaf;
       if (kind === "starleaf" && ["active", "ready"].includes(q.status)) {
         q.progress = Math.min(4, p.materials.starleaf);
@@ -897,9 +906,13 @@ export class World {
           }
         }
     }
-    if (e.worldBoss) this.worldBoss.fallen(e, now);
+    if (e.worldBoss) {
+      for (const q of eligible) tally(q, "worldBoss");
+      this.worldBoss.fallen(e, now);
+    }
     if (e.boss && this.crypts.instances.get(e.instance)?.boss === e) {
       const inst = this.crypts.instances.get(e.instance);
+      for (const q of eligible) markCleared(q, inst.dungeon.id);
       // A group the Dungeon Finder put together earns a satchel of coin and experience.
       const finderParty = inst && [...this.parties.byId.values()].find((g) => g.finder === inst.dungeon.id && inst.key.endsWith(`party:${g.id}`));
       if (finderParty && !inst.finderPaid) {
@@ -1211,6 +1224,7 @@ export class World {
       this.finderAt = now;
       this.finder.tick(now);
       this.trades.tick(now);
+      for (const p of online) award(this, p, now);
     }
     this.playerGrid.build(online.filter((p) => !p.instance && !p.dead));
     this.worldBoss.tick(now, online.filter((p) => !p.instance), dt);
@@ -1388,6 +1402,9 @@ export class World {
         home: p.home ?? "camp",
         waystoneReadyAt: p.waystoneReadyAt ?? 0,
         talents: p.talents ?? {},
+        achievements: p.achievements ?? {},
+        tally: p.tally ?? {},
+        title: p.title ?? null,
         mail: p.mail ?? [],
         materials: p.materials,
         xp: p.xp,

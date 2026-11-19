@@ -1204,3 +1204,22 @@ body.is-dead #world {
 .rarity-rare { color: #6fa8ff; }
 .rarity-epic { color: #c58cff; }
 @media (max-width: 520px) { .trade-table { grid-template-columns: 1fr; } }
+
+/* Achievements window */
+.achievements-window { width: min(620px, calc(100vw - 32px)); }
+.ach-title-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; font-size: 13px; }
+.ach-title-row select { min-width: 220px; }
+.ach-title-row small { opacity: 0.7; }
+.ach-tabs { display: flex; flex-wrap: wrap; gap: 4px; margin-bottom: 8px; }
+.ach-tab { font-size: 12px; padding: 4px 9px; border-radius: 999px; border: 1px solid rgba(217, 180, 101, 0.35); background: rgba(20, 16, 10, 0.4); color: inherit; cursor: pointer; }
+.ach-tab.active { background: rgba(217, 180, 101, 0.25); border-color: #d9b465; }
+.ach-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; max-height: min(52vh, 440px); overflow-y: auto; }
+.ach { display: flex; justify-content: space-between; gap: 12px; padding: 8px 10px; border-radius: 8px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.07); opacity: 0.8; }
+.ach.earned { opacity: 1; border-color: rgba(217, 180, 101, 0.55); background: rgba(217, 180, 101, 0.1); }
+.ach-text { display: grid; gap: 2px; font-size: 13px; }
+.ach-text em { font-size: 12px; color: #e7c97e; font-style: normal; }
+.ach-side { display: grid; justify-items: end; align-content: start; gap: 4px; min-width: 90px; font-size: 12px; }
+.ach-points { font-size: 15px; color: #f3d98c; }
+.ach:not(.earned) .ach-points { color: inherit; opacity: 0.6; }
+.ach-bar { width: 90px; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.12); overflow: hidden; }
+.ach-bar span { display: block; height: 100%; background: #d9b465; }

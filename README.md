@@ -123,6 +123,8 @@ Smith Bran Hollis, also at camp, teaches **Mining** and **Blacksmithing** free. 
 
 To **trade** with someone standing near you, right-click them and choose **Trade**, or type `/trade Name`. Both of you must confirm before anything changes hands.
 
+Press **Y** for **Achievements**: 24 goals across the whole game, from clearing every dungeon to mastering a profession. Nine of them unlock a **title** you can show on your nameplate.
+
 ## Faction communication
 
 | Channel | Recipients |

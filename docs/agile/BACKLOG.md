@@ -4,9 +4,9 @@ Ordered by priority: the top is next. The Product Owner (Greg) sets the order; a
 
 **Status:** `Ready` = meets the Definition of Ready · `Backlog` = still needs refinement
 
-## Current sprint: [Sprint 12](sprints/sprint-12.md)
+## Current sprint: [Sprint 13](sprints/sprint-13.md)
 
-HW-107 Mining & blacksmithing · HW-112 World boss · HW-116 Trade window · HW-114 License (carried over)
+HW-111 Achievements & titles · HW-117 Trade window stays on top
 
 ## Up next
 
@@ -16,7 +16,6 @@ HW-107 Mining & blacksmithing · HW-112 World boss · HW-116 Trade window · HW-
 | HW-105 | Chore | Measure frame rate on a real Mac and a modest Windows PC in the busiest zones; set a performance budget | Tech debt | 3 | Backlog |
 | HW-108 | Story | **Second raid** for the Outer Ring | Dungeons & Raids | 13 | Backlog |
 | HW-110 | Story | **New beast models** (CC0) to replace the recoloured foxes | Art | 5 | Backlog |
-| HW-111 | Story | **Achievements and titles** | Social | 5 | Backlog |
 | HW-100 | Story | **A hosted server you can leave running**, updated from each release, with HTTPS. *Decided 2026-11-14: start with a small cloud server (about $5–12 a month). Still to settle when it's planned: a domain name, who it's for (invite-only or open), and the budget.* | Server & Hosting | 8 | Backlog (later) |
 | HW-113 | Bug | The `release-0.12` branch is left over from the v0.12.0 re-release; delete it on GitHub | Process & Tooling | 1 | Ready |
 
