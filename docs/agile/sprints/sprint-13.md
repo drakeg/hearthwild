@@ -2,7 +2,7 @@
 
 - **Dates:** 2026-11-19 → 2026-11-26
 - **Goal:** Give players long-term goals across everything they can already do, and a way to show them off.
-- **Planned release:** v0.23.0
+- **Planned release:** v0.23.0 · [PR #19](https://github.com/drakeg/hearthwild/pull/19)
 
 | ID | Story | Points | Status |
 |---|---|---|---|
