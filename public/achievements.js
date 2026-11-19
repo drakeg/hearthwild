@@ -28,6 +28,7 @@ export const ACHIEVEMENTS = [
   { id: "first-dungeon", category: "Dungeons & Raids", name: "Into the Dark", text: "Defeat the final boss of any dungeon.", points: 10, goal: 1, progress: (p) => DUNGEONS.filter((id) => cleared(p, id)).length },
   { id: "all-dungeons", category: "Dungeons & Raids", name: "Delver", text: `Defeat the final boss of all ${DUNGEONS.length} dungeons.`, points: 25, title: "the Delver", goal: DUNGEONS.length, progress: (p) => DUNGEONS.filter((id) => cleared(p, id)).length },
   { id: "raid", category: "Dungeons & Raids", name: "Spirebreaker", text: "Defeat the final boss of a raid.", points: 25, title: "Spirebreaker", goal: 1, progress: (p) => RAIDS.filter((id) => cleared(p, id)).length },
+  { id: "all-raids", category: "Dungeons & Raids", name: "Unbroken", text: `Defeat the final boss of all ${RAIDS.length} raids.`, points: 25, title: "the Unbroken", goal: RAIDS.length, progress: (p) => RAIDS.filter((id) => cleared(p, id)).length },
   { id: "world-boss", category: "Dungeons & Raids", name: "Colossus-Slayer", text: "Help bring down Gharrowmaw, the Wandering Colossus.", points: 25, title: "Colossus-Slayer", goal: 1, progress: (p) => t(p, "worldBoss") },
   // Exploration
   { id: "explore-5", category: "Exploration", name: "Wanderer", text: "Discover 5 zones.", points: 10, goal: 5, progress: (p) => ZONE_NAMES.filter((n) => p.explored?.includes(n)).length },

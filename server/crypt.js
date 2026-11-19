@@ -129,6 +129,36 @@ export const BOSSES = {
     enrage: { after: 420000, yell: "The Heart of the Void opens wide! (Enraged)" },
   },
 };
+// The Molten Crown (raid).
+BOSSES["molten-crown:0"] = {
+  hpScale: 17,
+  mechanics: [
+    { type: "nova", name: "Bellows Blast", first: 6000, every: 10000, radius: 8.5, delay: 2300, times: 2.3 },
+    { type: "circles", name: "Slag Spill", first: 4500, every: 8000, radius: 4, delay: 2300, times: 1.9, count: 4 },
+  ],
+  adds: { at: 0.5, kind: "cinder-reaver", name: "Furnace stoker", count: 2, yell: "Emberjaw roars: “Stokers! Feed the fires!”" },
+  enrage: { after: 360000, yell: "The furnace doors burst open behind Emberjaw! (Enraged)" },
+};
+BOSSES["molten-crown:1"] = {
+  hpScale: 17,
+  mechanics: [
+    { type: "circles", name: "Rain of Cinders", first: 4000, every: 7500, radius: 4, delay: 2200, times: 2, count: 5 },
+    { type: "channel", name: "Living Flame", first: 9000, every: 14000, castTime: 3200, times: 3.3, heal: 0.04 },
+    { type: "nova", name: "Firestorm", first: 12000, every: 15000, radius: 9, delay: 2600, times: 2.5 },
+  ],
+  adds: { at: 0.4, kind: "ashbound-zealot", name: "Flame acolyte", count: 2, yell: "Cindra sings: “Burn bright, my children, burn for the King!”" },
+  enrage: { after: 360000, yell: "The temple floor splits into rivers of fire! (Enraged)" },
+};
+BOSSES["molten-crown:2"] = {
+  hpScale: 21,
+  mechanics: [
+    { type: "circles", name: "Eruption", first: 4000, every: 7000, radius: 4.5, delay: 2400, times: 2.3, count: 6 },
+    { type: "nova", name: "Crown of Fire", first: 8000, every: 12000, radius: 10, delay: 2800, times: 2.9 },
+    { type: "channel", name: "Molten Decree", first: 12000, every: 16000, castTime: 3500, times: 3.9, heal: 0.05 },
+  ],
+  adds: { at: 0.5, kind: "cinder-reaver", name: "Crown guard", count: 3, yell: "Vulcaris rises from the throne: “Kneel before the fire that made you.”" },
+  enrage: { after: 420000, yell: "The caldera overflows around the Molten Throne! (Enraged)" },
+};
 // Each boss's fight: its dungeon's id, or "<raid id>:<n>" for a raid's bosses.
 export const specOf = (b) => BOSSES[b.spec];
 const swing = (level) => mobStats(level).damage;

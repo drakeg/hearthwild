@@ -88,7 +88,12 @@ Roads lead from Wayfarer’s Camp to every town. An inner ring road joins the fi
 | Tomb of the Sun-King | The Sunscar Dunes | 26–28 | Sun-King Azhar |
 | The Shattered Observatory | Starfall Reach | 29–31 | Astromancer Velia |
 
-**Raid:** *The Sundered Spire* (Starfall Reach, level 28+, up to ten players) has three bosses: Grimward the Gatekeeper, Seraphel the Lightbinder, and Nythera, Heart of the Void. Type **/raid** to turn your group into a raid of up to ten, or queue for it in the Dungeon Finder.
+**Raids** (level 28+, up to ten players), each with three bosses:
+
+- *The Sundered Spire* (Starfall Reach): Grimward the Gatekeeper, Seraphel the Lightbinder, and Nythera, Heart of the Void.
+- *The Molten Crown* (the Emberwaste): Emberjaw the Furnace-Warden, Cindra the Flame-Speaker, and Vulcaris, the Molten King.
+
+Type **/raid** to turn your group into a raid of up to ten, or queue for either raid in the Dungeon Finder.
 
 Talk to the watcher at the door for the quest, then press **F** at the door to enter. Each group gets its own copy of the dungeon. Bosses drop Epic gear.
 

@@ -1,3 +1,11 @@
+## 0.24.0 — The Molten Crown (Sprint 14)
+
+- **A second raid** (HW-108): **The Molten Crown**, beneath the Emberwaste, for groups of up to ten at level 28 and up. Flamewarden Oriel waits at the door with the raid's quest, and the Dungeon Finder can fill it.
+  - Fight down from the Caldera gate to the Molten Throne past three bosses: **Emberjaw the Furnace-Warden**, **Cindra the Flame-Speaker** and **Vulcaris, the Molten King**. Each has attacks to dodge, a cast to interrupt or heal through, reinforcements, and an enrage timer.
+  - Each boss drops one of three Epics of its own: nine new raid Epics.
+- **New achievement:** **Unbroken** (title *the Unbroken*) for defeating the final boss of both raids.
+- A hundred and thirty-six checks, including new tests that cover every raid, keep dungeon doors and instance spaces apart, and run the Molten Crown through to Unbroken.
+
 ## 0.23.0 — Deeds and Titles (Sprint 13)
 
 - **Achievements** (HW-111): 24 to earn across Adventure, Dungeons & Raids, Exploration, Professions and Social: reach level 30, clear every dungeon, bring down the world boss, discover every zone, master a profession, make a trade, and more. Open them with **Y** (or **Achievements** in the menu) to see your progress, the date you earned each one, and your points. Characters made before this release earn the ones they already qualify for.
