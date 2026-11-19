@@ -12,7 +12,7 @@ HW-108 Second raid: The Molten Crown
 
 | ID | Type | Item | Epic | Points | Status |
 |---|---|---|---|---|---|
-| HW-104 | Chore | Playtest the Sundered Spire with real players, then tune boss health and damage | Dungeons & Raids | 3 | Backlog |
+| HW-104 | Chore | Playtest both raids (the Sundered Spire and the Molten Crown) with real players, then tune boss health and damage | Dungeons & Raids | 3 | Backlog |
 | HW-105 | Chore | Measure frame rate on a real Mac and a modest Windows PC in the busiest zones; set a performance budget | Tech debt | 3 | Backlog |
 | HW-110 | Story | **New beast models** (CC0) to replace the recoloured foxes | Art | 5 | Backlog |
 | HW-100 | Story | **A hosted server you can leave running**, updated from each release, with HTTPS. *Decided 2026-11-14: start with a small cloud server (about $5–12 a month). Still to settle when it's planned: a domain name, who it's for (invite-only or open), and the budget.* | Server & Hosting | 8 | Backlog (later) |

@@ -2,7 +2,7 @@
 
 - **Dates:** 2026-11-19 → 2026-11-26
 - **Goal:** A second raid for the Outer Ring, so level-30 groups have more than one ten-player challenge.
-- **Planned release:** v0.24.0
+- **Planned release:** v0.24.0 · [PR #20](https://github.com/drakeg/hearthwild/pull/20)
 
 | ID | Story | Points | Status |
 |---|---|---|---|
