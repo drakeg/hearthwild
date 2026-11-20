@@ -1,6 +1,6 @@
 ## Stories
 
-<!-- One line per story, e.g. "HW-090 Server Manager window". See docs/agile/BACKLOG.md. -->
+<!-- One line per story, e.g. "HW-090 Server Manager window". See BACKLOG.md. -->
 - HW-
 
 **Sprint:** <!-- e.g. Sprint 9 (docs/agile/sprints/sprint-09.md) -->

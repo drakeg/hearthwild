@@ -293,6 +293,41 @@ export const DUNGEONS = {
     minLevel: 28,
     theme: "astral",
   },
+  "molten-crown": {
+    id: "molten-crown",
+    name: "The Molten Crown",
+    raid: true,
+    zone: "ember",
+    origin: { x: 14800, z: 0 },
+    door: { x: -1500, z: -700 },
+    entry: { x: 0, z: 2 },
+    exit: { x: 0, z: 4.5 },
+    rooms: [
+      { name: "Caldera gate", minX: -10, maxX: 10, minZ: -6, maxZ: 6 },
+      { name: "The Bellows Hall", minX: -20, maxX: 20, minZ: -40, maxZ: -6 },
+      { name: "Slag stair", minX: -2, maxX: 2, minZ: -56, maxZ: -40 },
+      { name: "Temple of the Living Flame", minX: -22, maxX: 22, minZ: -88, maxZ: -56 },
+      { name: "Crown road", minX: -2, maxX: 2, minZ: -104, maxZ: -88 },
+      { name: "The Molten Throne", minX: -28, maxX: 28, minZ: -146, maxZ: -104 },
+    ],
+    packs: [
+      [["cinder-reaver", -8, -12], ["ashbound-zealot", 8, -12], ["cinder-reaver", 0, -15]],
+      [["ashbound-zealot", -12, -62], ["cinder-reaver", 12, -62], ["ashbound-zealot", 0, -64]],
+      [["cinder-reaver", -14, -110], ["cinder-reaver", 14, -110], ["ashbound-zealot", 0, -112]],
+    ],
+    // Fought in order; the last is the raid's final boss.
+    bosses: [
+      { kind: "furnace-warden", name: "Emberjaw the Furnace-Warden", x: 0, z: -30, level: 31 },
+      { kind: "flame-speaker", name: "Cindra the Flame-Speaker", x: 0, z: -78, level: 31 },
+      { kind: "molten-king", name: "Vulcaris, the Molten King", x: 0, z: -132, level: 32 },
+    ],
+    boss: { kind: "molten-king", name: "Vulcaris, the Molten King", x: 0, z: -132 },
+    sanctum: { minX: -28, maxX: 28, minZ: -146, maxZ: -104 },
+    levels: [30, 30],
+    bossLevel: 32,
+    minLevel: 28,
+    theme: "forge",
+  },
 };
 export const DUNGEON_LIST = Object.values(DUNGEONS);
 // The dungeon whose instance space contains a world position (instances sit far outside the map).

@@ -1435,6 +1435,7 @@ function updateModels() {
   finderUi.update(state);
   tradeUi.update(state);
   achievementsUi.update(state);
+  showDemoBanner(state.demo);
   // Unread mail waits at any provisioner's mailbox.
   const unread = state.self.mail?.unread ?? 0,
     note = $("mail-notice") ?? Object.assign(document.createElement("div"), { id: "mail-notice", className: "mail-notice" });
@@ -2386,6 +2387,18 @@ const finderUi = createFinderUi({
   },
 });
 $("finder-menu").onclick = () => finderUi.toggle();
+// In the free demo, a small banner says what's included and links to the full game.
+let demoBanner = null;
+function showDemoBanner(demo) {
+  if (!demo || demoBanner) return;
+  demoBanner = document.createElement("a");
+  demoBanner.className = "demo-banner";
+  demoBanner.href = demo.fullGameUrl;
+  demoBanner.target = "_blank";
+  demoBanner.rel = "noopener";
+  demoBanner.textContent = `Free demo · the Stillwood, up to level ${demo.maxLevel} · Get the full game →`;
+  document.getElementById("hud").append(demoBanner);
+}
 const achievementsUi = createAchievementsUi({
   act: (a) =>
     api("/api/actions", a)

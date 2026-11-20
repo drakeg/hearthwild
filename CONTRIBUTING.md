@@ -21,7 +21,11 @@ cd hearthwild
 npm start            # http://127.0.0.1:4180 (needs Node.js 22+)
 npm test             # all automated tests
 npm run check        # syntax checks
+HOST=0.0.0.0 npm start         # reachable from phones and other computers on your network
+docker compose up -d --build   # the same server in Docker, port 4180, world in its own volume
 ```
+
+AI agents: also read [AGENTS.md](AGENTS.md). CI (`.github/workflows/ci.yml`) runs the checks, the tests and a Docker build on every pull request, and CodeQL scans for security problems; both must pass.
 
 There's no build step: edit a file in `public/` or `server/` and reload. Every file in `public/` with a known type is served automatically; restart the server after adding one. The desktop app (Electron) is packaged by the release workflow; you don't need it to develop. Your local world is saved in `data/` (ignored by Git).
 
@@ -40,7 +44,7 @@ There's no build step: edit a file in `public/` or `server/` and reload. Every f
 
 Hearthwild uses a light Agile process; the details are in [`docs/agile/README.md`](docs/agile/README.md).
 
-1. **Find or propose an item.** Look at the [backlog](docs/agile/BACKLOG.md), or open an issue using the *Bug report* or *Idea / story* template. Every item gets an ID like `HW-123`.
+1. **Find or propose an item.** Look at the [backlog](BACKLOG.md), or open an issue using the *Bug report* or *Idea / story* template. Every item gets an ID like `HW-123`.
 2. **Agree before building.** Comment on the issue to say you'd like to take it. The Product Owner (@drakeg) decides what goes into each sprint.
 3. **Branch** from `main`: `sprint-NN/HW-123-short-name`, or `contrib/HW-123-short-name` if your item isn't in a sprint.
 4. **Commit** with the ID first: `HW-123: Herb finder legend filters by herb`.

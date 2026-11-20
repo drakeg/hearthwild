@@ -1,20 +1,23 @@
 # Product backlog
 
-Ordered by priority: the top is next. The Product Owner (Greg) sets the order; anyone can add an item, at the bottom, under *New*. Points use the Fibonacci scale. Finished items move into their sprint file; see [`sprints/`](sprints/).
+Ordered by priority: the top is next. The Product Owner (Greg) sets the order; anyone can add an item, at the bottom, under *New*. Points use the Fibonacci scale. Finished items move into their sprint file; see [`sprints/`](docs/agile/sprints/).
 
 **Status:** `Ready` = meets the Definition of Ready · `Backlog` = still needs refinement
 
-## Current sprint: [Sprint 13](sprints/sprint-13.md)
+## Current sprint: [Sprint 15](docs/agile/sprints/sprint-15.md)
 
-HW-111 Achievements & titles · HW-117 Trade window stays on top
+HW-131 Mad Mallard standards · HW-133 README rewrite · HW-122 Free demo build
+
+## Priorities (updated 2026-11-19)
+
+Following the Mad Mallard standards, the **fastest realistic path to a paying customer** now comes first: a free demo and a pay-what-you-want early-access page (HW-121 → HW-122 → HW-126 → HW-124), then the hosted-world waitlist. New game content continues alongside, but no longer ahead of launch work. *HW-121 needs a Product Owner decision before HW-124 can ship.*
 
 ## Up next
 
 | ID | Type | Item | Epic | Points | Status |
 |---|---|---|---|---|---|
-| HW-104 | Chore | Playtest the Sundered Spire with real players, then tune boss health and damage | Dungeons & Raids | 3 | Backlog |
+| HW-104 | Chore | Playtest both raids (the Sundered Spire and the Molten Crown) with real players, then tune boss health and damage | Dungeons & Raids | 3 | Backlog |
 | HW-105 | Chore | Measure frame rate on a real Mac and a modest Windows PC in the busiest zones; set a performance budget | Tech debt | 3 | Backlog |
-| HW-108 | Story | **Second raid** for the Outer Ring | Dungeons & Raids | 13 | Backlog |
 | HW-110 | Story | **New beast models** (CC0) to replace the recoloured foxes | Art | 5 | Backlog |
 | HW-100 | Story | **A hosted server you can leave running**, updated from each release, with HTTPS. *Decided 2026-11-14: start with a small cloud server (about $5–12 a month). Still to settle when it's planned: a domain name, who it's for (invite-only or open), and the budget.* | Server & Hosting | 8 | Backlog (later) |
 | HW-113 | Bug | The `release-0.12` branch is left over from the v0.12.0 re-release; delete it on GitHub | Process & Tooling | 1 | Ready |
@@ -26,7 +29,7 @@ Planned on 2026-11-13 from a monetization review. Ordered so each step tests dem
 | ID | Type | Item | Points | Status |
 |---|---|---|---|---|
 | HW-121 | Chore | Decide what's sold versus free: repo visibility, whether GitHub Release downloads stay free, and a trademark check on "Hearthwild" | 1 | Waiting on PO |
-| HW-122 | Story | **Free demo build:** the Stillwood only (levels 1–6), built by the release workflow alongside the full game | 5 | Backlog |
+| HW-122 | Story | **Free demo build:** the Stillwood only (levels 1–6), built by the release workflow alongside the full game | 5 | In sprint |
 | HW-123 | Story | **Gameplay trailer and press kit:** 60–90 s of the Outer Ring and the raid, screenshots, a short description | 3 | Backlog |
 | HW-124 | Story | **itch.io early-access page:** pay what you want, $5 minimum and $10 suggested; demo plus full builds uploaded by the workflow | 3 | Backlog |
 | HW-125 | Story | **Supporter page** (Ko-fi or Patreon) linked from the game menu and README, with credits for supporters | 2 | Backlog |
@@ -39,4 +42,11 @@ Planned on 2026-11-13 from a monetization review. Ordered so each step tests dem
 **How we'll know it's working:** playtesters play more than an hour and come back; at least 10% of pay-what-you-want downloads pay something; 50 waitlist sign-ups before building Realms.
 
 ## New
+
+| ID | Type | Item | Epic | Points | Status |
+|---|---|---|---|---|---|
+| HW-131 | Chore | Adopt the Mad Mallard repository standards: root docs, CI, CodeQL, Docker Compose for LAN testing, README badges | Process & Tooling | 5 | In sprint |
+| HW-132 | Story | **Free hosted test world** that redeploys from `main` (for example a free container host), so testers can play without installing anything. *Needs the Product Owner to choose a host and create the account.* | Server & Hosting | 3 | Waiting on PO |
+| HW-134 | Bug | In the demo, hide or explain quests whose objectives are outside the Stillwood | Monetization | 2 | Ready |
+| HW-133 | Chore | Rewrite the README for the current game (it still describes 0.5–0.7 builds) | Process & Tooling | 2 | In sprint |
 *(Add items here; they're refined and placed above.)*

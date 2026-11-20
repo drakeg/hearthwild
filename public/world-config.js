@@ -45,3 +45,6 @@ export function levelColor(mobLevel, playerLevel) {
   if (diff >= -4) return "#40c040";
   return "#9d9d9d";
 }
+
+// The free demo: the Stillwood only, up to level 6. The full game has no such limits.
+export const DEMO = { zone: "stillwood", maxLevel: 6, fullGameUrl: "https://github.com/drakeg/hearthwild/releases/latest" };

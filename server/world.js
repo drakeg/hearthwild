@@ -1,4 +1,5 @@
-import { WORLD_LIMIT, inSanctuary, subzoneAt, zoneAt, ZONES } from "../public/world-config.js";
+import { WORLD_LIMIT, inSanctuary, subzoneAt, zoneAt, ZONES, DEMO } from "../public/world-config.js";
+import { MAX_LEVEL } from "../public/terrain.js";
 import { GRAVEYARDS, insideHouse, lakeAt } from "../public/terrain.js";
 import { RIDING, CARAVAN_SPEED, WAYSTONE, STOPS, stopById, homePoint, route, caravanFare } from "./travel.js";
 import { createMonsters, monsterDelay, monsterPosition } from "./wilderness.js";
@@ -20,7 +21,7 @@ import { createHash, randomBytes, randomUUID } from "node:crypto";
 import { Parties } from "./party.js";
 import { Guilds } from "./guild.js";
 import { Crypts, walkableAt } from "./crypt.js";
-import { CRYPT, DUNGEON_LIST, dungeonOf } from "../public/dungeon-layout.js";
+import { CRYPT, DUNGEON_LIST, DUNGEONS, dungeonOf } from "../public/dungeon-layout.js";
 import { DUNGEON_LOOT, SMITH_RECIPES } from "./content-world.js";
 import { Grid, VIEW, AWAKE_RADIUS, contentKey } from "./interest.js";
 import { Finder, FINDER } from "./finder.js";
@@ -87,7 +88,10 @@ const publicPlayer = (p) => ({
 });
 const zoneOf = (o) => o?.instance ?? null;
 export class World {
-  constructor(saved = {}, { random = Math.random, combatRandom = random, charterSignatures } = {}) {
+  constructor(saved = {}, { random = Math.random, combatRandom = random, charterSignatures, demo = false } = {}) {
+    // The free demo keeps everyone in the Stillwood, up to level 6.
+    this.demo = demo ? DEMO : null;
+    this.levelCap = demo ? DEMO.maxLevel : MAX_LEVEL;
     this.random = random;
     this.combatRandom = combatRandom;
     this.players = new Map();
@@ -401,6 +405,7 @@ export class World {
       portals: p.instance
         ? [(({ origin, exit, id }) => ({ id: `${id}-exit`, type: "exit", name: "Exit", x: origin.x + exit.x, z: origin.z + exit.z }))(dungeonOf(p.instance) ?? CRYPT)]
         : DUNGEON_LIST.map((d) => ({ id: `${d.id}-door`, type: "enter", name: d.name, x: d.door.x, z: d.door.z })),
+      demo: this.demo,
       telegraphs: p.instance ? (this.crypts.instances.get(p.instance)?.telegraphs ?? []).map(({ boss, ...t }) => t) : this.worldBoss.near(p),
       worldBoss: this.worldBoss.where(),
       // The herb finder: every patch ready to pick in the zone the map shows (or the whole world).
@@ -458,6 +463,8 @@ export class World {
       return { message: "Left the world." };
     }
     if (a.type === "party") return this.parties.act(p, a, now, reject);
+    if (a.type === "finder" && this.demo && a.op === "queue")
+      reject((a.dungeons ?? []).some((id) => (DUNGEONS[id]?.zone ?? "stillwood") !== this.demo.zone), "The demo includes the Hollow Crypt only.");
     if (a.type === "finder") return this.finder.act(p, a, now, reject);
     if (a.type === "talent") return this.talent(p, a);
     if (a.type === "mail") return this.mail.act(p, a, now, reject);
@@ -529,6 +536,7 @@ export class World {
       return { message: "Mounted." };
     }
     if (a.type === "travel") {
+      reject(this.demo, "Caravans to other zones are part of the full game.");
       const npc = this.npcs.find((n) => n.id === p.talkedNpc && n.caravan);
       reject(!npc || distance(p, npc) > 4.5, "Speak to a caravan master to travel.");
       const to = stopById(a.to);
@@ -619,7 +627,7 @@ export class World {
         }
         progress.status = "complete";
         p.coins += quest.reward;
-        addExperience(p, quest.xp ?? 60);
+        addExperience(p, quest.xp ?? 60, this.levelCap);
       } else throw new GameError("Choose accept or complete.");
       return;
     }
@@ -860,7 +868,7 @@ export class World {
         // Groups split kill experience, with a bonus for grouping.
         xp = Math.round((killExperience(e.level ?? 1, q.level) * (e.boss ? 8 : 1) * (share > 1 ? 1.25 : 1)) / share);
       q.kills++;
-      addExperience(q, xp);
+      addExperience(q, xp, this.levelCap);
       if (xp) this.event("xp", { to: q.id, amount: xp, name: e.name, x: e.x, z: e.z, zone: zoneOf(e) }, now);
       const items = e.boss
         ? [{ id: randomUUID(), template: ((list) => list[Math.floor(this.random() * list.length)])(DUNGEON_LOOT[e.spec] ?? DUNGEON_LOOT[dungeonOf(e.instance)?.id] ?? DUNGEON_LOOT["hollow-crypt"]) }]
@@ -922,7 +930,7 @@ export class World {
           if (!q || q.instance !== inst.id) continue;
           const bonus = FINDER.bonus(inst.dungeon.bossLevel);
           q.coins = (q.coins ?? 0) + bonus.coins;
-          addExperience(q, bonus.xp);
+          addExperience(q, bonus.xp, this.levelCap);
           this.system(q, `Dungeon Finder satchel: ${bonus.coins} gold and ${bonus.xp} experience.`, now);
         }
       }
@@ -1055,7 +1063,7 @@ export class World {
       p.explored.push(place);
       if (place === "The Stillwood" || place === "Wayfarer’s Camp") continue;
       const xp = 25 + p.level * 15;
-      addExperience(p, xp);
+      addExperience(p, xp, this.levelCap);
       this.system(p, `Discovered: ${place} (+${xp} experience)`, now);
     }
   }
@@ -1206,8 +1214,15 @@ export class World {
           continue;
         }
         // Out in the world: stay inside the mountains and walk around houses, not through them.
-        const nx = Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, p.x + p.input.x * speed * dt)),
+        let nx = Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, p.x + p.input.x * speed * dt)),
           nz = Math.max(-WORLD_LIMIT, Math.min(WORLD_LIMIT, p.z + p.input.z * speed * dt));
+        if (this.demo && zoneAt(nx, nz) !== this.demo.zone) {
+          if (p.demoEdgeAt === undefined || now - p.demoEdgeAt > 8000) {
+            p.demoEdgeAt = now;
+            this.system(p, "The demo ends at the edge of the Stillwood. Get the full game to explore all nine zones.", now);
+          }
+          (nx = p.x), (nz = p.z);
+        }
         if (!insideHouse(nx, nz)) (p.x = nx), (p.z = nz);
         else if (!insideHouse(nx, p.z)) p.x = nx;
         else if (!insideHouse(p.x, nz)) p.z = nz;
@@ -1227,7 +1242,8 @@ export class World {
       for (const p of online) award(this, p, now);
     }
     this.playerGrid.build(online.filter((p) => !p.instance && !p.dead));
-    this.worldBoss.tick(now, online.filter((p) => !p.instance), dt);
+    // The world boss roams the Outer Ring, which isn’t in the demo.
+    if (!this.demo) this.worldBoss.tick(now, online.filter((p) => !p.instance), dt);
     this.tickEnemies(this.enemies, online.filter((p) => !p.instance), dt, now, null);
     this.enemyGrid.build(this.enemies);
     for (const inst of this.crypts.instances.values())

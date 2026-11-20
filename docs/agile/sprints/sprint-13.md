@@ -6,8 +6,8 @@
 
 | ID | Story | Points | Status |
 |---|---|---|---|
-| HW-111 | Achievements and titles | 5 | In review |
-| HW-117 | Bug: the map and other windows could open on top of a trade, and opening one cancelled it | 1 | In review |
+| HW-111 | Achievements and titles | 5 | Done |
+| HW-117 | Bug: the map and other windows could open on top of a trade, and opening one cancelled it | 1 | Done |
 
 **Committed:** 6 points
 
@@ -26,7 +26,8 @@
 - **2026-11-19:** sprint planned and built. The server counts things it didn't record before (gathering, crafting, trades, letters sent, dungeon clears, world-boss kills) in `p.tally`. 134 tests pass, including new achievement tests. The window was checked in the browser ([screenshot](sprint-13-achievements.png)), which caught the title picker showing blank; fixed and tested.
 
 ## Review
-*(At the end of the sprint.)*
+- **2026-11-19:** PR #19 merged; v0.23.0 released. All 6 points done.
 
 ## Retrospective
-*(At the end of the sprint.)*
+- **Went well:** keeping the achievement list in one shared file meant the server and the window can't disagree about progress.
+- **To improve:** the browser check found a bug only after the code was written (the blank title picker). Check new windows in the browser before writing their docs.

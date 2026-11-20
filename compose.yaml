@@ -1,0 +1,23 @@
+# Local and LAN test server: `docker compose up -d --build`, then open
+# http://localhost:4180 on this computer, or http://<this computer's LAN address>:4180 from
+# any other device on the same network. The world is saved in the `hearthwild-data` volume,
+# separate from the desktop app's save. Stop with `docker compose down` (the data volume stays).
+services:
+  hearthwild:
+    build: .
+    image: hearthwild:local
+    container_name: hearthwild
+    restart: unless-stopped
+    ports:
+      - "${HEARTHWILD_PORT:-4180}:4180"
+    environment:
+      HOST: 0.0.0.0
+      PORT: 4180
+      DATA_DIR: /data
+      # Set HEARTHWILD_DEMO=1 to run the free demo (the Stillwood only, up to level 6).
+      HEARTHWILD_DEMO: ${HEARTHWILD_DEMO:-0}
+    volumes:
+      - hearthwild-data:/data
+
+volumes:
+  hearthwild-data:

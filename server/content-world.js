@@ -300,6 +300,9 @@ const RAID_NAMES = {
   "sundered-spire:0": ["Gatekeeper’s warhammer", "Spireguard aegis-plate", "Keystone of the Gate"],
   "sundered-spire:1": ["Lightbinder’s prism-staff", "Raiment of Binding Light", "Seraphel’s halo-shard"],
   "sundered-spire:2": ["Voidheart, the Unmaker", "Mantle of the Swallowed Stars", "Heart of Nythera"],
+  "molten-crown:0": ["Emberjaw’s bellows-hammer", "Furnace-warden’s plate", "Coal of the First Fire"],
+  "molten-crown:1": ["Flame-speaker’s brand", "Vestments of the Living Flame", "Cindra’s ember-song"],
+  "molten-crown:2": ["Crownfire, Edge of the King", "Mantle of the Molten Throne", "Heart of Vulcaris"],
 };
 for (const [id, names] of Object.entries(EPIC_NAMES)) {
   const level = DUNGEONS[id].levels[1],
@@ -336,6 +339,7 @@ for (const [spec, names] of Object.entries(RAID_NAMES)) {
   });
 }
 DUNGEON_LOOT["sundered-spire"] = DUNGEON_LOOT["sundered-spire:2"];
+DUNGEON_LOOT["molten-crown"] = DUNGEON_LOOT["molten-crown:2"];
 // Gharrowmaw, the world boss that roams the Outer Ring, carries Epics of its own.
 DUNGEON_LOOT["world-boss"] = ["Colossus-bone maul", "Hide of the Wanderer", "Gharrowmaw’s tusk"].map((name, i) => {
   const key = slug(name),
@@ -360,6 +364,7 @@ const SCOUTS = {
   thornheart: ["hollow", "Ranger Aedan Moss", "At the heart of the wood sleeps the Briar Queen, and she is waking. Go down through the roots and put her back to sleep — forever."],
   "sun-tomb": ["tomb", "Scholar Rashid", "The tomb of Sun-King Azhar has opened, and he walks again among his treasures. A king long dead should stay that way."],
   "sundered-spire": ["spire", "Archon Maelis", "The Spire was built to hold the void shut, and now it has cracked. Gather ten of the bravest you know, climb past the Gatekeeper and the Lightbinder, and close the Heart of the Void before it swallows the Reach."],
+  "molten-crown": ["caldera", "Flamewarden Oriel", "Beneath the Emberwaste, Vulcaris has crowned himself in living fire, and every cinder-reaver answers his call. Gather ten who can stand the heat, break the Furnace-Warden and the Flame-Speaker, and topple the Molten King."],
   observatory: ["observatory", "Starwatcher Lune", "Astromancer Velia broke the great lens to call the stars down, and she isn’t finished. Climb to the shattered dome and stop her before the sky comes with them."],
 };
 for (const [id, [short, name, text]] of Object.entries(SCOUTS)) {
