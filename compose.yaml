@@ -14,6 +14,8 @@ services:
       HOST: 0.0.0.0
       PORT: 4180
       DATA_DIR: /data
+      # Set HEARTHWILD_DEMO=1 to run the free demo (the Stillwood only, up to level 6).
+      HEARTHWILD_DEMO: ${HEARTHWILD_DEMO:-0}
     volumes:
       - hearthwild-data:/data
 

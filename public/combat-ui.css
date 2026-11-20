@@ -1223,3 +1223,8 @@ body.is-dead #world {
 .ach:not(.earned) .ach-points { color: inherit; opacity: 0.6; }
 .ach-bar { width: 90px; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.12); overflow: hidden; }
 .ach-bar span { display: block; height: 100%; background: #d9b465; }
+
+/* Free demo banner */
+.demo-banner { position: absolute; top: 8px; left: 50%; transform: translateX(-50%); z-index: 30; padding: 5px 14px; border-radius: 999px; background: rgba(30, 22, 10, 0.85); border: 1px solid #d9b465; color: #f3d98c; font-size: 13px; text-decoration: none; pointer-events: auto; white-space: nowrap; }
+.demo-banner:hover { background: rgba(60, 44, 18, 0.95); }
+@media (max-width: 700px) { .demo-banner { white-space: normal; text-align: center; max-width: calc(100vw - 32px); } }

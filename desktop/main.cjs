@@ -17,7 +17,11 @@ let win,
   quitting = false;
 const gotLock = app.requestSingleInstanceLock();
 if (!gotLock) app.quit();
-app.setName("Hearthwild");
+// The free demo build carries a demo.json beside package.json. It runs as its own app with its
+// own save, so it never touches a full-game world.
+const DEMO = fs.existsSync(path.join(__dirname, "../demo.json"));
+if (DEMO) process.env.HEARTHWILD_DEMO = "1";
+app.setName(DEMO ? "Hearthwild Demo" : "Hearthwild");
 ipcMain.handle("hearthwild:quit", (event) => {
   if (win && event.sender === win.webContents) {
     app.quit();
@@ -290,7 +294,7 @@ async function launch() {
   });
   // Only the game's own source-code link may leave the app, and it opens in the system browser.
   win.webContents.setWindowOpenHandler(({ url }) => {
-    if (url === "https://github.com/drakeg/hearthwild") shell.openExternal(url);
+    if (url === "https://github.com/drakeg/hearthwild" || url === "https://github.com/drakeg/hearthwild/releases/latest") shell.openExternal(url);
     return { action: "deny" };
   });
   win.webContents.on("will-navigate", (e, url) => {

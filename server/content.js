@@ -507,13 +507,13 @@ export const abilityFor = (p, ability) => withTalents(ranked(ability, p.level ??
 for (const item of Object.values(ITEMS))
   if (item.slot && item.slot !== "consumable" && item.level === undefined)
     item.level = item.rarity === "Epic" ? 6 : item.rarity === "Rare" ? 3 : 1;
-export function addExperience(p, amount) {
+export function addExperience(p, amount, cap = MAX_LEVEL) {
   p.xp += amount;
-  while (p.level < MAX_LEVEL && p.xp >= p.level * 100) {
+  while (p.level < cap && p.xp >= p.level * 100) {
     p.xp -= p.level * 100;
     p.level++;
     p.hp = stats(p).maxHp;
     p.power = 100;
   }
-  if (p.level === MAX_LEVEL) p.xp = 0;
+  if (p.level >= cap) p.xp = 0;
 }

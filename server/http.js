@@ -51,7 +51,7 @@ export function publicAssets(dir = root) {
   return found;
 }
 const assets = publicAssets();
-export function createGameServer({ dataDir = resolve("data"), tls } = {}) {
+export function createGameServer({ demo = process.env.HEARTHWILD_DEMO === "1", dataDir = resolve("data"), tls } = {}) {
   mkdirSync(dataDir, { recursive: true, mode: 0o700 });
   const file = join(dataDir, "world.json");
   const lock = join(dataDir, "server.lock");
@@ -88,7 +88,7 @@ export function createGameServer({ dataDir = resolve("data"), tls } = {}) {
   closeSync(fd);
 
   const saved = existsSync(file) ? JSON.parse(readFileSync(file, "utf8")) : {};
-  const world = new World(saved),
+  const world = new World(saved, { demo }),
     accounts = new Accounts(saved.auth);
   const persist = () => {
     writeFileSync(
@@ -165,6 +165,7 @@ export function createGameServer({ dataDir = resolve("data"), tls } = {}) {
           product: "hearthwild",
           protocol: 4,
           version: VERSION,
+          demo: !!demo,
           ...(local ? { localDataDir: resolve(dataDir) } : {}),
         });
         return;

@@ -1,3 +1,9 @@
+## 0.25.0 — Try Before You Buy (Sprint 15)
+
+- **A free demo** (HW-122): every release now also includes **Hearthwild Demo** for macOS, Windows and Linux. It covers the whole Stillwood and the Hollow Crypt, up to level 6, and installs alongside the full game with its own save. A banner links to the full game. Anyone hosting a server can also run it as a demo with `HEARTHWILD_DEMO=1`.
+- **For hosts and contributors** (HW-131): run a server for your home network with `docker compose up -d --build`. The project now has CI on every change (tests plus a Docker build), CodeQL security scanning, README badges, and AGENTS, SPRINTS, BACKLOG and RELEASES guides at the top level.
+- A hundred and thirty-nine checks, including new tests for the demo's level cap, its borders and the server's demo setting.
+
 ## 0.24.0 — The Molten Crown (Sprint 14)
 
 - **A second raid** (HW-108): **The Molten Crown**, beneath the Emberwaste, for groups of up to ten at level 28 and up. Flamewarden Oriel waits at the door with the raid's quest, and the Dungeon Finder can fill it.

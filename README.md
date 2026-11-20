@@ -13,6 +13,7 @@ An original online fantasy RPG for you and your friends: four classes, quests ac
 | I want to… | Do this |
 |---|---|
 | **Play** | Download the installer for your system from the [latest release](https://github.com/drakeg/hearthwild/releases/latest): macOS (Apple Silicon or Intel), Windows or Linux. The app runs its own server, so friends can join you. |
+| **Try the free demo** | Download a `Hearthwild-Demo-…` installer from the [latest release](https://github.com/drakeg/hearthwild/releases/latest): the Stillwood, up to level 6, with its own save. Or run any server with `HEARTHWILD_DEMO=1`. |
 | **Host for my home network** | `docker compose up -d --build`, then open `http://<this computer's address>:4180` from any device on the network. |
 | **Run from source** | Node.js 22+: `HOST=0.0.0.0 npm start` (or just `npm start` for this computer only), then open http://127.0.0.1:4180. No `npm install` needed. |
 | **Contribute** | Read [CONTRIBUTING](CONTRIBUTING.md), [AGENTS](AGENTS.md), [SPRINTS](SPRINTS.md) and the [BACKLOG](BACKLOG.md). Run `npm test`. |

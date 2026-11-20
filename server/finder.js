@@ -207,7 +207,7 @@ export class Finder {
     return {
       roles: ROLES[p.classId],
       role: ROLES[p.classId].includes(p.finderRole) ? p.finderRole : ROLES[p.classId][0],
-      eligible: eligible(p.level),
+      eligible: eligible(p.level).filter((id) => !this.world.demo || (DUNGEONS[id].zone ?? "stillwood") === this.world.demo.zone),
       queued: e && { dungeons: e.dungeons, since: e.since, group: e.members.length > 1, leader: this.world.parties.of(p)?.leader === p.id || e.members.length === 1 },
       // How many of each role are waiting for the dungeons you chose: a hint at what's needed.
       waiting: e ? this.counts(waiting.filter((o) => o.dungeons.some((d) => e.dungeons.includes(d))).flatMap((o) => o.members)) : null,
