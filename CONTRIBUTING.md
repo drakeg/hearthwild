@@ -49,7 +49,7 @@ Hearthwild uses a light Agile process; the details are in [`docs/agile/README.md
 3. **Branch** from `main`: `sprint-NN/HW-123-short-name`, or `contrib/HW-123-short-name` if your item isn't in a sprint.
 4. **Commit** with the ID first: `HW-123: Herb finder legend filters by herb`.
 5. **Open a pull request** using the template. List the story IDs, say whether it must be merged after another PR, describe how you tested it, and tick the Definition of Done.
-6. **Review:** the Product Owner reviews and merges. Releases are automatic: when a merge changes the version in `package.json`, GitHub Actions builds the downloads for every OS and publishes the release. Don't change the version yourself; that happens once per sprint.
+6. **Review and merge:** the required checks (CI tests, the Docker build and CodeQL) must pass. A formal GitHub review approval is optional; the Product Owner checks the PR for scope and correctness and merges it. Releases are automatic: when a merge changes the version in `package.json`, GitHub Actions builds the downloads for every OS and publishes the release. Don't change the version yourself; that happens once per sprint.
 
 ## Definition of Done (short version)
 

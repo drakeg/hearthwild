@@ -17,7 +17,7 @@ For AI coding agents (and humans) working on Hearthwild. Follows the [Mad Mallar
 ## How to work
 
 - **Every change maps to a backlog ID** (`HW-###`). Bugs can be fixed first and recorded afterwards.
-- **Branch** `sprint-NN/HW-###-short-name`; **commits** start with the ID; **pull requests** use the template, list the IDs, and give the merge order if stacked. Only the Product Owner merges. Once a PR has been reported as ready, don't push more to it: follow-ups go in a new PR.
+- **Branch** `sprint-NN/HW-###-short-name`; **commits** start with the ID; **pull requests** use the template, list the IDs, and give the merge order if stacked. The required checks (CI and CodeQL) must pass; formal review approval is optional, and the Product Owner merges. Once a PR has been reported as ready, don't push more to it: follow-ups go in a new PR.
 - **Before opening a PR:** `npm run check` and `npm test` pass; new behaviour has tests; anything with a UI is checked in a browser (screenshot in the sprint file); README, CHANGELOG, the sprint file and BACKLOG are updated.
 - **Versions:** bump `package.json` once per sprint, on its last PR. Merging it to `main` publishes the GitHub Release with downloads for every OS (see [RELEASES](RELEASES.md)).
 - **Badges** sit directly under the README's title, between the `madmallard-badges` markers. Only claim what the repository proves (a workflow, a manifest, a published release). Regenerate with the standards toolkit's `scripts/badges.py`, then re-add the project badges listed in the README block.
