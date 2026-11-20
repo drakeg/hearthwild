@@ -1,12 +1,16 @@
 # Product backlog
 
-Ordered by priority: the top is next. The Product Owner (Greg) sets the order; anyone can add an item, at the bottom, under *New*. Points use the Fibonacci scale. Finished items move into their sprint file; see [`sprints/`](sprints/).
+Ordered by priority: the top is next. The Product Owner (Greg) sets the order; anyone can add an item, at the bottom, under *New*. Points use the Fibonacci scale. Finished items move into their sprint file; see [`sprints/`](docs/agile/sprints/).
 
 **Status:** `Ready` = meets the Definition of Ready · `Backlog` = still needs refinement
 
-## Current sprint: [Sprint 14](sprints/sprint-14.md)
+## Current sprint: [Sprint 15](docs/agile/sprints/sprint-15.md)
 
-HW-108 Second raid: The Molten Crown
+HW-131 Mad Mallard standards · HW-133 README rewrite · HW-122 Free demo build
+
+## Priorities (updated 2026-11-19)
+
+Following the Mad Mallard standards, the **fastest realistic path to a paying customer** now comes first: a free demo and a pay-what-you-want early-access page (HW-121 → HW-122 → HW-126 → HW-124), then the hosted-world waitlist. New game content continues alongside, but no longer ahead of launch work. *HW-121 needs a Product Owner decision before HW-124 can ship.*
 
 ## Up next
 
@@ -38,4 +42,10 @@ Planned on 2026-11-13 from a monetization review. Ordered so each step tests dem
 **How we'll know it's working:** playtesters play more than an hour and come back; at least 10% of pay-what-you-want downloads pay something; 50 waitlist sign-ups before building Realms.
 
 ## New
+
+| ID | Type | Item | Epic | Points | Status |
+|---|---|---|---|---|---|
+| HW-131 | Chore | Adopt the Mad Mallard repository standards: root docs, CI, CodeQL, Docker Compose for LAN testing, README badges | Process & Tooling | 5 | In sprint |
+| HW-132 | Story | **Free hosted test world** that redeploys from `main` (for example a free container host), so testers can play without installing anything. *Needs the Product Owner to choose a host and create the account.* | Server & Hosting | 3 | Waiting on PO |
+| HW-133 | Chore | Rewrite the README for the current game (it still describes 0.5–0.7 builds) | Process & Tooling | 2 | In sprint |
 *(Add items here; they're refined and placed above.)*

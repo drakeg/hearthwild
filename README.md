@@ -1,4 +1,23 @@
-# Hearthwild · The Stillwood — 0.7.1
+# Hearthwild
+
+<!-- madmallard-badges:start -->
+![Docker](https://img.shields.io/badge/Docker-2496ED?logo=docker&logoColor=white) ![Docker Compose](https://img.shields.io/badge/Docker%20Compose-2496ED?logo=docker&logoColor=white) ![JavaScript](https://img.shields.io/badge/JavaScript-F7DF1E?logo=javascript&logoColor=white) ![Node.js 22](https://img.shields.io/badge/Node.js-22-5FA04E?logo=nodedotjs&logoColor=white) ![Three.js](https://img.shields.io/badge/Three.js-000000?logo=threedotjs&logoColor=white) ![Electron](https://img.shields.io/badge/Electron-47848F?logo=electron&logoColor=white) ![Platforms](https://img.shields.io/badge/platforms-macOS%20%7C%20Windows%20%7C%20Linux-informational)
+
+[![ci](https://github.com/drakeg/hearthwild/actions/workflows/ci.yml/badge.svg)](https://github.com/drakeg/hearthwild/actions/workflows/ci.yml) [![codeql](https://github.com/drakeg/hearthwild/actions/workflows/codeql.yml/badge.svg)](https://github.com/drakeg/hearthwild/actions/workflows/codeql.yml) [![release](https://github.com/drakeg/hearthwild/actions/workflows/release.yml/badge.svg)](https://github.com/drakeg/hearthwild/actions/workflows/release.yml) [![License](https://img.shields.io/github/license/drakeg/hearthwild)](https://github.com/drakeg/hearthwild/blob/HEAD/LICENSE) [![Release](https://img.shields.io/github/v/release/drakeg/hearthwild)](https://github.com/drakeg/hearthwild/releases/latest) [![Issues](https://img.shields.io/github/issues/drakeg/hearthwild)](https://github.com/drakeg/hearthwild/issues) [![Release date](https://img.shields.io/github/release-date/drakeg/hearthwild)](https://github.com/drakeg/hearthwild/releases/latest) [![Downloads](https://img.shields.io/github/downloads/drakeg/hearthwild/total)](https://github.com/drakeg/hearthwild/releases) [![Pull requests](https://img.shields.io/github/issues-pr/drakeg/hearthwild)](https://github.com/drakeg/hearthwild/pulls) [![Last commit](https://img.shields.io/github/last-commit/drakeg/hearthwild)](https://github.com/drakeg/hearthwild/commits/main) [![Commit activity](https://img.shields.io/github/commit-activity/m/drakeg/hearthwild)](https://github.com/drakeg/hearthwild/pulse)
+<!-- madmallard-badges:end -->
+
+An original online fantasy RPG for you and your friends: four classes, quests across nine zones, dungeons and two ten-player raids, a roaming world boss, professions, guilds, mail, trading and achievements. Host it yourself or play on a friend's server. Free software under the AGPL.
+
+## Quick start
+
+| I want to… | Do this |
+|---|---|
+| **Play** | Download the installer for your system from the [latest release](https://github.com/drakeg/hearthwild/releases/latest): macOS (Apple Silicon or Intel), Windows or Linux. The app runs its own server, so friends can join you. |
+| **Host for my home network** | `docker compose up -d --build`, then open `http://<this computer's address>:4180` from any device on the network. |
+| **Run from source** | Node.js 22+: `HOST=0.0.0.0 npm start` (or just `npm start` for this computer only), then open http://127.0.0.1:4180. No `npm install` needed. |
+| **Contribute** | Read [CONTRIBUTING](CONTRIBUTING.md), [AGENTS](AGENTS.md), [SPRINTS](SPRINTS.md) and the [BACKLOG](BACKLOG.md). Run `npm test`. |
+
+*The sections below are being rewritten for the current version (HW-133); some details describe older builds.*
 
 An original cooperative fantasy RPG foundation with its own client, simulation, quests, class abilities, loot and saves. No third-party game installation, game data, account, assets or protocol is used. Three.js is bundled under MIT in public/vendor/THREE-LICENSE.txt.
 

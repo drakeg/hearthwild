@@ -62,7 +62,7 @@
 - **Save tools:** open the save folder, or back up the world now to a timestamped file.
 - **Agile process** (HW-092, HW-093):
   - [`docs/agile/`](docs/agile/README.md) documents the process: roles, one-week sprints, ceremonies, the Definition of Ready and the Definition of Done.
-  - The prioritized [backlog](docs/agile/BACKLOG.md) lives there, with one file per sprint (Sprints 1–8 reconstructed from 0.11–0.18).
+  - The prioritized [backlog](BACKLOG.md) lives there, with one file per sprint (Sprints 1–8 reconstructed from 0.11–0.18).
   - A pull request template asks for story IDs and the Definition of Done.
 - A hundred and thirteen checks, including new tests for the server settings and for the Server Manager refusing requests from anywhere but its own window.
 

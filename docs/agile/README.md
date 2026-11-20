@@ -20,7 +20,7 @@ Hearthwild is developed in short **sprints**. Each sprint has a goal, a set of s
 
 | Ceremony | When | Where it's recorded |
 |---|---|---|
-| **Backlog refinement** | Any time new ideas or bugs come up | [`BACKLOG.md`](BACKLOG.md): new items are added, split and estimated, then reordered by the Product Owner |
+| **Backlog refinement** | Any time new ideas or bugs come up | [`BACKLOG.md`](../../BACKLOG.md): new items are added, split and estimated, then reordered by the Product Owner |
 | **Sprint planning** | Start of each sprint | A new file `sprints/sprint-NN.md` with the sprint goal, committed stories and points |
 | **Daily progress** | Each working session | The *Progress log* section of the current sprint file |
 | **Sprint review** | End of the sprint | Pull requests with links; release notes in [`CHANGELOG.md`](../../CHANGELOG.md); accepted stories marked done |
@@ -66,6 +66,6 @@ A story is done when:
 
 ## Files
 
-- [`BACKLOG.md`](BACKLOG.md): the product backlog, ordered top to bottom.
+- [`BACKLOG.md`](../../BACKLOG.md): the product backlog, ordered top to bottom.
 - [`sprints/`](sprints/): one file per sprint, holding the plan, progress log, review and retrospective.
 - [`sprints/history.md`](sprints/history.md): work done before this process began (versions 0.1–0.10).
