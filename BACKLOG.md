@@ -28,9 +28,15 @@ Planned on 2026-11-13 from a monetization review. Ordered so each step tests dem
 
 | ID | Type | Item | Points | Status |
 |---|---|---|---|---|
-| HW-121 | Chore | Decide what's sold versus free: repo visibility, whether GitHub Release downloads stay free, and a trademark check on "Hearthwild" | 1 | Waiting on PO |
+| HW-121 | Chore | Decide what's sold versus free. **Direction (2026-11-20):** a limited free edition and a more robust, polished paid one. Proposal: [docs/business/editions.md](docs/business/editions.md), with 4 questions | 1 | Proposal ready, waiting on PO |
+| HW-141 | Bug | **Check that the world boss shows in the game window on a real graphics card.** The server sends it to nearby players (verified over the real API), but in the slow software renderer used for the trailer it never appeared on screen. Needed before it goes in a trailer | Gameplay | 1 | Ready |
+| HW-136 | Story | **Polish pack** for the paid edition: music, ambient sound, lighting, new creature and armour models, in a private content repo | 13 | Backlog |
+| HW-137 | Story | **Free edition:** grow the demo to levels 1–10, the Stillwood and the Amber Downs, two dungeons, capped professions, with an Upgrade screen | 5 | Backlog |
+| HW-138 | Story | **Signed builds** and automatic updates (Apple notarization, Windows code signing). *Yearly fees, needs approval* | 5 | Backlog |
+| HW-139 | Story | **Paid build distribution** through itch.io, with the free build on GitHub Releases | 3 | Backlog |
+| HW-140 | Chore | **Content split:** paid-only assets under a separate content license, plus a contributor agreement | 3 | Backlog |
 | HW-122 | Story | **Free demo build:** the Stillwood only (levels 1–6), built by the release workflow alongside the full game | 5 | In sprint |
-| HW-123 | Story | **Gameplay trailer and press kit:** 60–90 s of the Outer Ring and the raid, screenshots, a short description | 3 | Backlog |
+| HW-123 | Story | **Gameplay trailer and press kit:** 60–90 s of the Outer Ring and the raid, screenshots, a short description | 3 | In sprint |
 | HW-124 | Story | **itch.io early-access page:** pay what you want, $5 minimum and $10 suggested; demo plus full builds uploaded by the workflow | 3 | Backlog |
 | HW-125 | Story | **Supporter page** (Ko-fi or Patreon) linked from the game menu and README, with credits for supporters | 2 | Backlog |
 | HW-126 | Story | **Terms of service and a privacy policy** for player accounts | 2 | In sprint |

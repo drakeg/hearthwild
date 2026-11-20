@@ -9,7 +9,9 @@
 | HW-131 | Adopt the Mad Mallard repository standards | 5 | In review ([PR #21](https://github.com/drakeg/hearthwild/pull/21)) |
 | HW-133 | Rewrite the README for the current game | 2 | In review |
 | HW-134 | Bug: the demo offered quests outside the Stillwood | 2 | In review |
-| HW-126 | Privacy policy and terms of use (drafts) | 2 | In review |
+| HW-126 | Privacy policy and terms of use (drafts) | 2 | In review ([PR #28](https://github.com/drakeg/hearthwild/pull/28)) |
+| HW-123 | Gameplay trailer and press kit | 3 | In review |
+| HW-121 | Editions proposal (free and paid) | 1 | Proposal ready, waiting on PO |
 | HW-135 | Bug: v0.24.0 release failed in the catch-up job | 1 | In review |
 | HW-122 | Free demo build: the Stillwood only (levels 1–6) | 5 | In review |
 
@@ -41,6 +43,8 @@
 - **2026-11-19:** HW-134 fixed (the demo offers only quests whose giver is in the Stillwood) and HW-133 done: the README is rewritten for the current game, about 1,500 words instead of 4,500. Released as 0.25.1 because #22 publishes 0.25.0.
 - **2026-11-20:** #20, #21 and #22 merged; v0.25.0 published with 9 downloads (5 full game, 4 demo). **v0.24.0 failed:** the catch-up job builds old commits with the current workflow, which now always packaged a demo. Fixed (HW-135); v0.24.0 can be re-run from the Actions tab once this merges.
 - **2026-11-20:** #20–#22 merged; v0.25.0 published with the demo downloads (9 files). v0.24.0 failed in the catch-up job; fixed in #27 (HW-135), to be re-run after merging. The standards repo changed its review rules (formal approval optional, required checks must pass); CONTRIBUTING and AGENTS follow. HW-126 drafted from what the server actually stores.
+- **2026-11-20:** Product Owner direction for HW-121: a limited free edition and a more robust, polished paid one. Proposal written ([editions](../../business/editions.md)) with four questions and new items HW-136 to HW-140.
+- **2026-11-20:** HW-123: 15 real in-game captures at 1280×720 (HUD hidden, high graphics; about 4 minutes each under software rendering), caption cards, and a trailer assembled with ffmpeg. Its sound is an original synthesized pad, not licensed music. The press kit is in `docs/press/`. The first capture run came back all at the camp: the dev server teleported an old saved character instead of the one on camera. Fixed and recaptured. The world boss never appeared on screen even though the server sends it, so it's left out of the trailer (HW-141). Dark shots were brightened during the edit, and two empty ones dropped. While writing it I found the README said "ten dungeons"; there are nine, plus two raids. Fixed.
 
 ## Review
 *(At the end of the sprint.)*

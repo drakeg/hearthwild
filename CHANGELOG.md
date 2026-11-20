@@ -3,6 +3,8 @@
 - **The demo's quest log** (HW-134) now offers only the Stillwood's quests: *A thorn in the wood*, *A remedy for the grove* and the Hollow Crypt. Quests from other zones belong to the full game.
 - **Release fix** (HW-135): v0.24.0 was never published. #20 and #22 merged together, and the catch-up job built 0.24.0 with the new workflow, which tried to package a demo that 0.24.0 can't build. The workflow now builds the demo only for versions that support it.
 - **Privacy policy and terms** (HW-126): [PRIVACY.md](PRIVACY.md) says exactly what a Hearthwild server stores (a username, a hashed password, your characters and letters) and what it doesn't (no email, chat logs, saved IP addresses or tracking). [TERMS.md](TERMS.md) sets the rules for play. Both are linked from the opening screen. They're drafts, to be reviewed before any paid or hosted service.
+- **Trailer and press kit** (HW-123): a gameplay trailer, screenshots of every zone, dungeon and raid, the wordmark, and ready-to-use descriptions in [`docs/press/`](docs/press/README.md).
+- **Free and paid editions** (HW-121): a proposal for a limited free edition and a more polished paid one, in [`docs/business/editions.md`](docs/business/editions.md).
 - **A new README** (HW-133) describes the game as it is today: zones, dungeons, raids, professions, controls, and hosting with the app, Docker or source.
 
 ## 0.25.0 — Try Before You Buy (Sprint 15)
