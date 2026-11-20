@@ -1,6 +1,7 @@
 ## 0.25.1 — Demo polish (Sprint 15)
 
 - **The demo's quest log** (HW-134) now offers only the Stillwood's quests: *A thorn in the wood*, *A remedy for the grove* and the Hollow Crypt. Quests from other zones belong to the full game.
+- **Release fix** (HW-135): v0.24.0 was never published. #20 and #22 merged together, and the catch-up job built 0.24.0 with the new workflow, which tried to package a demo that 0.24.0 can't build. The workflow now builds the demo only for versions that support it.
 - **A new README** (HW-133) describes the game as it is today: zones, dungeons, raids, professions, controls, and hosting with the app, Docker or source.
 
 ## 0.25.0 — Try Before You Buy (Sprint 15)

@@ -79,13 +79,16 @@ jobs:
             pkgbuild --component "$APP" --install-location /Applications \
               --identifier com.hearthwild.game --version "$V" \
               "release/Hearthwild-$V-Mac-$NAME.pkg"
-            # The free demo (HW-122).
-            node tools/pack.mjs darwin "$ARCH" dist demo
-            APP="dist/Hearthwild Demo-darwin-$ARCH/Hearthwild Demo.app"
-            codesign --force --deep --sign - "$APP"
-            pkgbuild --component "$APP" --install-location /Applications \
-              --identifier com.hearthwild.demo --version "$V" \
-              "release/Hearthwild-Demo-$V-Mac-$NAME.pkg"
+            # The free demo (HW-122), for versions whose packager knows how to build it
+            # (the catch-up job may be building an older version).
+            if grep -q 'variant === "demo"' tools/pack.mjs; then
+              node tools/pack.mjs darwin "$ARCH" dist demo
+              APP="dist/Hearthwild Demo-darwin-$ARCH/Hearthwild Demo.app"
+              codesign --force --deep --sign - "$APP"
+              pkgbuild --component "$APP" --install-location /Applications \
+                --identifier com.hearthwild.demo --version "$V" \
+                "release/Hearthwild-Demo-$V-Mac-$NAME.pkg"
+            fi
           done
           ls -la release
       - uses: actions/upload-artifact@v7
@@ -113,18 +116,24 @@ jobs:
           (cd dist && mv Hearthwild-win32-x64 Hearthwild && zip -qry "../release/Hearthwild-$V-Windows-x64.zip" Hearthwild)
           node tools/pack.mjs linux x64 dist
           (cd dist && mv Hearthwild-linux-x64 "hearthwild-$V" && tar -czf "../release/Hearthwild-$V-Linux-x64.tar.gz" "hearthwild-$V")
-          # The free demo (HW-122).
-          node tools/pack.mjs win32 x64 dist demo
-          (cd dist && mv "Hearthwild Demo-win32-x64" "Hearthwild Demo" && zip -qry "../release/Hearthwild-Demo-$V-Windows-x64.zip" "Hearthwild Demo")
-          node tools/pack.mjs linux x64 dist demo
-          (cd dist && mv "Hearthwild Demo-linux-x64" "hearthwild-demo-$V" && tar -czf "../release/Hearthwild-Demo-$V-Linux-x64.tar.gz" "hearthwild-demo-$V")
+          # The free demo (HW-122), for versions whose packager knows how to build it
+          # (the catch-up job may be building an older version).
+          DEMO=$(grep -q 'variant === "demo"' tools/pack.mjs && echo 1 || echo 0)
+          if [ "$DEMO" = 1 ]; then
+            node tools/pack.mjs win32 x64 dist demo
+            (cd dist && mv "Hearthwild Demo-win32-x64" "Hearthwild Demo" && zip -qry "../release/Hearthwild-Demo-$V-Windows-x64.zip" "Hearthwild Demo")
+            node tools/pack.mjs linux x64 dist demo
+            (cd dist && mv "Hearthwild Demo-linux-x64" "hearthwild-demo-$V" && tar -czf "../release/Hearthwild-Demo-$V-Linux-x64.tar.gz" "hearthwild-demo-$V")
+          fi
           # Smoke test: the bundled runtime starts the game server and reports this version.
           cd "dist/hearthwild-$V"
           ELECTRON_RUN_AS_NODE=1 timeout 60 ./hearthwild -e "import('./resources/app/server/http.js').then(async m=>{const a=m.createGameServer({dataDir:'/tmp/smoke'});a.server.listen(4329,'127.0.0.1',async()=>{const j=await (await fetch('http://127.0.0.1:4329/api/info')).json();console.log('smoke',j.version);process.exit(j.version==='$V'?0:1)})})"
           # The demo package carries its demo marker, and its server runs as the demo.
+          if [ "$DEMO" = 1 ]; then
           test -f "../hearthwild-demo-$V/resources/app/demo.json"
           cd "../hearthwild-demo-$V"
           HEARTHWILD_DEMO=1 ELECTRON_RUN_AS_NODE=1 timeout 60 ./hearthwild-demo -e "import('./resources/app/server/http.js').then(async m=>{const a=m.createGameServer({dataDir:'/tmp/smoke-demo'});a.server.listen(4330,'127.0.0.1',async()=>{const j=await (await fetch('http://127.0.0.1:4330/api/info')).json();console.log('demo smoke',j.demo);process.exit(j.demo===true?0:1)})})"
+          fi
       - uses: actions/upload-artifact@v7
         with:
           name: windows-linux
