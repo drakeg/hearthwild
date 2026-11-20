@@ -6,221 +6,125 @@
 [![ci](https://github.com/drakeg/hearthwild/actions/workflows/ci.yml/badge.svg)](https://github.com/drakeg/hearthwild/actions/workflows/ci.yml) [![codeql](https://github.com/drakeg/hearthwild/actions/workflows/codeql.yml/badge.svg)](https://github.com/drakeg/hearthwild/actions/workflows/codeql.yml) [![release](https://github.com/drakeg/hearthwild/actions/workflows/release.yml/badge.svg)](https://github.com/drakeg/hearthwild/actions/workflows/release.yml) [![License](https://img.shields.io/github/license/drakeg/hearthwild)](https://github.com/drakeg/hearthwild/blob/HEAD/LICENSE) [![Release](https://img.shields.io/github/v/release/drakeg/hearthwild)](https://github.com/drakeg/hearthwild/releases/latest) [![Issues](https://img.shields.io/github/issues/drakeg/hearthwild)](https://github.com/drakeg/hearthwild/issues) [![Release date](https://img.shields.io/github/release-date/drakeg/hearthwild)](https://github.com/drakeg/hearthwild/releases/latest) [![Downloads](https://img.shields.io/github/downloads/drakeg/hearthwild/total)](https://github.com/drakeg/hearthwild/releases) [![Pull requests](https://img.shields.io/github/issues-pr/drakeg/hearthwild)](https://github.com/drakeg/hearthwild/pulls) [![Last commit](https://img.shields.io/github/last-commit/drakeg/hearthwild)](https://github.com/drakeg/hearthwild/commits/main) [![Commit activity](https://img.shields.io/github/commit-activity/m/drakeg/hearthwild)](https://github.com/drakeg/hearthwild/pulse)
 <!-- madmallard-badges:end -->
 
-An original online fantasy RPG for you and your friends: four classes, quests across nine zones, dungeons and two ten-player raids, a roaming world boss, professions, guilds, mail, trading and achievements. Host it yourself or play on a friend's server. Free software under the AGPL.
+An original online fantasy RPG for you and your friends. Four classes, nine zones and quests up to level 30, ten dungeons, two ten-player raids, a roaming world boss, four professions, guilds, mail, trading and achievements. Host it on your own computer or play on a friend's server. Free software under the AGPL.
 
 ## Quick start
 
 | I want to… | Do this |
 |---|---|
 | **Play** | Download the installer for your system from the [latest release](https://github.com/drakeg/hearthwild/releases/latest): macOS (Apple Silicon or Intel), Windows or Linux. The app runs its own server, so friends can join you. |
-| **Try the free demo** | Download a `Hearthwild-Demo-…` installer from the [latest release](https://github.com/drakeg/hearthwild/releases/latest): the Stillwood, up to level 6, with its own save. Or run any server with `HEARTHWILD_DEMO=1`. |
-| **Host for my home network** | `docker compose up -d --build`, then open `http://<this computer's address>:4180` from any device on the network. |
-| **Run from source** | Node.js 22+: `HOST=0.0.0.0 npm start` (or just `npm start` for this computer only), then open http://127.0.0.1:4180. No `npm install` needed. |
-| **Contribute** | Read [CONTRIBUTING](CONTRIBUTING.md), [AGENTS](AGENTS.md), [SPRINTS](SPRINTS.md) and the [BACKLOG](BACKLOG.md). Run `npm test`. |
+| **Try the free demo** | Download a `Hearthwild-Demo-…` file from the same release: the Stillwood and the Hollow Crypt, up to level 6. It installs alongside the full game with its own save. |
+| **Host for my home network** | `docker compose up -d --build`, then open `http://<this computer's address>:4180` from any device on the network. Add `HEARTHWILD_DEMO=1` to run the demo instead. |
+| **Run from source** | Node.js 22 or later: `npm start`, then open http://127.0.0.1:4180. No `npm install` or build step is needed. |
+| **Contribute** | Read [CONTRIBUTING](CONTRIBUTING.md) and [AGENTS](AGENTS.md); see [SPRINTS](SPRINTS.md) and the [BACKLOG](BACKLOG.md) for what's next. |
 
-*The sections below are being rewritten for the current version (HW-133); some details describe older builds.*
+The installers aren't signed by a registered developer yet. On macOS, right-click the installer and choose **Open**. On Windows, choose **More info → Run anyway** if SmartScreen appears. You need a keyboard, a mouse and a browser or computer with WebGL 2.
 
-An original cooperative fantasy RPG foundation with its own client, simulation, quests, class abilities, loot and saves. No third-party game installation, game data, account, assets or protocol is used. Three.js is bundled under MIT in public/vendor/THREE-LICENSE.txt.
+## The game
 
-## Play
+- **Accounts and characters:** make an account with a username and password, then up to twelve characters, each a **Warrior**, **Rogue**, **Warlock** or **Druid** of the **Dawnward** or the **Mossbound**. Each class has its own abilities, a spellbook (**P**), talents at levels 10, 20 and 30, and Rank II abilities from level 22.
+- **The world:** about 4 km across. The Stillwood (levels 1–6) is in the middle, with four zones around it and the Outer Ring (levels 20–30) beyond. Every zone has a town with a provisioner, a quest giver and a graveyard. Get around on foot, by **riding** (from level 10), on **caravans** between towns, or with your **waystone** (**H**).
 
-For Apple Silicon Macs, open the supplied **Hearthwild 0.5.0 .pkg installer** and follow the installer prompts to install Hearthwild in Applications. The app includes its own runtime and starts a local server; Node.js is not required. This development build is ad-hoc signed, not Apple notarized. macOS may require manual approval in Privacy & Security. The installer does not bundle anyone's saved world or credentials.
+  | Zone | Levels | Town |
+  |---|---|---|
+  | The Stillwood | 1–6 | Wayfarer’s Camp |
+  | The Amber Downs | 6–10 | Harrowford |
+  | Saltreed Marsh | 9–13 | Reedwatch |
+  | Frostmere Vale | 12–16 | Hollowfrost Lodge |
+  | Greyspire Crags | 15–20 | Cragmoor Hold |
+  | The Emberwaste | 20–23 | Cinderhold |
+  | Gloamwood | 22–25 | Duskhollow |
+  | The Sunscar Dunes | 24–27 | Sunmere |
+  | Starfall Reach | 27–30 | Starfall Rest |
 
-The app reuses the running local development server when available and remembers its save location. Otherwise it saves in `~/Library/Application Support/Hearthwild/server`. **Game → Open save folder** shows the active directory. **Game → Import existing save…** imports a world.json with a backup of the previous app save. Quit the app/server before copying or restoring save files.
+- **Dungeons:** each group gets its own copy. Talk to the watcher at the door for its quest, then press **F** at the door. Bosses have attacks to dodge, casts to interrupt, and Epic loot. Or press **O** for the **Dungeon Finder**, which builds a group (tank, healer and three damage) and takes you straight in.
 
-For source development with Node.js 22+, double-click start.command or run npm start; open http://127.0.0.1:4180. No dependency installation/build is needed for the browser game. Desktop keyboard/mouse and WebGL 2 are required; touch movement is not implemented.
+  | Dungeon | Zone | Levels |
+  |---|---|---|
+  | The Hollow Crypt | The Stillwood | 4–6 |
+  | The Barrow of Harrow Hill | The Amber Downs | 9–11 |
+  | The Drowned Chapel | Saltreed Marsh | 12–14 |
+  | Glassmere Depths | Frostmere Vale | 15–17 |
+  | The Hollow Peak | Greyspire Crags | 19–21 |
+  | The Cinderforge | The Emberwaste | 22–24 |
+  | Thornheart Hollow | Gloamwood | 24–26 |
+  | Tomb of the Sun-King | The Sunscar Dunes | 26–28 |
+  | The Shattered Observatory | Starfall Reach | 29–31 |
 
-Create a **username/password account** and choose from its character roster. Each account can create up to twelve characters with independent class, faction, level, quests and gear. Warrior, Warlock, Druid and Rogue are available. Passwords require 10–128 characters and are stored as salted scrypt hashes. HttpOnly sessions expire after 30 days; logging out invalidates the session. Signing in again restores the roster. Character IDs are not login credentials.
+- **Raids** (level 28+, up to ten players, three bosses each): **The Sundered Spire** in Starfall Reach and **The Molten Crown** in the Emberwaste. Type `/raid` to turn your group into a raid, or queue in the Dungeon Finder.
+- **World boss:** **Gharrowmaw, the Wandering Colossus**, roams the Outer Ring. Everyone online hears when it wakes, and everyone who helps bring it down earns an Epic.
+- **Professions:** at Wayfarer’s Camp, Herbalist Mira teaches **Herbalism** and **Alchemy**, and Smith Bran Hollis teaches **Mining** and **Blacksmithing**. Every zone has its own herb, and most have an ore; turn on **Herbs & ore** on the map (**M**) to find them. Brew potions and forge Rare gear in Professions (**K**).
+- **Together:**
+  - **groups** of five (`/invite Name`, `/p` for party chat);
+  - **guilds** (charter from Registrar Corwin Hale; **J** for the roster, `/g` for guild chat);
+  - **mail** at any provisioner's mailbox;
+  - **face-to-face trading** (right-click a player, or `/trade Name`);
+  - **chat** that only your own faction can read.
+- **Achievements (Y):** 25 goals across the whole game. Ten of them unlock a **title** for your nameplate.
 
-On this local upgrade, the first account created on the server inherits all existing unowned characters; **no old return codes are needed**. This migration is intended for this developer's local save, so complete setup locally before sharing access. Legacy HTTP bearer/return-code login is disabled.
+## Controls
 
-If a password is forgotten, the server owner can reset it offline without losing characters. Stop the app/server, then run `node server/reset-password.js USERNAME SAVE_FOLDER` from the source folder. The prompt hides the new password, keeps a save backup and invalidates old sessions. In an installed Mac build, use the bundled runtime instead of Node:
-
-```sh
-ELECTRON_RUN_AS_NODE=1 /Applications/Hearthwild.app/Contents/MacOS/Hearthwild /Applications/Hearthwild.app/Contents/Resources/app/server/reset-password.js USERNAME "$HOME/Library/Application Support/Hearthwild/server"
-```
-
-Use the active save folder shown by the Game menu if it differs. This is owner-operated recovery; email recovery is not implemented.
-
-## Controls and combat
-
-- WASD / arrows move relative to the camera view. Drag either mouse button to orbit horizontally and tilt vertically; right-drag also turns the character. Wheel zooms in third person and adjusts field of view in first person.
-- **V** cycles Orbit, Follow behind and First person. **Escape → Camera view** selects a mode and adjusts mouse sensitivity; preferences persist locally. Attacks and casts turn the character toward their target. The follow view settles behind the character when you finish strafing.
-- **Escape** opens the game menu: Resume, Character selection, Log out and Quit game. The multiplayer world keeps running. Desktop Quit closes the app; browser Quit signs out so the tab can be closed. Leaving clears movement and presence; logging out invalidates the session.
-- **K** opens professions; **B / I** opens Bags; **C** opens character stats and equipped gear; **M / L** opens map/quests; **P** opens class spells.
-- **Targeting and attacking.** Left-click an enemy or press **Tab** to target it; Tab prefers enemies in front of the camera. **Right-click** an enemy to run to it and start auto-attacking. **5** (the ⚔ slot) toggles auto-attack. Keys **1–4** use your class abilities; a chosen ability still approaches into range before firing once. Melee abilities also start auto-attack.
-- **Movement (classic MMO style).** W/S run forward and backpedal along your facing; A/D and the left/right arrows turn you (the camera turns with you); Q/E strafe. Hold the right mouse button to steer: you face where the camera looks and A/D strafe. Hold both mouse buttons to run forward. **F** talks, gathers and loots (right-clicking also works). **Space** jumps (a visual hop). **Num Lock** or **R** toggles autorun; W or S cancels it. **Escape** closes open windows first, then cancels approach, then clears your target, and only then opens the game menu.
-- **Combat rules.** A 1.5-second global cooldown (1 second for Rogues) sweeps across every ability button. Auto-attack swings on a weapon timer (Warrior 2.4s, Druid 2.2s, Warlock 2.0s, Rogue 1.7s), and swings and hits taken build Warrior Rage. Rage fades out of combat. Mana regenerates slowly for five seconds after you spend it. Hits and heals can crit. Health regenerates out of combat, faster in camp.
-- **Creatures.** Creatures are levels 1–5, rising the farther they roam from camp. Name-plate level colours follow the usual MMO scheme: grey, green, yellow, orange, red. Each creature notices players within an aggro radius that grows with its level advantage, attacks whoever has the most threat (damage dealt, plus half of any healing), and evades back home at full health if pulled more than 32 paces from its spawn. Fleeing into Wayfarer’s Camp (a sanctuary) drops you from every threat list. Kill XP scales with the level gap; creatures five or more levels below you give none.
-- **Food, drink and potions.** Torren sells Traveler’s bread and Stillwood spring water. Right-click food or drink in your bags (or press 7 / 8) to sit and restore health or mana over 18 seconds; you can’t eat or drink in combat, and moving, attacking or being hit stops it. Healing draughts (key 6, or right-click in bags) heal instantly with a 20-second shared cooldown. Consumables stack in one bag slot.
-- **Death.** At zero health you die: the world turns grey and actions are locked until you choose **Release Spirit**, which returns you to Wayfarer’s Camp at half health.
-- **Graphics.** Escape → Graphics quality switches between High (shadows, dense foliage) and Low (faster on older computers); it applies the next time the world loads. Models and their CC0/CC-BY credits are listed in public/models/CREDITS.md.
-- **Interface.** The interface includes player and target unit frames with portraits, level badges, combat and resting states, and target-of-target. Hostile name plates sit over creatures. Floating combat text shows white swings, yellow abilities, larger crits, red damage taken, green heals and purple XP. There is a cast bar that flashes green on completion and red on interruption, and failed actions appear as red text near the top of the screen. Entering a named place shows a zone title. A segmented XP bar sits under the action bar, and the action buttons tint red when out of range and blue when you lack the resource. Chat uses channel colours with yellow system lines, and the cursor changes over enemies, NPCs, plants and loot.
-- **E** interacts with the nearest NPC, available plant or personal loot chest, approaching if needed. Click an NPC/plant/chest to do the same. NPC conversations also have buttons in the quest ledger. **B / I** opens Bags. **C** opens the separate Character sheet with stats, level, XP, class, faction and equipped slots.
-- Enter focuses chat; typing suspends movement. Escape cancels approach/releases text focus. NPC conversations are modal.
-
-There are no complete class talent trees, pets, forms, combo points, group healing, dungeon/raid instances or guilds yet. See ROADMAP.md for those explicit requirements and acceptance milestones.
-
-## NPC quests and local objectives
-
-At camp, talk to **Warden Elowen** for *A thorn in the wood*: defeat three bramblelings, then return for 30 gold + 60 XP. Talk to **Herbalist Mira** for *A remedy for the grove*: gather four starleaf, then return for 25 gold + 60 XP. Select **Accept quest** in the conversation. Click a glowing plant or its Starleaf label to approach and gather it once; clicking through from an open panel closes that panel and starts gathering. Collected sprigs appear as a counted Starleaf stack in Bags’ reagent pouch, with quest progress in the objectives panel. When all four are gathered, Mira displays a **gold ? / Ready for turn-in** marker (also on the maps). Return and choose **Complete quest**; the four sprigs are consumed then. A reward cannot be claimed twice.
-
-The playable map is now 160×160, roughly seven times the previous area. Thirty-two woodland encounter slots and thirty-two Starleaf patches cover the woods, with Amberwatch Ruins, Mossfall Ridge and Moonwell Grove as destinations. Starleaf avoids water and the central camp. Each gathered patch returns after a random 30–90 seconds at a new random location at least eight paces from its old one and away from nearby players. Plant positions and depletion timers survive a restart. The ledger’s Find buttons guide you to a target. Monsters return after random 45–180 second delays at new random sites at least eighteen paces from their previous position and twelve from online players. Eight encounters initially arrive after staggered 15–60 second delays; other players cannot permanently exhaust a quest's resources. The camp around the quest NPCs is a sanctuary with gradual health recovery. Enemies do not select players standing inside it.
-
-## Groups and dungeons
-
-- **Group up:** click another adventurer of your faction and choose *Invite to group*, or type `/invite Name`. Other commands: `/leave`, `/kick Name`, `/promote Name`, and `/p message` for party chat. Groups hold up to five.
-- Group members near a kill share its experience (with a group bonus) and quest credit, and each gets their own loot.
-- **Mail:** every provisioner keeps a mailbox (the **Mailbox** tab when you talk to them). Send a letter, gold and an item to any character for 1 gold postage. Boss treasure can't be mailed.
-- **Talents:** at levels 10, 20 and 30, choose one of two talents in the spellbook (**P**). You can forget them for gold and choose again.
-- **Dungeon Finder (O):** choose your role (warriors can tank, druids can heal, and everyone can deal damage) and the dungeons you're ready for, then join the queue alone or with your group. The Finder builds a group of one tank, one healer and three damage dealers from your faction. After 90 seconds in the queue, a tank, a healer and one more will do. Everyone gets a ready check; when all accept, the group is formed and carried straight into a fresh copy of the dungeon. Walk out through the portal (or leave the group) to return to where you queued. Killing the boss pays each member a bonus satchel of gold and experience.
-- **The Hollow Crypt:** talk to Scout Haldren at the sealed door in Amberwatch Ruins, then press **F** at the door. Your group gets its own copy of the dungeon. Walk back to the glowing portal by the entrance to leave.
-- Vorlath the Ashen Warden: step out of red circles, interrupt *Soul Drain*, and kill or control his acolytes.
-
-## The world
-
-The world is about 4 km across. The Stillwood (levels 1–6) is at the centre, with four zones around it, and the Outer Ring (levels 20–30) beyond them. Every zone has a town:
-
-| Zone | Direction | Levels | Town |
-|---|---|---|---|
-| The Amber Downs | East | 6–10 | Harrowford |
-| Saltreed Marsh | South | 9–13 | Reedwatch |
-| Frostmere Vale | North | 12–16 | Hollowfrost Lodge |
-| Greyspire Crags | West | 15–20 | Cragmoor Hold |
-| The Emberwaste | North-west (Outer Ring) | 20–23 | Cinderhold |
-| Gloamwood | South-west (Outer Ring) | 22–25 | Duskhollow |
-| The Sunscar Dunes | South-east (Outer Ring) | 24–27 | Sunmere |
-| Starfall Reach | North-east (Outer Ring) | 27–30 | Starfall Rest |
-
-Roads lead from Wayfarer’s Camp to every town. An inner ring road joins the first four towns, roads run out from them to the Outer Ring, and an outer ring road joins the four Outer Ring towns. Characters grow to level 30, and from level 22 each class sharpens one ability to Rank II every second level (see the spellbook, **P**). Lava in the Emberwaste’s Cinder Pools burns anyone who wades in. Towns are sanctuaries with a provisioner, a quest giver and a graveyard; when you release your spirit, you return to the nearest one. Press **M** for a map of your zone (press **Herbs** there to find every herb patch); switch to **World** for the whole world, and click a zone there to open its map.
-
-## Dungeons
-
-| Dungeon | Zone | Levels | Boss |
-|---|---|---|---|
-| The Hollow Crypt | The Stillwood (Amberwatch Ruins) | 4–6 | Vorlath the Ashen Warden |
-| The Barrow of Harrow Hill | The Amber Downs | 9–11 | Gorran Blackhook |
-| The Drowned Chapel | Saltreed Marsh | 12–14 | Mother Sallow |
-| Glassmere Depths | Frostmere Vale | 15–17 | Hrimgar the Frostbound |
-| The Hollow Peak | Greyspire Crags | 19–21 | Stonecaller Varkesh |
-| The Cinderforge | The Emberwaste | 22–24 | Forgelord Ashkar |
-| Thornheart Hollow | Gloamwood | 24–26 | Morwen the Briar Queen |
-| Tomb of the Sun-King | The Sunscar Dunes | 26–28 | Sun-King Azhar |
-| The Shattered Observatory | Starfall Reach | 29–31 | Astromancer Velia |
-
-**Raids** (level 28+, up to ten players), each with three bosses:
-
-- *The Sundered Spire* (Starfall Reach): Grimward the Gatekeeper, Seraphel the Lightbinder, and Nythera, Heart of the Void.
-- *The Molten Crown* (the Emberwaste): Emberjaw the Furnace-Warden, Cindra the Flame-Speaker, and Vulcaris, the Molten King.
-
-Type **/raid** to turn your group into a raid of up to ten, or queue for either raid in the Dungeon Finder.
-
-Talk to the watcher at the door for the quest, then press **F** at the door to enter. Each group gets its own copy of the dungeon. Bosses drop Epic gear.
-
-## Getting around
-
-- **Riding:** learn from a stablemaster (Wayfarer’s Camp, Harrowford or Cinderhold) at level 10 for 50 gold, then press **U** to mount up. You ride 60% faster.
-- **Caravans:** caravan masters in the camp and every town carry you along the roads to towns you’ve discovered.
-- **Waystone:** make any provisioner’s town your home, then press **H** to channel your way back there (10 seconds; recharges in 15 minutes).
-
-## Guilds
-
-- **Start one:** talk to Registrar Corwin Hale at Wayfarer’s Camp and buy a charter (10 gold). Ask two adventurers of your faction to sign it, either by clicking them and choosing *Ask to sign charter* or from the guild window. Then return to the Registrar and choose *Found your guild*.
-- **Ranks:** Guild Master → Officer → Member → Initiate. Officers and the Guild Master invite, promote, demote, remove lower ranks and set the message of the day. The Guild Master can hand over leadership or disband.
-- **Window and chat:** press **J** for the roster. Use `/g` for guild chat and `/o` for officer chat.
-- Hosts can change the number of signatures needed with the `HEARTHWILD_CHARTER_SIGNATURES` environment variable (default 2).
-
-## Loot, bags and equipment
-
-Each nearby active contributor receives a personal loot chest when an enemy dies. It contains 10 gold and one item. Move nearby and press E or click the chest; only its owner can see or claim it. Unclaimed drops expire after five minutes. Gold is now collected from drops, rather than instantly added on a kill.
-
-Open the bag with I and select **Equip**. Weapons, chest armor and charms change server-calculated damage, armor and maximum health. Bonuses are listed per item; equipped items remain in the bag and replace that slot's prior item. Repeated replacements do not stack. There are six gear definitions and two healing draughts, with up to 60 gear/consumable bag items and a separate Starleaf reagent pouch. Equipping chest gear adds layered armor and a cape; charms appear on the chest and upgraded weapons change size. Item-specific authored models, class armor restrictions, player-to-player trading is not implemented. Spare items can be sold to merchants.
-
-## Merchants and professions
-
-Talk to **Torren the Provisioner** (south of camp) or **Herbalist Mira**, then choose **Trade & professions**. Buy lists fixed gold prices; Sell buys spare unequipped gear, potions and Starleaf (one gold per sprig). Buyback restores the last ten sold gear/potion instances at the sale price. Equipped gear must be replaced before selling. Purchases, materials, gold and buyback persist per character. Remote trades, forged prices and invalid quantities are rejected by the server.
-
-Mira teaches **Herbalism** and **Alchemy** free. Gathering increases learned Herbalism; crafting increases Alchemy, each capped at 100. Use K to craft anywhere. Two Starleaf make a healing draught (restores 60 health); at Alchemy 5, four make a greater draught (110 health). Select a potion in Bags and choose **Use draught**. Potions share a 20-second cooldown and cannot be wasted at full health. Four Starleaf stay reserved for an accepted gathering quest until turn-in; surplus herbs can be sold or crafted. These are the first two professions and recipes, not complete profession trees.
-
-Smith Bran Hollis, also at camp, teaches **Mining** and **Blacksmithing** free. Mining digs ore from veins across eight zones; Blacksmithing forges Rare weapons and chest pieces from it, from level 6 to 30. Turn on **Herbs & ore** on the map to find veins.
-
-**Gharrowmaw, the Wandering Colossus**, is a world boss that roams the Outer Ring. Everyone online hears when it wakes; bring friends, stay out of its stomp, and everyone who helps earns an Epic.
-
-To **trade** with someone standing near you, right-click them and choose **Trade**, or type `/trade Name`. Both of you must confirm before anything changes hands.
-
-Press **Y** for **Achievements**: 24 goals across the whole game, from clearing every dungeon to mastering a profession. Nine of them unlock a **title** you can show on your nameplate.
-
-## Faction communication
-
-| Channel | Recipients |
+| Key | Action |
 |---|---|
-| Nearby | Online characters of your faction within 18 paces |
-| Faction | Your faction throughout the zone |
-| Whisper | Sender and the named online same-faction character |
+| **W A S D** / arrows | Move and turn (Q/E strafe; hold the right mouse button to steer with the camera) |
+| **Mouse** | Left-click to target, right-click to attack, talk, gather or loot; drag to look; wheel to zoom |
+| **1–0, −, =** | Action bar (**5** toggles auto-attack) |
+| **Tab** | Target the nearest enemy |
+| **F** | Talk, gather, loot, enter a dungeon |
+| **Space** | Jump |
+| **R** / Num Lock | Autorun |
+| **U** | Mount or dismount |
+| **H** | Waystone home |
+| **V** | Camera: orbit, follow, first person |
+| **B / I** | Bags |
+| **C** | Character |
+| **P** | Spellbook and talents |
+| **K** | Professions |
+| **M** | Map |
+| **L** | Quests |
+| **J** | Guild |
+| **O** | Dungeon Finder |
+| **Y** | Achievements |
+| **Enter** | Chat |
+| **Esc** | Close windows, then the game menu |
 
-The server derives sender identity/faction and filters recipients; opposing clients never receive restricted text. Messages allow 1–280 characters without control characters and an 0.8-second send interval. A character retains the last 80 received messages in memory. Server history resets on restart; already-rendered browser text can remain until reload. Presence expires after 15 seconds without requests. Voice, party/guild chat and moderation are not implemented. These are character-language rules, not prevention of out-of-game communication or a human creating both factions.
+## Hosting
 
-## Server Manager
+### The desktop app
 
-The desktop app runs its own Hearthwild server. Open **Server → Server Manager…** (⇧⌘M on a Mac, Ctrl+Shift+M elsewhere) to run and set it up without a terminal:
+The app runs its own server. Open **Server → Server Manager…** (⇧⌘M on a Mac, Ctrl+Shift+M elsewhere) to:
+- start, stop and restart it, and see who's online;
+- share it with your network on a port you choose;
+- send announcements, kick or ban players, and reset passwords;
+- back up the world.
 
-- **Status:** see whether the server is running, how long it's been up, and who is online (level, class and where they are).
-- **Controls:** **Start**, **Stop** and **Restart** it. The game window reconnects by itself.
-- **Invite friends:** turn on **Share with my network**, pick a port and an HTTPS certificate and key, then **Save and restart**. The window shows the address to give friends, with a Copy button; they open it in a web browser. Friends can only sign in over HTTPS, which keeps passwords private on the network.
-- **Guild charters:** set how many signatures a new guild needs.
-- **Host tools:** send an announcement to everyone online; **Kick** a player (they can come back in); **Ban** an account (all its characters), with a reason, and lift bans later; set a new password for an account.
-- **Your world save:** open the save folder, or **Back up now** to put a timestamped copy in `backups/`.
-- **Activity:** the server starting and stopping, players joining and leaving, and any errors.
+Friends sign in over HTTPS when you share, so you choose a certificate and key there. Settings live in `server-config.json` in the app's data folder.
 
-Settings are kept in `server-config.json` in the app's data folder. If a development server from `~/Sources` is already running, the Server Manager says so and leaves it alone.
+### Docker or source
 
-## Development process
+| Setting | Meaning | Default |
+|---|---|---|
+| `HOST` | Address to listen on: `0.0.0.0` for your whole network | `127.0.0.1` (Docker: `0.0.0.0`) |
+| `PORT` | Port | `4180` |
+| `DATA_DIR` | Where the world is saved | `data/` (Docker: the `hearthwild-data` volume) |
+| `TLS_CERT`, `TLS_KEY` | Certificate and key files; needed for signing in from other devices | none |
+| `HEARTHWILD_DEMO` | `1` runs the free demo | `0` |
+| `HEARTHWILD_CHARTER_SIGNATURES` | Signatures a new guild charter needs | `2` |
 
-Want to help? Start with [CONTRIBUTING.md](CONTRIBUTING.md). Hearthwild is built in one-week sprints, with a prioritized backlog. The process, the backlog and every sprint's plan, progress, review and retrospective are documented in [`docs/agile/`](docs/agile/README.md).
+Plain HTTP works for play on the same computer. From other devices, accounts need HTTPS: set `TLS_CERT` and `TLS_KEY`, and friends open `https://<your address>:4180`. Run only one server per save folder.
 
-## Friends hosting
+### Saves and recovery
 
-Default binding is local to this Mac. To opt into a trusted LAN, stop the server with Ctrl-C, then:
+The world is saved to `world.json` in the data folder every few seconds and on shutdown, written to a temporary file and then renamed. Back it up with the server stopped, or use **Back up now** in the Server Manager.
 
-```sh
-HOST=0.0.0.0 PORT=4180 npm start
-```
+If someone forgets their password, the host can reset it in the Server Manager. Without the app, stop the server and run `node server/reset-password.js USERNAME SAVE_FOLDER`; it keeps a backup and signs out old sessions.
 
-Account sign-in over a network requires HTTPS. Supply TLS_CERT and TLS_KEY paths to your trusted certificate/key files; friends open `https://<server-hostname>:4180`. Plain HTTP is supported only for loopback local play. Allow inbound access in macOS Firewall if prompted. No router/firewall/public exposure was configured by this work. Separate devices have not been tested. Internet hosting needs TLS, invitations/account administration, moderation, operational safeguards and measured capacity. The initial 2–8-player target is not a load-test result.
+## Development
 
-PORT overrides the port; DATA_DIR overrides save storage. Run only one server process per save directory. Data lives in `data/world.json`, replaced through a temporary file and rename. Save after persistent actions and every five seconds, plus graceful shutdown. Abrupt failure can lose recent simulation changes. Back up with the server stopped. Class, XP/level, inventory, equipment, quests, materials and outstanding loot persist; dead monster timers persist through restart; resource nodes regenerate. Password hashes, hashed sessions and account ownership persist. Saves are excluded from Git and the source archive.
-
-## Visual state
-
-This pass adds class headgear, layered visible chest armor, animated capes and equipment details. Earlier work replaces the cone forest and simple bodies with rounded canopy clusters, detailed ground vegetation, textured rock/bark, gradient sky, distant mountains, animated water/motes, articulated character limbs, class weapon silhouettes and combat motion/damage/projectile feedback. The camera shortens around tree occluders. It remains procedural prototype art: authored cinematic characters, animations, environments and effects are a continuing requirement, not a completed result.
-
-## Verify and develop
-
-Run `npm test` and `npm run check`. Forty-three tests cover class/level/skill permissions, costs/cooldowns/cast interruption, leveling, NPC acceptance/turn-in, local objective supply, renewable gathering, personal loot ownership/proximity, equipment stats, character/save migration, chat restrictions, input normalization, approach behavior and authenticated HTTP/restart persistence.
-
-Browser checks in this update: both NPC conversations and acceptance; gathering four starleaf and returning for the reward; Warrior resource generation and a second ability; an enemy defeat with a personal chest; collection/equipping of armor and a charm; level 2 unlocking Rally; a separate Warlock casting at range with Mana consumption; captured console logs without warnings/errors. Druid/Rogue rules are server-tested through the same validation paths, but their complete browser combat flows have not been individually exercised. Long sessions, mobile breakpoints, separate machines and endgame systems remain unverified.
-
-`server/content.js`: classes, abilities, items and NPC/quest definitions. `server/world.js`: server-owned rules/simulation. `server/http.js`: authenticated transport and persistence. `public/controls.js`: approach intent. `public/scenery.js`: original procedural environment/bodies. `public/game.js`: client rendering, input and UI. See SPEC.md for the API and ROADMAP.md for the full MMORPG direction.
-
-## 0.3 interface and respawn update
-
-The HUD now uses a compact 12-slot action bar keyed 1–0, minus and equals (four actual class abilities are implemented; the other slots are empty). Icons are original painted art with cooldown sweeps and level-lock indicators. The player/target frames, lower-left chat, upper-right circular minimap, objective tracker and micro-menu follow familiar MMORPG placement. There is no hotbar drag-and-drop, rebinding, additional action-bar paging or full HUD edit mode yet.
-
-**B / I** opens the combined 60-slot backpack. Search by name/type/rarity, select an item to compare bonuses against the equipped slot, then equip it. **C** opens the same combined character/equipment bag panel. **P** opens the class spellbook. **M** opens a local world map with player/NPC/enemy/resource/loot markers and quest tracking. **L** opens the searchable quest journal view; filter all, active, available or completed quests. Escape closes these windows. Map coordinates are normalized 0–100 for this one starting zone; this is not a multi-continent world atlas or route planner. Other faction players remain visible on the map without any access to restricted chat.
-
-Monster spawning now uses scattered encounter sites and random 45–180 second return delays, preserving positions and schedules through restarts. Starleaf also persists and relocates on a separate 30–90 second timer.
-
-This pass also replaces spherical monsters with articulated tusked forest beasts and adds facial/clothing detail to characters. World art remains procedural and is far from a final cinematic asset set. The icon atlas is a production asset generated with the built-in image tool: see `public/art/GENERATION.md` for the complete prompt and provenance.
-
-Added verification covers twelve-slot ordering, north-up map projection, quest lookup/status filtering, bag filtering/capacity, respawn delay, proximity deferral and timer persistence. Browser verification exercises map/journal search, bag search/item comparison, the spellbook and the new hotbar. These do not establish verification on other screen sizes/devices.
-
-## Window sizes
-
-The HUD has been measured at 320×480, 480×480, 640×480, 800×600, 1024×768 and 1440×900. Compact windows use Chat/Objectives toggles and stacked menus; modal windows scroll to fit. The desktop app offers Compact/Standard/Large sizes in View.
-
-## Releases
-
-Raising the `version` in `package.json` on `main` publishes a release automatically. GitHub Actions (`.github/workflows/release.yml`) runs the tests, builds the Mac (Apple Silicon and Intel), Windows and Linux packages, and attaches them to a new GitHub release. The release notes come from that version's `CHANGELOG.md` section. You can also run the workflow by hand from the repository's **Actions** tab.
+- Plain Node 22 on the server and browser JavaScript with [three.js](https://threejs.org/) (vendored) on the client; Electron for the desktop app. No runtime npm dependencies.
+- `npm test` runs every test (Node's built-in test runner) and `npm run check` checks syntax. CI runs both on every pull request, along with a Docker build and CodeQL.
+- Work is planned in one-week sprints: see [SPRINTS](SPRINTS.md), [BACKLOG](BACKLOG.md) and [`docs/agile/`](docs/agile/README.md). [SPEC.md](SPEC.md) and [ROADMAP.md](ROADMAP.md) describe the design.
+- Releases are automatic when the version in `package.json` changes on `main` (see [RELEASES](RELEASES.md)), and every change is listed in [CHANGELOG.md](CHANGELOG.md).
 
 ## License
 
@@ -231,4 +135,3 @@ Hearthwild is free software: you can redistribute it and/or modify it under the 
 The AGPL means that if you run a **modified** Hearthwild server for other people, you must offer them your modified source code. The game's opening screen has a "Get the source code" link for this; point it at your own copy.
 
 Third-party assets keep their own licenses, listed in [`public/models/CREDITS.md`](public/models/CREDITS.md) (CC0 and CC-BY). The bundled three.js library is MIT-licensed.
-

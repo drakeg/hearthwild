@@ -73,3 +73,14 @@ test("the server reports demo mode from HEARTHWILD_DEMO or its option", async ()
   await app.close();
   rmSync(dir, { recursive: true, force: true });
 });
+
+test("the demo offers only the Stillwood's quests", () => {
+  const w = new World({}, { demo: true }),
+    h = hero(w),
+    quests = Object.keys(w.state(h.a.token, 0, 2000).self.quests).sort();
+  assert.deepEqual(quests, ["crypt", "starleaf", "wildgrowth"]);
+  assert.throws(() => h.act({ type: "quest", operation: "accept", quest: "harrow" }), /full game/);
+  const full = new World({}),
+    f = hero(full);
+  assert.ok(Object.keys(full.state(f.a.token, 0, 2000).self.quests).length > 40);
+});

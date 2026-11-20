@@ -7,10 +7,11 @@
 | ID | Story | Points | Status |
 |---|---|---|---|
 | HW-131 | Adopt the Mad Mallard repository standards | 5 | In review ([PR #21](https://github.com/drakeg/hearthwild/pull/21)) |
-| HW-133 | Rewrite the README for the current game | 2 | Ready |
+| HW-133 | Rewrite the README for the current game | 2 | In review |
+| HW-134 | Bug: the demo offered quests outside the Stillwood | 2 | In review |
 | HW-122 | Free demo build: the Stillwood only (levels 1–6) | 5 | In review |
 
-**Committed:** 12 points
+**Committed:** 12 points (+2 for HW-134, found during the sprint)
 
 ## Acceptance criteria
 
@@ -35,6 +36,7 @@
 
 - **2026-11-19:** PR #21 CI: tests, the Docker image (built, healthy, answering) and CodeQL (no new alerts) all passed on the first run.
 - **2026-11-19:** HW-122 built. Packaged the Linux demo locally with Electron Packager and ran the workflow's smoke test against it (demo mode reported). Tests caught a bug: the first "edge of the Stillwood" warning was skipped; fixed. 139 tests pass. Checked in the browser ([screenshot](sprint-15-demo.png)). **Follow-up:** the quest log still offers quests that lead outside the Stillwood (HW-134).
+- **2026-11-19:** HW-134 fixed (the demo offers only quests whose giver is in the Stillwood) and HW-133 done: the README is rewritten for the current game, about 1,500 words instead of 4,500. Released as 0.25.1 because #22 publishes 0.25.0.
 
 ## Review
 *(At the end of the sprint.)*
