@@ -294,7 +294,13 @@ async function launch() {
   });
   // Only the game's own source-code link may leave the app, and it opens in the system browser.
   win.webContents.setWindowOpenHandler(({ url }) => {
-    if (url === "https://github.com/drakeg/hearthwild" || url === "https://github.com/drakeg/hearthwild/releases/latest") shell.openExternal(url);
+    const external = [
+      "https://github.com/drakeg/hearthwild",
+      "https://github.com/drakeg/hearthwild/releases/latest",
+      "https://github.com/drakeg/hearthwild/blob/main/PRIVACY.md",
+      "https://github.com/drakeg/hearthwild/blob/main/TERMS.md",
+    ];
+    if (external.includes(url)) shell.openExternal(url);
     return { action: "deny" };
   });
   win.webContents.on("will-navigate", (e, url) => {

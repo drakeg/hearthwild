@@ -33,7 +33,7 @@ Planned on 2026-11-13 from a monetization review. Ordered so each step tests dem
 | HW-123 | Story | **Gameplay trailer and press kit:** 60–90 s of the Outer Ring and the raid, screenshots, a short description | 3 | Backlog |
 | HW-124 | Story | **itch.io early-access page:** pay what you want, $5 minimum and $10 suggested; demo plus full builds uploaded by the workflow | 3 | Backlog |
 | HW-125 | Story | **Supporter page** (Ko-fi or Patreon) linked from the game menu and README, with credits for supporters | 2 | Backlog |
-| HW-126 | Story | **Terms of service and a privacy policy** for player accounts | 2 | Backlog |
+| HW-126 | Story | **Terms of service and a privacy policy** for player accounts | 2 | In sprint |
 | HW-127 | Story | **Waitlist for hosted worlds:** a "join the waitlist" form, aiming for 50 sign-ups before building billing | 2 | Backlog |
 | HW-128 | Story | **Hosted private worlds ("Realms"):** an always-on world for a group of up to 10, about $6 a month; builds on HW-100 | 13 | Backlog |
 | HW-129 | Story | **Billing for Realms:** subscription checkout, receipts, cancellation | 8 | Backlog |
