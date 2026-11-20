@@ -134,4 +134,6 @@ Hearthwild is free software: you can redistribute it and/or modify it under the 
 
 The AGPL means that if you run a **modified** Hearthwild server for other people, you must offer them your modified source code. The game's opening screen has a "Get the source code" link for this; point it at your own copy.
 
+Using a world run by the project? See the [privacy policy](PRIVACY.md) and [terms of use](TERMS.md).
+
 Third-party assets keep their own licenses, listed in [`public/models/CREDITS.md`](public/models/CREDITS.md) (CC0 and CC-BY). The bundled three.js library is MIT-licensed.
