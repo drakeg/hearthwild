@@ -47,6 +47,7 @@ Planned on 2026-11-13 from a monetization review. Ordered so each step tests dem
 |---|---|---|---|---|---|
 | HW-131 | Chore | Adopt the Mad Mallard repository standards: root docs, CI, CodeQL, Docker Compose for LAN testing, README badges | Process & Tooling | 5 | In sprint |
 | HW-132 | Story | **Free hosted test world** that redeploys from `main` (for example a free container host), so testers can play without installing anything. *Needs the Product Owner to choose a host and create the account.* | Server & Hosting | 3 | Waiting on PO |
-| HW-134 | Bug | In the demo, hide or explain quests whose objectives are outside the Stillwood | Monetization | 2 | Ready |
+| HW-135 | Bug | v0.24.0 release failed: the catch-up job used the new workflow to build an older version without demo support | Process & Tooling | 1 | In sprint |
+| HW-134 | Bug | In the demo, hide or explain quests whose objectives are outside the Stillwood | Monetization | 2 | In sprint |
 | HW-133 | Chore | Rewrite the README for the current game (it still describes 0.5–0.7 builds) | Process & Tooling | 2 | In sprint |
 *(Add items here; they're refined and placed above.)*

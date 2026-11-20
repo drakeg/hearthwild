@@ -92,6 +92,12 @@ export class World {
     // The free demo keeps everyone in the Stillwood, up to level 6.
     this.demo = demo ? DEMO : null;
     this.levelCap = demo ? DEMO.maxLevel : MAX_LEVEL;
+    // In the demo, only quests whose giver stands in the Stillwood are offered.
+    const giverZone = (q) => {
+      const n = NPCS.find((x) => x.id === q.npc);
+      return n ? zoneAt(n.x, n.z) : null;
+    };
+    this.demoQuests = demo ? new Set(Object.values(QUESTS).filter((q) => giverZone(q) === DEMO.zone).map((q) => q.id)) : null;
     this.random = random;
     this.combatRandom = combatRandom;
     this.players = new Map();
@@ -357,7 +363,7 @@ export class World {
         buyback: p.buyback.map(describeItem),
         potionReadyAt: p.potionReadyAt,
         equipment: p.equipment,
-        quests: Object.fromEntries(Object.entries(p.quests).map(([id, q]) => [id, this.questLock(p, QUESTS[id]) ? { ...q, locked: true } : q])),
+        quests: Object.fromEntries(Object.entries(p.quests).filter(([id]) => !this.demoQuests || this.demoQuests.has(id)).map(([id, q]) => [id, this.questLock(p, QUESTS[id]) ? { ...q, locked: true } : q])),
         materials: p.materials,
         power: p.power,
         xp: p.xp,
@@ -601,6 +607,7 @@ export class World {
           ? QUESTS[a.quest]
           : null;
       reject(!quest, "Unknown quest.");
+      reject(this.demoQuests && !this.demoQuests.has(quest.id), "That quest is part of the full game.");
       const progress = p.quests[quest.id],
         // Deliveries are handed in to the person they're addressed to.
         npc = this.npcs.find((n) => n.id === (a.operation === "complete" && quest.deliver ? quest.deliver.to : quest.npc));
